@@ -198,6 +198,9 @@ model SlateVersion {
 
   version String
 
+  /// [SlateJson]
+  slateJson Json
+
   slateOid BigInt
   slate    Slate  @relation(fields: [slateOid], references: [oid])
 
