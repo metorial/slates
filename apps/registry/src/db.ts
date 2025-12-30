@@ -11,5 +11,11 @@ declare global {
       url: string;
       label: string;
     }[];
+
+    type SlateJson = {
+      name: string;
+      version: string;
+      description?: string;
+    };
   }
 }
