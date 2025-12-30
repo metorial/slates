@@ -50,7 +50,6 @@ export let slatesController = createHono()
     useValidation(
       'json',
       z.object({
-        version: z.string(),
         contentBase64: z.string(),
         access: z.enum(['public', 'private'])
       })
@@ -74,7 +73,6 @@ export let slatesController = createHono()
           slateIdentifier: c.req.param('slateId'),
 
           access: body.access,
-          version: body.version,
           contentBase64: body.contentBase64
         }
       });

@@ -25,6 +25,8 @@ export let slateVersionPresenter = (
 
   slateId: slateVersion.slate.id,
 
+  manifest: slateVersion.slateJson,
+
   documents: slateVersion.slateDocuments.map(doc => ({
     object: 'slate.document',
 
