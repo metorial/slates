@@ -24,13 +24,14 @@ model Instance {
   identifier String @unique
   name       String
 
-  createdAt    DateTime      @default(now())
-  users        User[]
-  workspaces   Workspace[]
-  scopes       Scope[]
-  slates       Slate[]
-  userTokens   UserToken[]
-  readerTokens ReaderToken[]
+  createdAt           DateTime             @default(now())
+  users               User[]
+  workspaces          Workspace[]
+  scopes              Scope[]
+  slates              Slate[]
+  userTokens          UserToken[]
+  readerTokens        ReaderToken[]
+  changeNotifications ChangeNotification[]
 }
 
 enum ScopeType {
@@ -207,7 +208,8 @@ model Slate {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  slateVersions SlateVersion[]
+  slateVersions       SlateVersion[]
+  changeNotifications ChangeNotification[]
 }
 
 model SlateVersion {
@@ -232,8 +234,9 @@ model SlateVersion {
 
   createdAt DateTime @default(now())
 
-  slateDocuments  SlateDocument[]
-  currentInSlates Slate[]         @relation("currentVersion")
+  slateDocuments      SlateDocument[]
+  currentInSlates     Slate[]              @relation("currentVersion")
+  changeNotifications ChangeNotification[]
 
   @@unique([slateOid, version])
 }
@@ -267,4 +270,35 @@ model Artifact {
   createdAt DateTime @default(now())
 
   slateVersions SlateVersion[]
+}
+
+enum ChangeNotificationType {
+  slate_version_created
+}
+
+model ChangeNotification {
+  oid BigInt @id
+  id  String @unique
+
+  type ChangeNotificationType
+
+  // Denormalized fields to avoid having to do joins when iterating over notifications
+  slateId                String
+  slateIdentifier        String
+  slateFullIdentifier    String
+  slateVersionId         String?
+  slateVersionIdentifier String?
+
+  slateOid BigInt
+  slate    Slate  @relation(fields: [slateOid], references: [oid])
+
+  instanceOid BigInt
+  instance    Instance @relation(fields: [instanceOid], references: [oid])
+
+  slateVersionOid BigInt?
+  slateVersion    SlateVersion? @relation(fields: [slateVersionOid], references: [oid])
+
+  createdAt DateTime @default(now())
+
+  @@index([type])
 }

@@ -131,14 +131,17 @@ class userTokenServiceImpl {
         instance: true
       }
     });
-    if (!token)
-      throw new ServiceError(
-        unauthorizedError({
+    if (!token) {
+      return {
+        status: 'error' as const,
+        error: unauthorizedError({
           message: 'The provided Slates token is invalid or has expired.'
         })
-      );
+      };
+    }
 
     return {
+      status: 'success' as const,
       token,
       user: token.user,
       instance: token.instance

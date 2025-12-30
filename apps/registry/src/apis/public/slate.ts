@@ -1,4 +1,3 @@
-import { forbiddenError, ServiceError } from '@lowerdeck/error';
 import { createHono } from '@lowerdeck/hono';
 import { Paginator } from '@lowerdeck/pagination';
 import { z } from 'zod';
@@ -7,7 +6,7 @@ import { useValidation } from '../../lib/validator';
 import { slatePresenter, slateVersionPresenter } from '../../presenters';
 import { slateService, slateVersionService } from '../../services';
 import { storage } from '../../storage';
-import { useAuth } from './_app';
+import { useAuth, useUserAuth } from './_app';
 
 export let slatesController = createHono()
   .get(
@@ -55,16 +54,8 @@ export let slatesController = createHono()
       })
     ),
     async c => {
-      let auth = await useAuth(c);
-      if (auth.type != 'user') {
-        throw new ServiceError(
-          forbiddenError({
-            message: 'Cannot publish slate without user authentication'
-          })
-        );
-      }
-
-      let body = await c.req.valid('json');
+      let auth = await useUserAuth(c);
+      let body = c.req.valid('json');
 
       let slateVersion = await slateVersionService.publishSlateVersion({
         user: auth.user,
