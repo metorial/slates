@@ -1,4 +1,4 @@
-import { ServiceError, unauthorizedError } from '@lowerdeck/error';
+import { unauthorizedError } from '@lowerdeck/error';
 import { Service } from '@lowerdeck/service';
 import type { Instance } from '../../prisma/generated/client';
 import { db } from '../db';
@@ -52,16 +52,19 @@ class readerTokenServiceImpl {
         instance: true
       }
     });
-    if (!token)
-      throw new ServiceError(
-        unauthorizedError({
+    if (!token) {
+      return {
+        status: 'error' as const,
+        error: unauthorizedError({
           message: 'The provided Slates token is invalid or has expired.'
         })
-      );
+      };
+    }
 
     return {
+      status: 'success' as const,
       token,
-      instance: token.instance
+      instance: token.instance ?? undefined
     };
   }
 }

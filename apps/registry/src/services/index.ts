@@ -1,3 +1,4 @@
+export * from './changeNotification';
 export * from './instance';
 export * from './readerToken';
 export * from './scope';

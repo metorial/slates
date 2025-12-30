@@ -255,6 +255,22 @@ class slateVersionServiceImpl {
           }
         });
 
+        await db.changeNotification.create({
+          data: {
+            oid: snowflake.nextId(),
+            id: await ID.generateId('changeNotification'),
+            type: 'slate_version_created',
+            slateOid: slate.oid,
+            slateId: slate.id,
+            slateIdentifier: slate.identifier,
+            slateFullIdentifier: slate.fullIdentifier,
+            slateVersionOid: version.oid,
+            slateVersionId: version.id,
+            slateVersionIdentifier: version.version,
+            instanceOid: d.user.instanceOid
+          }
+        });
+
         await db.slateDocument.createMany({
           data: docsFiles.map(f => ({
             oid: snowflake.nextId(),
