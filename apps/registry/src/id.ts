@@ -11,7 +11,8 @@ export let ID = createIdGenerator({
   slate: idType.sorted('srsl'),
   slateVersion: idType.sorted('srsv'),
   slateDocument: idType.sorted('srsd'),
-  artifact: idType.sorted('sraf')
+  artifact: idType.sorted('sraf'),
+  changeNotification: idType.sorted('srcn')
 });
 
 let workerIdBits = 12;
