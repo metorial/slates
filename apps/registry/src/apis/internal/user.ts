@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { tokenPresenter, userPresenter } from '../../presenters';
-import { tokenService, userService } from '../../services';
+import { userPresenter, userTokenPresenter } from '../../presenters';
+import { userService, userTokenService } from '../../services';
 import { app } from './_app';
 import { instanceApp } from './instance';
 
@@ -105,7 +105,7 @@ export let userController = app.controller({
         })
       )
       .do(async ctx => {
-        let token = await tokenService.createToken({
+        let token = await userTokenService.createUserToken({
           user: ctx.user,
           input: {
             name: ctx.input.name
@@ -113,7 +113,7 @@ export let userController = app.controller({
         });
 
         return {
-          ...tokenPresenter(token),
+          ...userTokenPresenter(token),
           secret: token.secret
         };
       }),
@@ -129,13 +129,13 @@ export let userController = app.controller({
         )
       )
       .do(async ctx => {
-        let paginator = await tokenService.listTokens({
+        let paginator = await userTokenService.listTokens({
           user: ctx.user
         });
 
         let list = await paginator.run(ctx.input);
 
-        return Paginator.presentLight(list, tokenPresenter);
+        return Paginator.presentLight(list, userTokenPresenter);
       }),
 
     get: userApp
@@ -149,12 +149,12 @@ export let userController = app.controller({
         })
       )
       .do(async ctx => {
-        let token = await tokenService.getTokenById({
+        let token = await userTokenService.getTokenById({
           id: ctx.input.tokenId,
           user: ctx.user
         });
 
-        return tokenPresenter(token);
+        return userTokenPresenter(token);
       }),
 
     delete: userApp
@@ -168,16 +168,16 @@ export let userController = app.controller({
         })
       )
       .do(async ctx => {
-        let token = await tokenService.getTokenById({
+        let token = await userTokenService.getTokenById({
           id: ctx.input.tokenId,
           user: ctx.user
         });
 
-        token = await tokenService.deleteToken({
+        token = await userTokenService.deleteUserToken({
           token
         });
 
-        return tokenPresenter(token);
+        return userTokenPresenter(token);
       })
   })
 });

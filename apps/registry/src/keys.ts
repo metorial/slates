@@ -1,6 +1,6 @@
 import { createApiKeyGenerator } from '@lowerdeck/api-key';
 
 export let apiKeys = createApiKeyGenerator(
-  { regtoken: 'user_auth_token' },
+  { utok: 'user_auth_token', rtok: 'reader_token' },
   { prefix: 'slates' }
 );

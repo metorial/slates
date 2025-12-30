@@ -24,12 +24,13 @@ model Instance {
   identifier String @unique
   name       String
 
-  createdAt  DateTime    @default(now())
-  users      User[]
-  workspaces Workspace[]
-  scopes     Scope[]
-  tokens     Token[]
-  slates     Slate[]
+  createdAt    DateTime      @default(now())
+  users        User[]
+  workspaces   Workspace[]
+  scopes       Scope[]
+  slates       Slate[]
+  userTokens   UserToken[]
+  readerTokens ReaderToken[]
 }
 
 enum ScopeType {
@@ -94,7 +95,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  tokens        Token[]
+  tokens        UserToken[]
   slates        Slate[]
   slateVersions SlateVersion[]
 }
@@ -128,7 +129,7 @@ enum TokenStatus {
   expired
 }
 
-model Token {
+model UserToken {
   oid    BigInt      @id
   id     String      @unique
   status TokenStatus
@@ -141,6 +142,25 @@ model Token {
 
   instanceOid BigInt
   instance    Instance @relation(fields: [instanceOid], references: [oid])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  expiresAt DateTime?
+
+  @@index([expiresAt])
+  @@index([status])
+}
+
+model ReaderToken {
+  oid    BigInt      @id
+  id     String      @unique
+  status TokenStatus
+
+  name   String
+  secret String @unique
+
+  instanceOid BigInt?
+  instance    Instance? @relation(fields: [instanceOid], references: [oid])
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt

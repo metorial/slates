@@ -1,7 +1,7 @@
 import { badRequestError, ServiceError } from '@lowerdeck/error';
 import type { Context } from 'hono';
 import { env } from '../../env';
-import { tokenService } from '../../services';
+import { userTokenService } from '../../services';
 
 let useExtractToken = async (ctx: Context) => {
   let authHeader = ctx.req.header('Authorization');
@@ -33,7 +33,7 @@ export let useAuth = async (ctx: Context) => {
 
   if (!token) return { type: 'public' as const, instance: undefined, user: undefined };
 
-  let auth = await tokenService.authenticateWithToken({ secret: token });
+  let auth = await userTokenService.authenticateWithUserToken({ secret: token });
 
   return {
     type: 'user' as const,

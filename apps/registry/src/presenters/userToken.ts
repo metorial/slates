@@ -1,8 +1,8 @@
-import type { Instance, Token, User } from '../../prisma/generated/client';
+import type { Instance, User, UserToken } from '../../prisma/generated/client';
 import { apiKeys } from '../keys';
 
-export let tokenPresenter = (token: Token & { user: User; instance: Instance }) => ({
-  object: 'token',
+export let userTokenPresenter = (token: UserToken & { user: User; instance: Instance }) => ({
+  object: 'user_token',
 
   id: token.id,
   status: token.status,
