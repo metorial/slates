@@ -1,0 +1,250 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
+model Instance {
+  oid BigInt @id
+  id  String @unique
+
+  identifier String @unique
+  name       String
+
+  createdAt  DateTime    @default(now())
+  users      User[]
+  workspaces Workspace[]
+  scopes     Scope[]
+  tokens     Token[]
+  slates     Slate[]
+}
+
+enum ScopeType {
+  user
+  workspace
+}
+
+enum ScopeStatus {
+  active
+  deleted
+}
+
+model Scope {
+  oid    BigInt      @id
+  id     String      @unique
+  type   ScopeType
+  status ScopeStatus
+
+  identifier  String  @unique
+  name        String
+  description String?
+
+  /// [EntityLinks]
+  links Json
+
+  instanceOid BigInt
+  instance    Instance @relation(fields: [instanceOid], references: [oid])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  user      User?
+  workspace Workspace?
+  slates    Slate[]
+}
+
+enum UserStatus {
+  active
+  deleted
+}
+
+enum UserInstanceAccess {
+  read
+  read_write
+}
+
+model User {
+  oid    BigInt             @id
+  id     String             @unique
+  status UserStatus
+  access UserInstanceAccess
+
+  identifier String @unique
+  name       String
+
+  scopeOid BigInt @unique
+  scope    Scope  @relation(fields: [scopeOid], references: [oid])
+
+  instanceOid BigInt
+  instance    Instance @relation(fields: [instanceOid], references: [oid])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  tokens        Token[]
+  slates        Slate[]
+  slateVersions SlateVersion[]
+}
+
+enum WorkspaceStatus {
+  active
+  deleted
+}
+
+model Workspace {
+  oid    BigInt          @id
+  id     String          @unique
+  status WorkspaceStatus
+
+  identifier String @unique
+  name       String
+
+  scopeOid BigInt @unique
+  scope    Scope  @relation(fields: [scopeOid], references: [oid])
+
+  instanceOid BigInt
+  instance    Instance @relation(fields: [instanceOid], references: [oid])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum TokenStatus {
+  active
+  revoked
+  expired
+}
+
+model Token {
+  oid    BigInt      @id
+  id     String      @unique
+  status TokenStatus
+
+  name   String
+  secret String @unique
+
+  userOid BigInt
+  user    User   @relation(fields: [userOid], references: [oid])
+
+  instanceOid BigInt
+  instance    Instance @relation(fields: [instanceOid], references: [oid])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  expiresAt DateTime?
+
+  @@index([expiresAt])
+  @@index([status])
+}
+
+enum SlateStatus {
+  active
+  deleted
+}
+
+enum SlateAccess {
+  public
+  private
+}
+
+model Slate {
+  oid    BigInt      @id
+  id     String      @unique
+  status SlateStatus
+  access SlateAccess
+
+  identifier     String @unique
+  fullIdentifier String @unique
+  name           String
+
+  description String?
+
+  scopeOid BigInt
+  scope    Scope  @relation(fields: [scopeOid], references: [oid])
+
+  instanceOid BigInt
+  instance    Instance @relation(fields: [instanceOid], references: [oid])
+
+  createdByUserOid BigInt
+  createdByUser    User   @relation(fields: [createdByUserOid], references: [oid])
+
+  currentVersionOid BigInt?
+  currentVersion    SlateVersion? @relation(fields: [currentVersionOid], references: [oid], name: "currentVersion")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  slateVersions SlateVersion[]
+}
+
+model SlateVersion {
+  oid BigInt @id
+  id  String @unique
+
+  isCurrent Boolean
+
+  version String
+
+  /// [SlateJson]
+  slateJson Json
+
+  slateOid BigInt
+  slate    Slate  @relation(fields: [slateOid], references: [oid])
+
+  bundleArtifactOid BigInt
+  bundleArtifact    Artifact @relation(fields: [bundleArtifactOid], references: [oid])
+
+  createdByUserOid BigInt
+  createdByUser    User   @relation(fields: [createdByUserOid], references: [oid])
+
+  createdAt DateTime @default(now())
+
+  slateDocuments  SlateDocument[]
+  currentInSlates Slate[]         @relation("currentVersion")
+
+  @@unique([slateOid, version])
+}
+
+model SlateDocument {
+  oid BigInt @id
+  id  String @unique
+
+  slateVersionOid BigInt
+  slateVersion    SlateVersion @relation(fields: [slateVersionOid], references: [oid])
+
+  path    String
+  content String
+
+  createdAt DateTime @default(now())
+
+  @@unique([slateVersionOid, path])
+}
+
+model Artifact {
+  oid BigInt @id
+  id  String @unique
+
+  storageKey String
+  bucket     String
+
+  size     BigInt
+  mimeType String
+  checksum String
+
+  createdAt DateTime @default(now())
+
+  slateVersions SlateVersion[]
+}
