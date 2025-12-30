@@ -6,7 +6,7 @@ import {
 } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Token, User } from '../../prisma/generated/client';
+import type { User, UserToken } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
 import { ID, snowflake } from '../id';
@@ -17,15 +17,15 @@ let include = {
   instance: true
 };
 
-class tokenServiceImpl {
-  async createToken(d: {
+class userTokenServiceImpl {
+  async createUserToken(d: {
     input: {
       name: string;
       expiresAt?: Date;
     };
     user: User;
   }) {
-    return await db.token.create({
+    return await db.userToken.create({
       data: {
         oid: snowflake.nextId(),
         id: await ID.generateId('token'),
@@ -50,7 +50,7 @@ class tokenServiceImpl {
   }
 
   async getTokenById(d: { id: string; user: User }) {
-    let func = await db.token.findFirst({
+    let func = await db.userToken.findFirst({
       where: {
         id: d.id,
         userOid: d.user.oid,
@@ -66,7 +66,7 @@ class tokenServiceImpl {
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>
-          await db.token.findMany({
+          await db.userToken.findMany({
             ...opts,
             where: {
               userOid: d.user.oid,
@@ -78,16 +78,16 @@ class tokenServiceImpl {
     );
   }
 
-  async deleteToken(d: { token: Token }) {
-    return await db.token.update({
+  async deleteUserToken(d: { token: UserToken }) {
+    return await db.userToken.update({
       where: { oid: d.token.oid },
       data: { status: 'revoked' },
       include
     });
   }
 
-  async updateToken(d: {
-    token: Token;
+  async updateUserToken(d: {
+    token: UserToken;
     input: {
       name?: string;
       expiresAt?: Date;
@@ -109,7 +109,7 @@ class tokenServiceImpl {
       );
     }
 
-    return await db.token.update({
+    return await db.userToken.update({
       where: { oid: d.token.oid },
       data: {
         name: d.input.name ?? d.token.name,
@@ -119,8 +119,8 @@ class tokenServiceImpl {
     });
   }
 
-  async authenticateWithToken(d: { secret: string }) {
-    let token = await db.token.findUnique({
+  async authenticateWithUserToken(d: { secret: string }) {
+    let token = await db.userToken.findUnique({
       where: {
         secret: d.secret,
         status: 'active',
@@ -146,4 +146,7 @@ class tokenServiceImpl {
   }
 }
 
-export let tokenService = Service.create('tokenService', () => new tokenServiceImpl()).build();
+export let userTokenService = Service.create(
+  'userTokenService',
+  () => new userTokenServiceImpl()
+).build();

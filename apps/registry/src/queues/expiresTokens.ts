@@ -9,7 +9,19 @@ export let expireTokensProcessor = createCron(
     redisUrl: env.service.REDIS_URL
   },
   async () => {
-    await db.token.updateMany({
+    await db.userToken.updateMany({
+      where: {
+        status: 'active',
+        expiresAt: {
+          lte: new Date()
+        }
+      },
+      data: {
+        status: 'expired'
+      }
+    });
+
+    await db.readerToken.updateMany({
       where: {
         status: 'active',
         expiresAt: {
