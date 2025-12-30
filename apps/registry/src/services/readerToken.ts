@@ -21,7 +21,7 @@ class readerTokenServiceImpl {
     return await db.readerToken.create({
       data: {
         oid: snowflake.nextId(),
-        id: await ID.generateId('token'),
+        id: await ID.generateId('readerToken'),
         status: 'active',
 
         name: d.input.name,

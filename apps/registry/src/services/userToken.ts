@@ -28,7 +28,7 @@ class userTokenServiceImpl {
     return await db.userToken.create({
       data: {
         oid: snowflake.nextId(),
-        id: await ID.generateId('token'),
+        id: await ID.generateId('userToken'),
         status: 'active',
 
         name: d.input.name,
