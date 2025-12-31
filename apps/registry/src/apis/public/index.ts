@@ -1,4 +1,5 @@
 import { createHono } from '@lowerdeck/hono';
+import { changeNotificationsController } from './changeNotification';
 import { scopesController } from './scope';
 import { slatesController } from './slate';
 import { usersController } from './user';
@@ -21,4 +22,5 @@ export let registryApp = createHono()
   .route('/scopes', scopesController)
   .route('/users', usersController)
   .route('/workspaces', workspacesController)
-  .route('/slates', slatesController);
+  .route('/slates', slatesController)
+  .route('/change-notifications', changeNotificationsController);
