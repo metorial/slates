@@ -1,13 +1,13 @@
 import { conflictError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Instance, Workspace } from '../../prisma/generated/client';
+import type { Tenant, Workspace } from '../../prisma/generated/client';
 import { db } from '../db';
 import { ID, snowflake } from '../id';
 
 let include = {
   scope: true,
-  instance: true
+  tenant: true
 };
 
 class workspaceServiceImpl {
@@ -16,7 +16,7 @@ class workspaceServiceImpl {
       name: string;
       identifier: string;
     };
-    instance: Instance;
+    tenant: Tenant;
   }) {
     return db.$transaction(async db => {
       let existingScope = await db.scope.findFirst({
@@ -42,7 +42,7 @@ class workspaceServiceImpl {
           identifier: d.input.identifier,
           name: d.input.name,
 
-          instanceOid: d.instance.oid,
+          tenantOid: d.tenant.oid,
 
           links: []
         }
@@ -57,7 +57,7 @@ class workspaceServiceImpl {
           identifier: d.input.identifier,
           name: d.input.name,
 
-          instanceOid: d.instance.oid,
+          tenantOid: d.tenant.oid,
           scopeOid: scope.oid
         },
         include
@@ -65,11 +65,11 @@ class workspaceServiceImpl {
     });
   }
 
-  async getWorkspaceById(d: { id: string; instance?: Instance }) {
+  async getWorkspaceById(d: { id: string; tenant?: Tenant }) {
     let func = await db.workspace.findFirst({
       where: {
         OR: [{ id: d.id }, { identifier: d.id }],
-        instanceOid: d.instance?.oid,
+        tenantOid: d.tenant?.oid,
         status: 'active'
       },
       include
@@ -78,14 +78,14 @@ class workspaceServiceImpl {
     return func;
   }
 
-  async listWorkspaces(d: { instance?: Instance }) {
+  async listWorkspaces(d: { tenant?: Tenant }) {
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>
           await db.workspace.findMany({
             ...opts,
             where: {
-              instanceOid: d.instance?.oid,
+              tenantOid: d.tenant?.oid,
               status: 'active'
             },
             include

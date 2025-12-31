@@ -1,14 +1,14 @@
 import { shadowId } from '@lowerdeck/shadow-id';
-import type { Instance, Scope } from '../../prisma/generated/client';
+import type { Scope, Tenant } from '../../prisma/generated/client';
 
-export let scopePresenter = (scope: Scope & { instance: Instance }) => ({
+export let scopePresenter = (scope: Scope & { tenant: Tenant }) => ({
   object: 'scope',
 
   id: scope.id,
   type: scope.type,
   status: scope.status,
 
-  instanceId: scope.instance.id,
+  tenantId: scope.tenant.id,
 
   identifier: scope.identifier,
   name: scope.name,

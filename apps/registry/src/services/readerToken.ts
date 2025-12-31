@@ -1,13 +1,13 @@
 import { unauthorizedError } from '@lowerdeck/error';
 import { Service } from '@lowerdeck/service';
-import type { Instance } from '../../prisma/generated/client';
+import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
 import { ID, snowflake } from '../id';
 import { apiKeys } from '../keys';
 
 let include = {
-  instance: true
+  tenant: true
 };
 
 class readerTokenServiceImpl {
@@ -15,7 +15,7 @@ class readerTokenServiceImpl {
     input: {
       name: string;
       expiresAt?: Date;
-      instance?: Instance;
+      tenant?: Tenant;
     };
   }) {
     return await db.readerToken.create({
@@ -33,7 +33,7 @@ class readerTokenServiceImpl {
           })
           .toString(),
 
-        instanceOid: d.input.instance?.oid,
+        tenantOid: d.input.tenant?.oid,
 
         expiresAt: d.input.expiresAt
       },
@@ -49,7 +49,7 @@ class readerTokenServiceImpl {
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }]
       },
       include: {
-        instance: true
+        tenant: true
       }
     });
     if (!token) {
@@ -64,7 +64,7 @@ class readerTokenServiceImpl {
     return {
       status: 'success' as const,
       token,
-      instance: token.instance ?? undefined
+      tenant: token.tenant ?? undefined
     };
   }
 }

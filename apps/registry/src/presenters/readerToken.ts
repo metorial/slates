@@ -1,7 +1,7 @@
-import type { Instance, ReaderToken } from '../../prisma/generated/client';
+import type { ReaderToken, Tenant } from '../../prisma/generated/client';
 import { apiKeys } from '../keys';
 
-export let readerTokenPresenter = (token: ReaderToken & { instance: Instance | null }) => ({
+export let readerTokenPresenter = (token: ReaderToken & { tenant: Tenant | null }) => ({
   object: 'reader_token',
 
   id: token.id,
@@ -10,7 +10,7 @@ export let readerTokenPresenter = (token: ReaderToken & { instance: Instance | n
   name: token.name,
   secretRedacted: apiKeys.redact(token.secret),
 
-  instanceId: token.instance?.id ?? null,
+  tenantId: token.tenant?.id ?? null,
 
   createdAt: token.createdAt,
   updatedAt: token.updatedAt,

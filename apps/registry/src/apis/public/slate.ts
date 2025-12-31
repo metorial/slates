@@ -24,7 +24,7 @@ export let slatesController = createHono()
       let query = c.req.valid('query');
 
       let paginator = await slateService.listSlates({
-        instance: auth.instance,
+        tenant: auth.tenant,
         scopeIds: query.scopeId?.split(','),
         userIds: query.userId?.split(','),
         workspaceIds: query.workspaceId?.split(',')
@@ -38,7 +38,7 @@ export let slatesController = createHono()
     let auth = await useAuth(c);
 
     let slate = await slateService.getSlateById({
-      instance: auth.instance,
+      tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 
@@ -50,7 +50,8 @@ export let slatesController = createHono()
       'json',
       z.object({
         contentBase64: z.string(),
-        access: z.enum(['public', 'private'])
+        access: z.enum(['public', 'private']),
+        version: z.string().optional()
       })
     ),
     async c => {
@@ -62,6 +63,8 @@ export let slatesController = createHono()
         input: {
           scopeIdentifier: c.req.param('scopeId'),
           slateIdentifier: c.req.param('slateId'),
+
+          versionOverride: body.version,
 
           access: body.access,
           contentBase64: body.contentBase64
@@ -76,7 +79,7 @@ export let slatesController = createHono()
     let query = c.req.valid('query');
 
     let slate = await slateService.getSlateById({
-      instance: auth.instance,
+      tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 
@@ -89,7 +92,7 @@ export let slatesController = createHono()
     let auth = await useAuth(c);
 
     let slate = await slateService.getSlateById({
-      instance: auth.instance,
+      tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 
@@ -104,7 +107,7 @@ export let slatesController = createHono()
     let auth = await useAuth(c);
 
     let slate = await slateService.getSlateById({
-      instance: auth.instance,
+      tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 

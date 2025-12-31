@@ -3,26 +3,26 @@ import { v } from '@lowerdeck/validation';
 import { workspacePresenter } from '../../presenters';
 import { workspaceService } from '../../services';
 import { app } from './_app';
-import { instanceApp } from './instance';
+import { tenantApp } from './tenant';
 
-export let workspaceApp = instanceApp.use(async ctx => {
+export let workspaceApp = tenantApp.use(async ctx => {
   let workspaceId = ctx.body.workspaceId;
   if (!workspaceId) throw new Error('Workspace ID is required');
 
   let workspace = await workspaceService.getWorkspaceById({
     id: workspaceId,
-    instance: ctx.instance
+    tenant: ctx.tenant
   });
 
   return { workspace };
 });
 
 export let workspaceController = app.controller({
-  create: instanceApp
+  create: tenantApp
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
 
         name: v.string(),
         identifier: v.string()
@@ -30,7 +30,7 @@ export let workspaceController = app.controller({
     )
     .do(async ctx => {
       let workspace = await workspaceService.createWorkspace({
-        instance: ctx.instance,
+        tenant: ctx.tenant,
         input: {
           name: ctx.input.name,
           identifier: ctx.input.identifier
@@ -39,18 +39,18 @@ export let workspaceController = app.controller({
       return workspacePresenter(workspace);
     }),
 
-  list: instanceApp
+  list: tenantApp
     .handler()
     .input(
       Paginator.validate(
         v.object({
-          instanceId: v.string()
+          tenantId: v.string()
         })
       )
     )
     .do(async ctx => {
       let paginator = await workspaceService.listWorkspaces({
-        instance: ctx.instance
+        tenant: ctx.tenant
       });
 
       let list = await paginator.run(ctx.input);
@@ -62,7 +62,7 @@ export let workspaceController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         workspaceId: v.string()
       })
     )
@@ -72,7 +72,7 @@ export let workspaceController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         workspaceId: v.string(),
 
         name: v.optional(v.string()),

@@ -7,7 +7,7 @@ import { db } from '../db';
 let include = {
   user: true,
   workspace: true,
-  instance: true
+  tenant: true
 };
 
 class scopeServiceImpl {

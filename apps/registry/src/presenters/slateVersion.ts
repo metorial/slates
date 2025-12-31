@@ -1,9 +1,9 @@
 import type {
-  Instance,
   Scope,
   Slate,
   SlateDocument,
   SlateVersion,
+  Tenant,
   User
 } from '../../prisma/generated/client';
 import { userPresenter } from './user';
@@ -11,7 +11,7 @@ import { userPresenter } from './user';
 export let slateVersionPresenter = (
   slateVersion: SlateVersion & {
     slate: Slate & {
-      instance: Instance;
+      tenant: Tenant;
     };
     createdByUser: User & { scope: Scope };
     slateDocuments: SlateDocument[];
@@ -41,7 +41,7 @@ export let slateVersionPresenter = (
 
   createdByUser: userPresenter({
     ...slateVersion.createdByUser,
-    instance: slateVersion.slate.instance
+    tenant: slateVersion.slate.tenant
   }),
 
   createdAt: slateVersion.createdAt

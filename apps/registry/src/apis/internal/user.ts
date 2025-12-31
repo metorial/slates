@@ -3,26 +3,26 @@ import { v } from '@lowerdeck/validation';
 import { userPresenter, userTokenPresenter } from '../../presenters';
 import { userService, userTokenService } from '../../services';
 import { app } from './_app';
-import { instanceApp } from './instance';
+import { tenantApp } from './tenant';
 
-export let userApp = instanceApp.use(async ctx => {
+export let userApp = tenantApp.use(async ctx => {
   let userId = ctx.body.userId;
   if (!userId) throw new Error('User ID is required');
 
   let user = await userService.getUserById({
     id: userId,
-    instance: ctx.instance
+    tenant: ctx.tenant
   });
 
   return { user };
 });
 
 export let userController = app.controller({
-  create: instanceApp
+  create: tenantApp
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
 
         name: v.string(),
         identifier: v.string()
@@ -30,7 +30,7 @@ export let userController = app.controller({
     )
     .do(async ctx => {
       let user = await userService.createUser({
-        instance: ctx.instance,
+        tenant: ctx.tenant,
         input: {
           name: ctx.input.name,
           identifier: ctx.input.identifier
@@ -39,18 +39,18 @@ export let userController = app.controller({
       return userPresenter(user);
     }),
 
-  list: instanceApp
+  list: tenantApp
     .handler()
     .input(
       Paginator.validate(
         v.object({
-          instanceId: v.string()
+          tenantId: v.string()
         })
       )
     )
     .do(async ctx => {
       let paginator = await userService.listUsers({
-        instance: ctx.instance
+        tenant: ctx.tenant
       });
 
       let list = await paginator.run(ctx.input);
@@ -62,7 +62,7 @@ export let userController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         userId: v.string()
       })
     )
@@ -72,7 +72,7 @@ export let userController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         userId: v.string(),
 
         name: v.optional(v.string()),
@@ -98,7 +98,7 @@ export let userController = app.controller({
       .handler()
       .input(
         v.object({
-          instanceId: v.string(),
+          tenantId: v.string(),
           userId: v.string(),
 
           name: v.string()
@@ -123,7 +123,7 @@ export let userController = app.controller({
       .input(
         Paginator.validate(
           v.object({
-            instanceId: v.string(),
+            tenantId: v.string(),
             userId: v.string()
           })
         )
@@ -142,7 +142,7 @@ export let userController = app.controller({
       .handler()
       .input(
         v.object({
-          instanceId: v.string(),
+          tenantId: v.string(),
           userId: v.string(),
 
           tokenId: v.string()
@@ -161,7 +161,7 @@ export let userController = app.controller({
       .handler()
       .input(
         v.object({
-          instanceId: v.string(),
+          tenantId: v.string(),
           userId: v.string(),
 
           tokenId: v.string()

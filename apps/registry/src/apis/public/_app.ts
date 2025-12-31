@@ -31,7 +31,7 @@ export let useAuth = async (ctx: Context) => {
     );
   }
 
-  if (!token) return { type: 'public' as const, instance: undefined, user: undefined };
+  if (!token) return { type: 'public' as const, tenant: undefined, user: undefined };
 
   let userAuth = await userTokenService.authenticateWithUserToken({ secret: token });
   if (userAuth.status == 'success') {

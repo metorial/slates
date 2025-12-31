@@ -19,5 +19,5 @@ export let useValidation = <Target extends keyof ValidationTargets, T extends z.
           }))
         }).toResponse(),
         400
-      );
+      ) as never;
   });
