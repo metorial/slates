@@ -1,0 +1,12 @@
+model Tenant {
+  oid BigInt @id
+  id  String @unique
+
+  identifier String @unique
+  name       String
+
+  createdAt DateTime @default(now())
+
+  secrets    Secret[]
+  registries Registry[]
+}

@@ -1,0 +1,118 @@
+enum SlateStatus {
+  active
+  inactive
+}
+
+model Slate {
+  oid    BigInt      @id
+  id     String      @unique
+  status SlateStatus
+
+  identifier  String  @unique
+  name        String
+  description String?
+
+  registryOid BigInt
+  registry    Registry @relation(fields: [registryOid], references: [oid], onDelete: Cascade)
+
+  currentVersionOid BigInt?
+  currentVersion    SlateVersion? @relation(fields: [currentVersionOid], references: [oid], name: "currentVersion")
+
+  slateScopeIdentifierOnRegistry String
+  slateScopeIdOnRegistry         String
+
+  slateFullIdentifierOnRegistry String
+  slateIdentifierOnRegistry     String
+  slateIdOnRegistry             String
+
+  slateVersions    SlateVersion[]
+  slateDeployments SlateDeployment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([registryOid, slateIdOnRegistry])
+  @@unique([registryOid, slateFullIdentifierOnRegistry])
+}
+
+enum SlateVersionStatus {
+  active
+  upcoming
+  deployment_failed
+}
+
+model SlateVersion {
+  oid    BigInt             @id
+  id     String             @unique
+  status SlateVersionStatus
+
+  isCurrent     Boolean
+  willBeCurrent Boolean
+
+  version String
+
+  versionIdOnRegistry         String
+  versionIdentifierOnRegistry String
+
+  /// [SlateJson]
+  manifest Json
+
+  /// [SlateVersionInfo]
+  info Json
+
+  slateOid BigInt
+  slate    Slate  @relation(fields: [slateOid], references: [oid])
+
+  registryOid BigInt
+  registry    Registry @relation(fields: [registryOid], references: [oid], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  currentInSlates  Slate[]          @relation("currentVersion")
+  slateDeployments SlateDeployment?
+
+  @@unique([slateOid, version])
+}
+
+model DeploymentProvider {
+  oid BigInt @id
+  id  String @unique
+
+  name       String
+  identifier String @unique
+
+  createdAt DateTime @default(now())
+
+  slateDeployments SlateDeployment[]
+}
+
+enum SlateDeploymentStatus {
+  pending
+  running
+  succeeded
+  failed
+}
+
+model SlateDeployment {
+  oid    BigInt                @id
+  id     String                @unique
+  status SlateDeploymentStatus
+
+  errorCode    String?
+  errorMessage String?
+
+  slateVersionOid BigInt       @unique
+  slateVersion    SlateVersion @relation(fields: [slateVersionOid], references: [oid], onDelete: Cascade)
+
+  slateOid BigInt
+  slate    Slate  @relation(fields: [slateOid], references: [oid])
+
+  providerOid BigInt
+  provider    DeploymentProvider @relation(fields: [providerOid], references: [oid])
+
+  /// [SlateDeploymentProviderDeploymentInfo]
+  providerDeploymentInfo Json
+
+  createdAt DateTime @default(now())
+}
