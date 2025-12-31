@@ -1,9 +1,15 @@
 {
   "name": "@slates/provider-handler",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.2",
   "publishConfig": {
     "access": "public"
   },
+  "files": [
+    "src/**",
+    "dist/**",
+    "README.md",
+    "package.json"
+  ],
   "author": "Tobias Herber",
   "license": "Apache 2",
   "type": "module",
@@ -25,9 +31,9 @@
   },
   "dependencies": {
     "@lowerdeck/error": "^1.0.8",
-    "@slates/proto": "^1.0.0",
-    "@slates/provider": "^1.0.0",
-    "@slates/provider-handler": "^1.0.0",
+    "@slates/proto": "^1.0.0-rc.2",
+    "@slates/provider": "^1.0.0-rc.2",
+    "@slates/provider-handler": "^1.0.0-rc.2",
     "zod": "^4.2.1"
   },
   "devDependencies": {
