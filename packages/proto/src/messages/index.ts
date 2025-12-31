@@ -3,7 +3,6 @@ export * from './auth';
 export * from './config';
 export * from './controlFlow';
 export * from './identify';
-export * from './log';
 
 import { z } from 'zod';
 import {
@@ -38,13 +37,11 @@ import {
   SlatesIdentifyResponses,
   slatesIdentifyResponsesByMethod
 } from './identify';
-import { SlatesLogNotifications, slatesLogNotificationsByMethod } from './log';
 
 export type SlatesNotifications =
   | SlatesAuthNotifications
   | SlatesConfigNotifications
-  | SlatesControlFlowNotifications
-  | SlatesLogNotifications;
+  | SlatesControlFlowNotifications;
 
 export type SlatesRequests =
   | SlatesActionRequests
@@ -75,8 +72,7 @@ export let slatesRequestsByMethod = {
 export let slatesNotificationsByMethod = {
   ...slatesAuthNotificationsByMethod,
   ...slatesConfigNotificationsByMethod,
-  ...slatesControlFlowNotificationsByMethod,
-  ...slatesLogNotificationsByMethod
+  ...slatesControlFlowNotificationsByMethod
 };
 
 export type SlatesResponsesByMethod = {

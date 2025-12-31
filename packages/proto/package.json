@@ -1,9 +1,15 @@
 {
   "name": "@slates/proto",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.2",
   "publishConfig": {
     "access": "public"
   },
+  "files": [
+    "src/**",
+    "dist/**",
+    "README.md",
+    "package.json"
+  ],
   "author": "Tobias Herber",
   "license": "Apache 2",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "slates",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.2",
   "publishConfig": {
     "access": "public"
   },
@@ -8,6 +8,12 @@
   "license": "Apache 2",
   "type": "module",
   "source": "src/index.ts",
+  "files": [
+    "src/**",
+    "dist/**",
+    "README.md",
+    "package.json"
+  ],
   "exports": {
     "types": "./dist/index.d.ts",
     "require": "./dist/index.cjs",
@@ -24,7 +30,7 @@
     "build": "microbundle"
   },
   "dependencies": {
-    "@slates/provider": "^1.0.0"
+    "@slates/provider": "^1.0.0-rc.2"
   },
   "devDependencies": {
     "microbundle": "^0.15.1",
