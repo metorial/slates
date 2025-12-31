@@ -17,7 +17,7 @@ generator json {
   provider = "prisma-json-types-generator"
 }
 
-model Instance {
+model Tenant {
   oid BigInt @id
   id  String @unique
 
@@ -57,8 +57,8 @@ model Scope {
   /// [EntityLinks]
   links Json
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -73,16 +73,16 @@ enum UserStatus {
   deleted
 }
 
-enum UserInstanceAccess {
+enum UserTenantAccess {
   read
   read_write
 }
 
 model User {
-  oid    BigInt             @id
-  id     String             @unique
+  oid    BigInt           @id
+  id     String           @unique
   status UserStatus
-  access UserInstanceAccess
+  access UserTenantAccess
 
   identifier String @unique
   name       String
@@ -90,8 +90,8 @@ model User {
   scopeOid BigInt @unique
   scope    Scope  @relation(fields: [scopeOid], references: [oid])
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -117,8 +117,8 @@ model Workspace {
   scopeOid BigInt @unique
   scope    Scope  @relation(fields: [scopeOid], references: [oid])
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -141,8 +141,8 @@ model UserToken {
   userOid BigInt
   user    User   @relation(fields: [userOid], references: [oid])
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
@@ -160,8 +160,8 @@ model ReaderToken {
   name   String
   secret String @unique
 
-  instanceOid BigInt?
-  instance    Instance? @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt?
+  tenant    Tenant? @relation(fields: [tenantOid], references: [oid])
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
@@ -196,8 +196,8 @@ model Slate {
   scopeOid BigInt
   scope    Scope  @relation(fields: [scopeOid], references: [oid])
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   createdByUserOid BigInt
   createdByUser    User   @relation(fields: [createdByUserOid], references: [oid])
@@ -292,8 +292,8 @@ model ChangeNotification {
   slateOid BigInt
   slate    Slate  @relation(fields: [slateOid], references: [oid])
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   slateVersionOid BigInt?
   slateVersion    SlateVersion? @relation(fields: [slateVersionOid], references: [oid])

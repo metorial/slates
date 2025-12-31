@@ -1,17 +1,11 @@
-import type {
-  Instance,
-  Scope,
-  Slate,
-  SlateVersion,
-  User
-} from '../../prisma/generated/client';
+import type { Scope, Slate, SlateVersion, Tenant, User } from '../../prisma/generated/client';
 import { scopePresenter } from './scope';
 import { userPresenter } from './user';
 
 export let slatePresenter = (
   slate: Slate & {
     scope: Scope;
-    instance: Instance;
+    tenant: Tenant;
     currentVersion: SlateVersion | null;
     createdByUser: User & { scope: Scope };
   }
@@ -23,15 +17,17 @@ export let slatePresenter = (
   access: slate.access,
 
   name: slate.name,
+  description: slate.description,
+
   identifier: slate.identifier,
   fullIdentifier: slate.fullIdentifier,
 
   createdByUser: userPresenter({
     ...slate.createdByUser,
-    instance: slate.instance
+    tenant: slate.tenant
   }),
 
-  scope: scopePresenter({ ...slate.scope, instance: slate.instance }),
+  scope: scopePresenter({ ...slate.scope, tenant: slate.tenant }),
 
   currentVersion: slate.currentVersion
     ? {
@@ -41,7 +37,7 @@ export let slatePresenter = (
       }
     : null,
 
-  instanceId: slate.instance.id,
+  tenantId: slate.tenant.id,
 
   createdAt: slate.createdAt,
   updatedAt: slate.updatedAt

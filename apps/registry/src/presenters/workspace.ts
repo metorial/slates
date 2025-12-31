@@ -1,9 +1,7 @@
-import type { Instance, Scope, Workspace } from '../../prisma/generated/client';
+import type { Scope, Tenant, Workspace } from '../../prisma/generated/client';
 import { scopePresenter } from './scope';
 
-export let workspacePresenter = (
-  workspace: Workspace & { scope: Scope; instance: Instance }
-) => ({
+export let workspacePresenter = (workspace: Workspace & { scope: Scope; tenant: Tenant }) => ({
   object: 'workspace',
 
   id: workspace.id,
@@ -12,8 +10,8 @@ export let workspacePresenter = (
   identifier: workspace.identifier,
   name: workspace.name,
 
-  scope: scopePresenter({ ...workspace.scope, instance: workspace.instance }),
-  instanceId: workspace.instance.id,
+  scope: scopePresenter({ ...workspace.scope, tenant: workspace.tenant }),
+  tenantId: workspace.tenant.id,
 
   createdAt: workspace.createdAt,
   updatedAt: workspace.updatedAt

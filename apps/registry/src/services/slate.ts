@@ -1,18 +1,18 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Instance } from '../../prisma/generated/client';
+import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
   scope: true,
-  instance: true,
+  tenant: true,
   currentVersion: true,
   createdByUser: { include: { scope: true } }
 };
 
 class slateServiceImpl {
-  async getSlateById(d: { id: string; instance?: Instance }) {
+  async getSlateById(d: { id: string; tenant?: Tenant }) {
     let func = await db.slate.findFirst({
       where: {
         status: 'active',
@@ -22,8 +22,8 @@ class slateServiceImpl {
             OR: [{ id: d.id }, { fullIdentifier: d.id }]
           },
 
-          d.instance
-            ? { OR: [{ instanceOid: d.instance.oid }, { access: 'public' }] }
+          d.tenant
+            ? { OR: [{ tenantOid: d.tenant.oid }, { access: 'public' }] }
             : { access: 'public' }
         ]
       },
@@ -34,7 +34,7 @@ class slateServiceImpl {
   }
 
   async listSlates(d: {
-    instance?: Instance;
+    tenant?: Tenant;
     scopeIds?: string[];
     userIds?: string[];
     workspaceIds?: string[];
@@ -84,8 +84,8 @@ class slateServiceImpl {
               scopeOid: anyScopeOids ? { in: anyScopeOids } : undefined,
 
               AND: [
-                d.instance
-                  ? { OR: [{ instanceOid: d.instance.oid }, { access: 'public' }] }
+                d.tenant
+                  ? { OR: [{ tenantOid: d.tenant.oid }, { access: 'public' }] }
                   : { access: 'public' }
               ]
             },

@@ -14,7 +14,7 @@ import { apiKeys } from '../keys';
 
 let include = {
   user: true,
-  instance: true
+  tenant: true
 };
 
 class userTokenServiceImpl {
@@ -41,7 +41,7 @@ class userTokenServiceImpl {
           .toString(),
 
         userOid: d.user.oid,
-        instanceOid: d.user.instanceOid,
+        tenantOid: d.user.tenantOid,
 
         expiresAt: d.input.expiresAt
       },
@@ -128,7 +128,7 @@ class userTokenServiceImpl {
       },
       include: {
         user: true,
-        instance: true
+        tenant: true
       }
     });
     if (!token) {
@@ -144,7 +144,7 @@ class userTokenServiceImpl {
       status: 'success' as const,
       token,
       user: token.user,
-      instance: token.instance
+      tenant: token.tenant
     };
   }
 }

@@ -1,4 +1,3 @@
-# Production Dockerfile for Forge Service
 FROM oven/bun:1 AS base
 
 # Install curl for health checks
@@ -29,6 +28,7 @@ RUN bun install --frozen-lockfile
 
 # Copy Prisma schema
 COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 
 # Generate Prisma client
 RUN bun prisma generate
@@ -50,6 +50,7 @@ COPY --from=builder /app/prisma/generated ./prisma/generated
 
 # Copy Prisma schema (needed for db push)
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Copy source code
 COPY --from=builder /app/src ./src
@@ -63,11 +64,13 @@ RUN groupadd -r metorial && useradd -r -g metorial metorial && \
 USER metorial
 
 # Expose port
-EXPOSE 52030
+EXPOSE 52040
+EXPOSE 52041
 
 # Health check using curl
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:52030/ping || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+    CMD curl -f http://localhost:52040/health && \
+    curl -f http://localhost:52041/health || exit 1
 
 # Start command: push schema and start service
 CMD ["sh", "-c", "bun prisma db push && bun src/server.ts"]

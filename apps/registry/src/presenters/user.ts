@@ -1,7 +1,7 @@
-import type { Instance, Scope, User } from '../../prisma/generated/client';
+import type { Scope, Tenant, User } from '../../prisma/generated/client';
 import { scopePresenter } from './scope';
 
-export let userPresenter = (user: User & { scope: Scope; instance: Instance }) => ({
+export let userPresenter = (user: User & { scope: Scope; tenant: Tenant }) => ({
   object: 'user',
 
   id: user.id,
@@ -10,8 +10,8 @@ export let userPresenter = (user: User & { scope: Scope; instance: Instance }) =
   identifier: user.identifier,
   name: user.name,
 
-  scope: scopePresenter({ ...user.scope, instance: user.instance }),
-  instanceId: user.instance.id,
+  scope: scopePresenter({ ...user.scope, tenant: user.tenant }),
+  tenantId: user.tenant.id,
 
   createdAt: user.createdAt,
   updatedAt: user.updatedAt

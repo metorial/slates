@@ -1,13 +1,13 @@
 import { apiMux } from '@lowerdeck/api-mux';
 import { createServer, rpcMux, type InferClient } from '@lowerdeck/rpc-server';
 import { app } from './_app';
-import { instanceController } from './instance';
 import { readerTokenController } from './readerTokens';
+import { tenantController } from './tenant';
 import { userController } from './user';
 import { workspaceController } from './workspace';
 
 export let rootController = app.controller({
-  instance: instanceController,
+  tenant: tenantController,
   user: userController,
   workspace: workspaceController,
   readerToken: readerTokenController

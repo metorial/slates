@@ -1,13 +1,13 @@
 import { conflictError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Instance, User } from '../../prisma/generated/client';
+import type { Tenant, User } from '../../prisma/generated/client';
 import { db } from '../db';
 import { ID, snowflake } from '../id';
 
 let include = {
   scope: true,
-  instance: true
+  tenant: true
 };
 
 class userServiceImpl {
@@ -16,7 +16,7 @@ class userServiceImpl {
       name: string;
       identifier: string;
     };
-    instance: Instance;
+    tenant: Tenant;
   }) {
     return db.$transaction(async db => {
       let existingScope = await db.scope.findFirst({
@@ -42,7 +42,7 @@ class userServiceImpl {
           identifier: d.input.identifier,
           name: d.input.name,
 
-          instanceOid: d.instance.oid,
+          tenantOid: d.tenant.oid,
 
           links: []
         }
@@ -58,7 +58,7 @@ class userServiceImpl {
           identifier: d.input.identifier,
           name: d.input.name,
 
-          instanceOid: d.instance.oid,
+          tenantOid: d.tenant.oid,
           scopeOid: scope.oid
         },
         include
@@ -66,11 +66,11 @@ class userServiceImpl {
     });
   }
 
-  async getUserById(d: { id: string; instance?: Instance }) {
+  async getUserById(d: { id: string; tenant?: Tenant }) {
     let func = await db.user.findFirst({
       where: {
         OR: [{ id: d.id }, { identifier: d.id }],
-        instanceOid: d.instance?.oid,
+        tenantOid: d.tenant?.oid,
         status: 'active'
       },
       include
@@ -79,14 +79,14 @@ class userServiceImpl {
     return func;
   }
 
-  async listUsers(d: { instance?: Instance }) {
+  async listUsers(d: { tenant?: Tenant }) {
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>
           await db.user.findMany({
             ...opts,
             where: {
-              instanceOid: d.instance?.oid,
+              tenantOid: d.tenant?.oid,
               status: 'active'
             },
             include

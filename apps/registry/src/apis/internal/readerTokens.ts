@@ -1,6 +1,6 @@
 import { v } from '@lowerdeck/validation';
 import { readerTokenPresenter } from '../../presenters';
-import { instanceService, readerTokenService } from '../../services';
+import { readerTokenService, tenantService } from '../../services';
 import { app } from './_app';
 
 export let readerTokenController = app.controller({
@@ -8,21 +8,21 @@ export let readerTokenController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.optional(v.string()),
+        tenantId: v.optional(v.string()),
         name: v.string(),
         expiresAt: v.optional(v.date())
       })
     )
     .do(async ctx => {
-      let instance = ctx.input.instanceId
-        ? await instanceService.getInstanceById({
-            id: ctx.input.instanceId
+      let tenant = ctx.input.tenantId
+        ? await tenantService.getTenantById({
+            id: ctx.input.tenantId
           })
         : undefined;
 
       let token = await readerTokenService.createReaderToken({
         input: {
-          instance,
+          tenant,
           name: ctx.input.name,
           expiresAt: ctx.input.expiresAt
         }

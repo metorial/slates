@@ -23,7 +23,7 @@ let include = {
   slate: {
     include: {
       scope: true,
-      instance: true,
+      tenant: true,
       createdByUser: { include: { scope: true } }
     }
   },
@@ -62,6 +62,7 @@ class slateVersionServiceImpl {
       slateIdentifier: string;
       contentBase64: string;
       access: SlateAccess;
+      versionOverride?: string;
     };
   }) {
     let directory = await unzipper.Open.buffer(Buffer.from(d.input.contentBase64, 'base64'));
@@ -129,7 +130,7 @@ class slateVersionServiceImpl {
 
     return packageLock.usingLock(`${d.input.scopeIdentifier}/${d.input.slateIdentifier}`, () =>
       db.$transaction(async db => {
-        let valid = semver.valid(slateJson.version);
+        let valid = semver.valid(d.input.versionOverride ?? slateJson.version);
         if (!valid) {
           throw new ServiceError(
             badRequestError({
@@ -142,7 +143,7 @@ class slateVersionServiceImpl {
         if (d.input.access == 'public' && env.access.PUBLIC_ACCESS_PERMITTED === false) {
           throw new ServiceError(
             forbiddenError({
-              message: 'Public access is not permitted on this instance.'
+              message: 'Public access is not permitted on this tenant.'
             })
           );
         }
@@ -163,10 +164,10 @@ class slateVersionServiceImpl {
         });
         if (!scope) throw new ServiceError(notFoundError('scope'));
 
-        if (scope.instanceOid !== d.user.instanceOid) {
+        if (scope.tenantOid !== d.user.tenantOid) {
           throw new ServiceError(
             forbiddenError({
-              message: 'Cannot publish slates to a scope outside of your instance.'
+              message: 'Cannot publish slates to a scope outside of your tenant.'
             })
           );
         }
@@ -175,7 +176,7 @@ class slateVersionServiceImpl {
           where: {
             identifier: d.input.slateIdentifier,
             scopeOid: scope.oid,
-            instanceOid: d.user.instanceOid
+            tenantOid: d.user.tenantOid
           },
           include: { currentVersion: true }
         });
@@ -211,7 +212,7 @@ class slateVersionServiceImpl {
 
               description: null,
               scopeOid: scope.oid,
-              instanceOid: d.user.instanceOid,
+              tenantOid: d.user.tenantOid,
               createdByUserOid: d.user.oid
             },
             include: { currentVersion: true }
@@ -267,7 +268,7 @@ class slateVersionServiceImpl {
             slateVersionOid: version.oid,
             slateVersionId: version.id,
             slateVersionIdentifier: version.version,
-            instanceOid: d.user.instanceOid
+            tenantOid: d.user.tenantOid
           }
         });
 
