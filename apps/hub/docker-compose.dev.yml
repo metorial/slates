@@ -155,6 +155,8 @@ services:
 
       INITIAL_REGISTRIES: "http://slates-registry:52040"
 
+      SLATES_HUB_INSTANCE_IDENTIFIER: dev-slates-hub
+
     volumes:
       - ./src:/app/apps/hub/src:ro
       - ./package.json:/app/apps/hub/package.json:ro

@@ -60,6 +60,9 @@ model SlateVersion {
   /// [SlateVersionInfo]
   info Json
 
+  /// [SlateDeploymentProviderDeploymentInfo]
+  providerDeploymentInfo Json
+
   slateOid BigInt
   slate    Slate  @relation(fields: [slateOid], references: [oid])
 
