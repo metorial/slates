@@ -1,0 +1,50 @@
+import { notFoundError, ServiceError } from '@lowerdeck/error';
+import { Paginator } from '@lowerdeck/pagination';
+import { Service } from '@lowerdeck/service';
+import type { Tenant } from '../../prisma/generated/client';
+import { db } from '../db';
+
+let include = { tenant: true };
+
+class registryServiceImpl {
+  async getRegistryById(d: { id: string; tenant?: Tenant }) {
+    let registry = await db.registry.findFirst({
+      where: {
+        status: 'active',
+
+        AND: [
+          {
+            OR: d.tenant ? [{ tenantOid: d.tenant.oid }, { tenantOid: null }] : undefined
+          },
+          {
+            OR: [{ id: d.id }, { identifier: d.id }]
+          }
+        ].filter(Boolean)
+      },
+      include
+    });
+    if (!registry) throw new ServiceError(notFoundError('registry'));
+    return registry;
+  }
+
+  async listRegistries(d: { tenant?: Tenant }) {
+    return Paginator.create(({ prisma }) =>
+      prisma(
+        async opts =>
+          await db.registry.findMany({
+            ...opts,
+            where: {
+              OR: d.tenant ? [{ tenantOid: d.tenant.oid }, { tenantOid: null }] : undefined,
+              status: 'active'
+            },
+            include
+          })
+      )
+    );
+  }
+}
+
+export let registryService = Service.create(
+  'registryService',
+  () => new registryServiceImpl()
+).build();
