@@ -1,17 +1,22 @@
+import { createCron } from '@lowerdeck/cron';
 import { generateCode } from '@lowerdeck/id';
 import { createLock } from '@lowerdeck/lock';
 import { createQueue, QueueRetryError } from '@lowerdeck/queue';
-import semver from 'semver';
+import { subDays } from 'date-fns';
 import unzipper from 'unzipper';
 import { db } from '../../db';
 import { env } from '../../env';
 import { functionBay, functionBayProvider, functionBayTenant } from '../../functionBay';
 import { ID, snowflake } from '../../id';
 import { getRegistryClient } from '../../registry';
+import { discoverSlateQueue } from '../discovery/discover';
 
 export let deploySlateVersionQueue = createQueue<{ versionId: string }>({
   name: 'shub/slv/dep/init',
-  redisUrl: env.service.REDIS_URL
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: {
+    concurrency: 1
+  }
 });
 
 export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(async data => {
@@ -34,12 +39,29 @@ export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(as
     }
   });
 
+  await db.slateVersion.update({
+    where: { oid: version.oid },
+    data: { status: 'deploying' }
+  });
+
+  await db.slateEvent.create({
+    data: {
+      oid: snowflake.nextId(),
+      id: await ID.generateId('slateEvent'),
+      type: 'deployment_started',
+      message: `Deployment for version ${version.version} started`,
+      slateOid: version.slateOid,
+      slateVersionOid: version.oid
+    }
+  });
+
   await deploySlateVersionStartQueue.add({ deploymentId: deployment.id });
 });
 
 let deploySlateVersionStartQueue = createQueue<{ deploymentId: string }>({
   name: 'shub/slv/dep/start',
-  redisUrl: env.service.REDIS_URL
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: { concurrency: 1 }
 });
 
 export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.process(
@@ -86,8 +108,8 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             version: '1.0.0',
             main: 'slates_entry_point.js',
             dependencies: {
-              '@slates/provider-handler': '1.0.0-rc.2',
-              '@slates/proto': '1.0.0-rc.2',
+              '@slates/provider-handler': '1.0.0-rc.4',
+              '@slates/proto': '1.0.0-rc.5',
               slates: '1.0.0-rc.2'
             }
           },
@@ -102,17 +124,20 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
           import { createProviderHandler } from '@slates/provider-handler';
           import { SlatesProviderProtoHandlerManager } from '@slates/proto';
 
-          let handler = (provider, [
+          let handler = createProviderHandler(provider, [
             e => e.forEach(e => console.log(e.type.toUpperCase(), e.message))
           ]);
 
           export default async (input) => {
             let manager = await handler.run();
 
-            let messages = await input.messages.map(m => {
-              console.log('RUNTIME processing input message', m.method + (m.id ? \`(\${m.id})\` : ''));
-              return manager.handleInput(m);
-            });
+            let messages = [];
+
+            for (let m of input.messages) {
+              console.log('[Slates:] Processing input message', m.method + (m.id ? \`(\${m.id})\` : ''));
+              let result = await SlatesProviderProtoHandlerManager.handleInput(manager, m);
+              if (result) messages.push(result);
+            }
 
             return { messages };
           };
@@ -171,7 +196,8 @@ let deploySlateVersionMonitorQueue = createQueue<{
   functionDeploymentId: string;
 }>({
   name: 'shub/slv/dep/mon',
-  redisUrl: env.service.REDIS_URL
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: { concurrency: 5 }
 });
 
 export let deploySlateVersionMonitorQueueProcessor = deploySlateVersionMonitorQueue.process(
@@ -213,7 +239,8 @@ let deploySlateVersionProviderCompletedQueue = createQueue<{
   functionDeploymentId: string;
 }>({
   name: 'shub/slv/dep/pcomp',
-  redisUrl: env.service.REDIS_URL
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: { concurrency: 1 }
 });
 
 export let deploySlateVersionProviderCompletedQueueProcessor =
@@ -238,13 +265,38 @@ export let deploySlateVersionProviderCompletedQueueProcessor =
       return;
     }
 
+    await deploySlateVersionFailedQueue.add({
+      deploymentId: data.deploymentId,
+      errorCode: funcDep.error?.code ?? 'unknown_error',
+      errorMessage: funcDep.error?.message ?? 'Unknown error during deployment'
+    });
+  });
+
+let deploySlateVersionFailedQueue = createQueue<{
+  deploymentId: string;
+  errorCode: string;
+  errorMessage: string;
+}>({
+  name: 'shub/slv/dep/fail',
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: { concurrency: 1 }
+});
+
+export let deploySlateVersionFailedQueueProcessor = deploySlateVersionFailedQueue.process(
+  async data => {
+    let deployment = await db.slateDeployment.findUnique({
+      where: { id: data.deploymentId },
+      include: { slateVersion: true }
+    });
+    if (!deployment) throw new QueueRetryError();
+
     await db.slateDeployment.update({
       where: { id: deployment.id },
       data: {
         status: 'failed',
 
-        errorCode: funcDep.error?.code,
-        errorMessage: funcDep.error?.message
+        errorCode: data.errorCode,
+        errorMessage: data.errorMessage
       }
     });
 
@@ -254,7 +306,19 @@ export let deploySlateVersionProviderCompletedQueueProcessor =
         status: 'deployment_failed'
       }
     });
-  });
+
+    await db.slateEvent.create({
+      data: {
+        oid: snowflake.nextId(),
+        id: await ID.generateId('slateEvent'),
+        type: 'deployment_failed',
+        message: `Deployment for version ${deployment.slateVersion.version} failed: ${data.errorMessage}`,
+        slateOid: deployment.slateOid,
+        slateVersionOid: deployment.slateVersionOid
+      }
+    });
+  }
+);
 
 let deploySlateVersionCompletedQueue = createQueue<{
   deploymentId: string;
@@ -262,7 +326,8 @@ let deploySlateVersionCompletedQueue = createQueue<{
   functionDeploymentId: string;
 }>({
   name: 'shub/slv/dep/comp',
-  redisUrl: env.service.REDIS_URL
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: { concurrency: 1 }
 });
 
 let publishLock = createLock({
@@ -304,38 +369,54 @@ export let deploySlateVersionCompletedQueueProcessor =
         }
       });
 
-      if (
-        deployment.slateVersion.willBeCurrent &&
-        (!slate.currentVersion ||
-          semver.gt(deployment.slateVersion.version, slate.currentVersion.version))
-      ) {
-        await db.$transaction(async db => {
-          await db.slate.update({
-            where: { id: slate.id },
-            data: {
-              currentVersionOid: deployment.slateVersion.oid
-            }
-          });
+      await db.slateVersion.updateMany({
+        where: { oid: deployment.slateVersion.oid },
+        data: {
+          status: 'discovering',
+          providerDeploymentInfo: updatedDeployment.providerDeploymentInfo,
+          activeDeploymentOid: updatedDeployment.oid
+        }
+      });
 
-          await db.slateVersion.updateMany({
-            where: {
-              slateOid: slate.oid,
-              oid: { not: deployment.slateVersion.oid }
-            },
-            data: {
-              isCurrent: false
-            }
-          });
+      await db.slateEvent.create({
+        data: {
+          oid: snowflake.nextId(),
+          id: await ID.generateId('slateEvent'),
+          type: 'deployment_succeeded',
+          message: `Deployment for version ${deployment.slateVersion.version} succeeded.`,
+          slateOid: slate.oid,
+          slateVersionOid: deployment.slateVersion.oid
+        }
+      });
 
-          await db.slateVersion.update({
-            where: { oid: deployment.slateVersion.oid },
-            data: {
-              status: 'active',
-              isCurrent: true,
-              providerDeploymentInfo: updatedDeployment.providerDeploymentInfo
-            }
-          });
-        });
-      }
+      await discoverSlateQueue.add({
+        versionId: deployment.slateVersion.id
+      });
     });
   });
+
+export let failOldDeploymentsCron = createCron(
+  {
+    name: 'shub/slv/dep/fail-old',
+    redisUrl: env.service.REDIS_URL,
+    cron: '0 0 * * *'
+  },
+  async () => {
+    let fiveDaysAgo = subDays(new Date(), 5);
+
+    let oldDeployments = await db.slateDeployment.findMany({
+      where: {
+        status: 'pending',
+        createdAt: { lt: fiveDaysAgo }
+      }
+    });
+
+    await deploySlateVersionFailedQueue.addMany(
+      oldDeployments.map(d => ({
+        deploymentId: d.id,
+        errorCode: 'deployment_timeout',
+        errorMessage: 'Deployment did not complete within 1 hour'
+      }))
+    );
+  }
+);
