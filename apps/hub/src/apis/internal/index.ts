@@ -5,6 +5,7 @@ import { registryController } from './registry';
 import { secretController } from './secret';
 import { slateController } from './slate';
 import { slateDeploymentController } from './slateDeployment';
+import { slateInvocationController } from './slateInvocation';
 import { slateSpecificationController } from './slateSpecification';
 import { slateVersionController } from './slateVersion';
 import { tenantController } from './tenant';
@@ -16,8 +17,9 @@ export let rootController = app.controller({
   registry: registryController,
 
   slate: slateController,
-  slateDeployment: slateDeploymentController,
   slateVersion: slateVersionController,
+  slateInvocation: slateInvocationController,
+  slateDeployment: slateDeploymentController,
   slateSpecification: slateSpecificationController
 });
 
