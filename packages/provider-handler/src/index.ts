@@ -3,7 +3,7 @@ import { createSlatesProviderProtoHandler, SlatesParticipant } from '@slates/pro
 import { Slate, SlateContext, SlateLogger, SlateLogListener } from '@slates/provider';
 import { getAction, getActionWithType, getAuthMethod, mapAction, mapAuthMethod } from './spec';
 import { State } from './state';
-import { validate } from './validation';
+import { toJsonSchema, validate } from './validation';
 
 export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
   slate: Slate<ConfigType, AuthType>,
@@ -156,7 +156,7 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
     manager.onRequest('slates/config.schema.get', async ({ params }) => {
       getContextBasic();
 
-      return { schema: slate.spec.configSchema.toJSONSchema() };
+      return { schema: toJsonSchema(slate.spec.configSchema) };
     });
 
     manager.onRequest('slates/provider.identify', async ({ params }) => {

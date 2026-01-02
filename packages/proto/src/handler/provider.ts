@@ -64,7 +64,7 @@ export class SlatesProviderProtoHandlerManager {
         return {
           jsonrpc: '2.0' as const,
           id: (input as any).id,
-          error: badRequestError({ message: 'Invalid input' })
+          error: badRequestError({ message: 'Invalid input' }).toResponse()
         };
       }
 
@@ -72,7 +72,7 @@ export class SlatesProviderProtoHandlerManager {
         return {
           jsonrpc: '2.0' as const,
           id: (input as any).id,
-          error: badRequestError({ message: 'Invalid jsonrpc version' })
+          error: badRequestError({ message: 'Invalid jsonrpc version' }).toResponse()
         };
       }
 
@@ -81,7 +81,7 @@ export class SlatesProviderProtoHandlerManager {
         return {
           jsonrpc: '2.0' as const,
           id: (input as any).id,
-          error: badRequestError({ message: 'Invalid or missing method' })
+          error: badRequestError({ message: 'Invalid or missing method' }).toResponse()
         };
       }
 
@@ -90,7 +90,7 @@ export class SlatesProviderProtoHandlerManager {
         return {
           jsonrpc: '2.0' as const,
           id: (input as any).id,
-          error: notFoundError('handler', input.method)
+          error: notFoundError('handler', input.method).toResponse()
         };
       }
 
@@ -106,7 +106,7 @@ export class SlatesProviderProtoHandlerManager {
               ...i,
               path: i.path.map(p => String(p))
             }))
-          })
+          }).toResponse()
         };
       }
 
@@ -127,7 +127,7 @@ export class SlatesProviderProtoHandlerManager {
         return {
           jsonrpc: '2.0' as const,
           id: (input as any).id,
-          error: err
+          error: err.toResponse()
         };
       }
 
@@ -136,7 +136,7 @@ export class SlatesProviderProtoHandlerManager {
       return {
         jsonrpc: '2.0' as const,
         id: (input as any).id,
-        error: internalServerError({ message: 'Internal server error' })
+        error: internalServerError({ message: 'Internal server error' }).toResponse()
       };
     }
   }
