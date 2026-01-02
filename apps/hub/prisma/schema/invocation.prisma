@@ -1,0 +1,24 @@
+model SlateInvocationStorageBucket {
+  oid              Int               @id
+  bucket           String            @unique
+  slateInvocations SlateInvocation[]
+}
+
+model SlateInvocation {
+  oid BigInt @id
+  id  String @unique
+
+  isPending Boolean
+
+  providerInvocationId String
+
+  deploymentOid BigInt
+  deployment    SlateDeployment @relation(fields: [deploymentOid], references: [oid])
+
+  bucketOid Int
+  bucket    SlateInvocationStorageBucket @relation(fields: [bucketOid], references: [oid])
+
+  createdAt DateTime @default(now())
+
+  slateVersionDiscoveries SlateVersionDiscovery[]
+}
