@@ -280,7 +280,7 @@ model SlateVersionDiscovery {
   errorMessage String?
 
   slateVersionOid BigInt
-  slateVersion    SlateVersion? @relation(fields: [slateVersionOid], references: [oid])
+  slateVersion    SlateVersion @relation(fields: [slateVersionOid], references: [oid])
 
   specificationOid BigInt?
   specification    SlateSpecification? @relation(fields: [specificationOid], references: [oid])

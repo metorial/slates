@@ -2,13 +2,14 @@ import { canonicalize } from '@lowerdeck/canonicalize';
 import { Hash } from '@lowerdeck/hash';
 import { createLock } from '@lowerdeck/lock';
 import { createQueue, QueueRetryError } from '@lowerdeck/queue';
+import { differenceInMinutes } from 'date-fns';
 import semver from 'semver';
 import { db } from '../../db';
 import { env } from '../../env';
 import { ID, snowflake } from '../../id';
 import { getStackError, getStackResultsOrThrow } from '../../lib/invocation/error';
 import type { InvocationError } from '../../lib/invocation/types';
-import { slateInvocationService } from '../../services/slateInvocation';
+import { slateInvocationService } from '../../services';
 
 export let discoverSlateQueue = createQueue<{ versionId: string }>({
   name: 'shub/dis/sing',
@@ -21,6 +22,8 @@ export let discoverSlateQueue = createQueue<{ versionId: string }>({
     concurrency: 2
   }
 });
+
+// discoverSlateQueue.add({ versionId: 'shslv_0mjwuqt1gj7rrEXQpN7597' });
 
 let discoverLock = createLock({
   name: 'shub/dis/lock',
@@ -43,13 +46,13 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
 
     console.log(`Discovering slate version ${version.id} (${version.version})`);
 
-    // if (
-    //   version.lastDiscoveredAt &&
-    //   differenceInMinutes(new Date(), version.lastDiscoveredAt) < 10
-    // ) {
-    //   // Recently discovered, skip
-    //   return;
-    // }
+    if (
+      version.lastDiscoveredAt &&
+      differenceInMinutes(new Date(), version.lastDiscoveredAt) < 10
+    ) {
+      // Recently discovered, skip
+      return;
+    }
 
     let slate = version.slate;
 
