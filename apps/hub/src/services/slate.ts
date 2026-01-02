@@ -7,7 +7,11 @@ import { getRegistryClient } from '../registry';
 
 let include = {
   registry: true,
-  currentVersion: true
+  currentVersion: {
+    include: {
+      specification: true
+    }
+  }
 };
 
 class slateServiceImpl {
