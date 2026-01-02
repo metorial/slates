@@ -1,10 +1,17 @@
-import type { Slate, SlateDeployment, SlateVersion } from '../../prisma/generated/client';
+import type {
+  Slate,
+  SlateDeployment,
+  SlateSpecification,
+  SlateVersion
+} from '../../prisma/generated/client';
 import { slateVersionPresenter } from './slateVersion';
 
 export let slateDeploymentPresenter = (
   slateDeployment: SlateDeployment & {
     slate: Slate;
-    slateVersion: SlateVersion;
+    slateVersion: SlateVersion & {
+      specification: SlateSpecification | null;
+    };
   }
 ) => ({
   object: 'slate.deployment',

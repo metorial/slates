@@ -25,3 +25,19 @@ export let validate = <T>(
 
   return result.data;
 };
+
+export let toJsonSchema = (schema: z.ZodType<any>) =>
+  schema.toJSONSchema({
+    unrepresentable: 'any',
+    override: ctx => {
+      let def = ctx.zodSchema._zod.def;
+
+      if (def.type === 'date') {
+        ctx.jsonSchema.type = 'string';
+        ctx.jsonSchema.format = 'date-time';
+      }
+      if (def.type === 'bigint') {
+        ctx.jsonSchema.type = 'number';
+      }
+    }
+  });

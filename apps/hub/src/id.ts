@@ -4,13 +4,26 @@ import { Worker as SnowflakeId } from 'snowflake-uuid';
 export let ID = createIdGenerator({
   hub: idType.sorted('shhub'),
   tenant: idType.sorted('shtn'),
+
   registry: idType.sorted('shreg'),
   registrySync: idType.sorted('shrsn'),
+
   deploymentProvider: idType.sorted('shdpv'),
+
   secret: idType.sorted('shsec'),
+
   slate: idType.sorted('shslt'),
   slateVersion: idType.sorted('shslv'),
-  slateDeployment: idType.sorted('shsld')
+  slateVersionDiscovery: idType.sorted('shsdd'),
+  slateDeployment: idType.sorted('shsld'),
+  slateEvent: idType.sorted('shsev'),
+  slateSpecification: idType.sorted('shssp'),
+  slateSpecificationChange: idType.sorted('shspc'),
+  slateAction: idType.sorted('shsac'),
+  slateConfigSchema: idType.sorted('shscs'),
+  slateAuthMethod: idType.sorted('shsam'),
+
+  slateRun: idType.sorted('shslr')
 });
 
 let workerIdBits = 12;

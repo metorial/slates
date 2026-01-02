@@ -64,7 +64,6 @@ export let slateDeploymentController = app.controller({
       let res = await slateDeploymentService.getBuildOutput({
         slateDeployment: ctx.slateDeployment
       });
-      console.log('Build output retrieved for deployment', res);
 
       return res;
     })

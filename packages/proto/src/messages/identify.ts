@@ -3,6 +3,7 @@ import z from 'zod';
 export let slatesMessageProviderIdentifyRequest = z.object({
   jsonrpc: z.literal('2.0'),
   method: z.literal('slates/provider.identify'),
+  id: z.string(),
   params: z.object({})
 });
 
@@ -15,7 +16,6 @@ export let slatesMessageProviderIdentifyResponse = z.object({
   id: z.string(),
   result: z.object({
     protocol: z.literal('slates@2026-01-01'),
-
     provider: z.object({
       type: z.literal('provider'),
       id: z.string(),

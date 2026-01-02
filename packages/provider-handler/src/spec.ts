@@ -2,6 +2,7 @@ import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { SlateAuthenticationMethod, SlatesAction } from '@slates/proto';
 import { Slate, SlateDefaultPollingIntervalSeconds } from '@slates/provider';
 import z from 'zod';
+import { toJsonSchema } from './validation';
 
 export let getAuthMethod = <ConfigType extends {}, AuthType extends {}>(
   slate: Slate<ConfigType, AuthType>,
@@ -36,8 +37,8 @@ export let mapAuthMethod = <ConfigType extends {}, AuthType extends {}>(
         }))
       : undefined,
 
-  inputSchema: (m.inputSchema ?? z.object({})).toJSONSchema(),
-  outputSchema: slate.spec.auth.outputSchema.toJSONSchema(),
+  inputSchema: toJsonSchema(m.inputSchema ?? z.object({})),
+  outputSchema: toJsonSchema(slate.spec.auth.outputSchema),
 
   capabilities: {
     getDefaultInput: { enabled: !!('getDefaultInput' in m && m.getDefaultInput) },
@@ -97,8 +98,8 @@ export let mapAction = <ConfigType extends {}, AuthType extends {}>(
     tags: a.tags,
     metadata: a.metadata,
 
-    inputSchema: a.inputSchema.toJSONSchema(),
-    outputSchema: a.outputSchema.toJSONSchema()
+    inputSchema: toJsonSchema(a.inputSchema),
+    outputSchema: toJsonSchema(a.outputSchema)
   };
 
   if (a.type == 'tool') {

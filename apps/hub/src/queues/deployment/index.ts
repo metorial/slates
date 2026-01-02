@@ -1,6 +1,7 @@
 import { combineQueueProcessors } from '@lowerdeck/queue';
 import {
   deploySlateVersionCompletedQueueProcessor,
+  deploySlateVersionFailedQueueProcessor,
   deploySlateVersionMonitorQueueProcessor,
   deploySlateVersionProviderCompletedQueueProcessor,
   deploySlateVersionQueueProcessor,
@@ -12,5 +13,6 @@ export let deploymentQueues = combineQueueProcessors([
   deploySlateVersionStartQueueProcessor,
   deploySlateVersionMonitorQueueProcessor,
   deploySlateVersionProviderCompletedQueueProcessor,
-  deploySlateVersionCompletedQueueProcessor
+  deploySlateVersionCompletedQueueProcessor,
+  deploySlateVersionFailedQueueProcessor
 ]);

@@ -11,7 +11,11 @@ let include = {
       registry: true
     }
   },
-  slateVersion: true
+  slateVersion: {
+    include: {
+      specification: true
+    }
+  }
 };
 
 class slateDeploymentServiceImpl {

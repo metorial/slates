@@ -10,7 +10,8 @@ let include = {
     include: {
       registry: true
     }
-  }
+  },
+  specification: true
 };
 
 class slateVersionServiceImpl {

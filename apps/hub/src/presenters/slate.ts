@@ -1,8 +1,20 @@
-import type { Registry, Slate, SlateVersion } from '../../prisma/generated/client';
+import type {
+  Registry,
+  Slate,
+  SlateSpecification,
+  SlateVersion
+} from '../../prisma/generated/client';
 import { slateVersionPresenter } from './slateVersion';
 
 export let slatePresenter = (
-  slate: Slate & { registry: Registry; currentVersion: SlateVersion | null }
+  slate: Slate & {
+    registry: Registry;
+    currentVersion:
+      | (SlateVersion & {
+          specification: SlateSpecification | null;
+        })
+      | null;
+  }
 ) => ({
   object: 'slate',
 
