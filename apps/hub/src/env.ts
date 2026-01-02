@@ -15,6 +15,11 @@ export let env = createValidatedEnv({
     FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS: v.number()
   },
 
+  storage: {
+    OBJECT_STORAGE_URL: v.string(),
+    INVOCATIONS_BUCKET_NAME: v.string()
+  },
+
   encryption: {
     ENCRYPTION_KEY: v.string()
   },
