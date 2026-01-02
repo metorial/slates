@@ -4,7 +4,12 @@ import type { SlateInvocation } from '../../../prisma/generated/client';
 import { db } from '../../db';
 import { functionBay, functionBayTenant } from '../../functionBay';
 import { invocationsBucketRecord, storage } from '../../storage';
-import type { SlateInvocationBaseParams, SlatesRequest, SlatesResponse } from './types';
+import type {
+  SlateInvocationBaseParams,
+  SlatesRequest,
+  SlatesResponse,
+  StoredSlateInvocation
+} from './types';
 
 let storeQueue = new PQueue({ concurrency: 25 });
 
@@ -32,14 +37,14 @@ let getFunctionBayInvocationResultWithRetry = async (
     } catch (err) {
       if (attempt == 5) throw err;
 
-      console.error(
-        `Error fetching function bay invocation result (attempt ${attempt}), retrying...`,
-        err
-      );
       await delay(200 * attempt);
     }
   }
 };
+
+export type SlateInvocationResult = Awaited<
+  ReturnType<typeof getFunctionBayInvocationResultWithRetry>
+>;
 
 export let storeSlateInvocation = (
   d: SlateInvocationBaseParams & {
@@ -55,6 +60,11 @@ export let storeSlateInvocation = (
 
       let idToMethodMap = new Map<string, SlatesRequest['method']>();
 
+      console.log({
+        requestMessages: d.requestMessages,
+        responseMessages: d.responseMessages
+      });
+
       let sanitizedRequests = d.requestMessages.map(m => {
         if ('id' in m && m.id) idToMethodMap.set(m.id, m.method);
 
@@ -69,12 +79,18 @@ export let storeSlateInvocation = (
 
           return { ...m, params: updatedParams };
         }
+
+        return m;
       });
+
+      let hasResponseError = false;
 
       let sanitizedResponses = d.responseMessages?.map(m => {
         if (typeof m != 'object' || m == null) console.log('Non-object response message:', m);
 
         let method = 'id' in m && m.id ? idToMethodMap.get(m.id) : null;
+
+        if ('error' in m) hasResponseError = true;
 
         if (method && 'result' in m && method.startsWith('slates/auth.')) {
           let updatedResult: any = m.result;
@@ -87,6 +103,8 @@ export let storeSlateInvocation = (
 
           return { ...m, result: updatedResult };
         }
+
+        return m;
       });
 
       let invocationResult = await getFunctionBayInvocationResultWithRetry({
@@ -95,26 +113,34 @@ export let storeSlateInvocation = (
         invocationId: d.invocationResult.id
       });
 
-      let storageKey = `invocations/${d.record.id}/logs`;
+      let storageKey = getStoredInvocationStorageKey(d.record);
       await storage.putObject(
         invocationsBucketRecord.bucket,
         storageKey,
         JSON.stringify({
           id: d.record.id,
-          requests: sanitizedRequests,
-          responses: sanitizedResponses,
-          provider: invocationResult
-        })
+          requests: sanitizedRequests as any,
+          responses: (sanitizedResponses ?? []) as any,
+          provider: { ...invocationResult, logs: undefined } as any,
+          logs: invocationResult.logs.map(log => [log.timestamp, log.message] as const)
+        } satisfies StoredSlateInvocation)
       );
 
       await db.slateInvocation.update({
         where: { oid: d.record.oid },
         data: {
           isPending: false,
+          hasResponseError: hasResponseError,
+          hasInvocationError: invocationResult.status == 'failed',
+
           providerInvocationId: d.invocationResult.id,
           bucketOid: invocationsBucketRecord.oid
         }
       });
     })
     .catch(console.error);
+};
+
+export let getStoredInvocationStorageKey = (invocation: SlateInvocation) => {
+  return `invocations/${invocation.id}/logs`;
 };

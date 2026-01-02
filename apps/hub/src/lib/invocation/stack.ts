@@ -87,7 +87,9 @@ export class SlateInvocationStack {
           deploymentOid: this.#slateVersion.activeDeploymentOid,
           bucketOid: invocationsBucketRecord.oid,
           isPending: true,
-          providerInvocationId: ''
+          providerInvocationId: '',
+          hasInvocationError: false,
+          hasResponseError: false
         }
       })
     ]);

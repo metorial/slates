@@ -1,6 +1,18 @@
+import { notFoundError, ServiceError } from '@lowerdeck/error';
+import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
+import type { Slate } from '../../prisma/generated/client';
+import { db } from '../db';
 import { SlateInvocationStack } from '../lib/invocation/stack';
 import type { SlateInvocationBaseParams, SlatesRequest } from '../lib/invocation/types';
+
+let include = {
+  deployment: {
+    include: {
+      slateVersion: true
+    }
+  }
+};
 
 class slateInvocationServiceImpl {
   async createInvocation(
@@ -271,6 +283,46 @@ class slateInvocationServiceImpl {
       registrationDetails: d.registrationDetails,
       state: d.state
     });
+  }
+
+  async getSlateInvocationById(d: { slate: Slate; id: string }) {
+    let slateInvocation = await db.slateInvocation.findFirst({
+      where: {
+        deployment: { slateOid: d.slate.oid },
+        id: d.id
+      },
+      include
+    });
+    if (!slateInvocation) throw new ServiceError(notFoundError('slate.specification'));
+    return slateInvocation;
+  }
+
+  async listSlateInvocations(d: { slate: Slate; versionIds?: string[] }) {
+    let versions = d.versionIds
+      ? await db.slateVersion.findMany({
+          where: {
+            status: 'active',
+            OR: [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
+          },
+          select: { oid: true }
+        })
+      : undefined;
+
+    return Paginator.create(({ prisma }) =>
+      prisma(
+        async opts =>
+          await db.slateInvocation.findMany({
+            ...opts,
+            where: {
+              deployment: {
+                slateOid: d.slate.oid,
+                slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined
+              }
+            },
+            include
+          })
+      )
+    );
   }
 }
 

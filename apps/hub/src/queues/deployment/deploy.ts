@@ -55,6 +55,8 @@ export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(as
     }
   });
 
+  console.log(`Starting deployment for slate version ${version.id} (${version.version})`);
+
   await deploySlateVersionStartQueue.add({ deploymentId: deployment.id });
 });
 

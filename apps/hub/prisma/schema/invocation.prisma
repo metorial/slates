@@ -8,7 +8,9 @@ model SlateInvocation {
   oid BigInt @id
   id  String @unique
 
-  isPending Boolean
+  isPending          Boolean
+  hasResponseError   Boolean @default(false)
+  hasInvocationError Boolean @default(false)
 
   providerInvocationId String
 
