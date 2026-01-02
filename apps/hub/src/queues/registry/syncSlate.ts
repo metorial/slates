@@ -13,7 +13,10 @@ export let syncSlateQueue = createQueue<{
   registryId: string;
 }>({
   name: 'shub/slate/sync',
-  redisUrl: env.service.REDIS_URL
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: {
+    concurrency: 2
+  }
 });
 
 let lock = createLock({
@@ -94,6 +97,7 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
         versionIdentifierOnRegistry: slateVersionData.version
       };
 
+      let newVersionId = await ID.generateId('slateVersion');
       let version = await db.slateVersion.upsert({
         where: {
           slateOid_version: {
@@ -103,22 +107,58 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
         },
         create: {
           oid: snowflake.nextId(),
-          id: await ID.generateId('slateVersion'),
+          id: newVersionId,
           slateOid: slate.oid,
           registryOid: reg.oid,
 
-          status: 'upcoming',
+          providerDeploymentInfo: null,
+
+          status: slateVersionData.isCurrent ? 'pending' : 'unavailable',
           isCurrent: false,
           willBeCurrent: slateVersionData.isCurrent,
-
-          info: null,
 
           ...slateVersionUpsertData
         },
         update: slateVersionUpsertData
       });
 
-      await deploySlateVersionQueue.add({ versionId: version.id }, { id: version.id });
+      if (newVersionId == version.id) {
+        await db.slateEvent.create({
+          data: {
+            oid: snowflake.nextId(),
+            id: await ID.generateId('slateEvent'),
+            type: 'version_pulled',
+            message: `New version ${version.version} pulled from registry`,
+            slateOid: slate.oid,
+            slateVersionOid: version.oid
+          }
+        });
+      }
+
+      // Only deploy current versions
+      if (slateVersionData.isCurrent) {
+        await deploySlateAfterSyncQueue.add({ versionId: version.id }, { id: version.id });
+      }
     }
   })
+);
+
+export let deploySlateAfterSyncQueue = createQueue<{
+  versionId: string;
+}>({
+  name: 'shub/slate/sydp',
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: {
+    concurrency: 2,
+    limiter: {
+      max: 10,
+      duration: 60 * 1000
+    }
+  }
+});
+
+export let deploySlateAfterSyncQueueProcessor = deploySlateAfterSyncQueue.process(
+  async data => {
+    await deploySlateVersionQueue.add({ versionId: data.versionId }, { id: data.versionId });
+  }
 );

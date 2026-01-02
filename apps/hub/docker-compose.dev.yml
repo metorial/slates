@@ -118,8 +118,10 @@ services:
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0
+
       OBJECT_STORAGE_URL: http://object-storage:52010
       PACKAGE_BUCKET_NAME: slates-hub-packages
+
       SERVICE_PUBLIC_URL: http://localhost:52040
       PUBLIC_ACCESS_PERMITTED: 'true'
     volumes:
@@ -152,6 +154,9 @@ services:
       FUNCTION_BAY_TENANT_IDENTIFIER: dev-tenant
       FUNCTION_BAY_DEFAULT_MEMORY_MB: 512
       FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS: 15
+
+      OBJECT_STORAGE_URL: http://object-storage:52010
+      INVOCATIONS_BUCKET_NAME: slates-hub-invocations
 
       INITIAL_REGISTRIES: "http://slates-registry:52040"
 

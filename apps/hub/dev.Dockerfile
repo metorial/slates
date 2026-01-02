@@ -15,4 +15,4 @@ RUN bun install
 COPY . .
 
 # Run in dev mode with hot reloading
-CMD ["sh", "-c", "cd apps/hub && bun prisma db push --accept-data-loss && bun --watch src/server.ts"]
+CMD ["sh", "-c", "cd apps/hub && bun prisma db push --force-reset && bun --watch src/server.ts"]
