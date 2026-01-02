@@ -5,16 +5,20 @@ import { registryController } from './registry';
 import { secretController } from './secret';
 import { slateController } from './slate';
 import { slateDeploymentController } from './slateDeployment';
+import { slateSpecificationController } from './slateSpecification';
 import { slateVersionController } from './slateVersion';
 import { tenantController } from './tenant';
 
 export let rootController = app.controller({
   tenant: tenantController,
   secret: secretController,
+
+  registry: registryController,
+
   slate: slateController,
   slateDeployment: slateDeploymentController,
   slateVersion: slateVersionController,
-  registry: registryController
+  slateSpecification: slateSpecificationController
 });
 
 export let slatesHubRPC = createServer({})(rootController);
