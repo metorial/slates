@@ -35,6 +35,7 @@
     "@lowerdeck/queue": "^1.0.4",
     "@lowerdeck/rpc-client": "^1.0.2",
     "@lowerdeck/rpc-server": "^1.0.4",
+    "@lowerdeck/sentry": "^1.0.2",
     "@lowerdeck/service": "^1.0.3",
     "@lowerdeck/shadow-id": "^1.0.4",
     "@lowerdeck/slugify": "^1.0.4",

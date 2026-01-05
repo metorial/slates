@@ -32,6 +32,8 @@ declare global {
     type SlateAuthMethods = SlateAuthenticationMethod[];
     type SlateActions = ProtoSlatesAction[];
 
+    type AnyRecord = Record<string, any>;
+
     type SlateProviderInfo = SlatesMessageProviderIdentifyResponse['result']['provider'];
   }
 }

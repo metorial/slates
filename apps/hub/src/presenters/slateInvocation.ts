@@ -53,7 +53,13 @@ export let slateInvocationPresenter = async (
     object: 'slate.invocation',
 
     id: inv.id,
-    status: output.provider ? output.provider.status : ('processing_result' as const),
+    status: inv.isPending
+      ? ('processing_result' as const)
+      : output.provider?.status == 'failed' || inv.hasInvocationError
+        ? ('invocation_failed' as const)
+        : inv.hasResponseError
+          ? ('message_failed' as const)
+          : ('succeeded' as const),
 
     slateDeploymentId: inv.deployment.id,
     slateVersionId: inv.deployment.slateVersion.id,
