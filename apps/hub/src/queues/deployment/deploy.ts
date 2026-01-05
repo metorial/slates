@@ -112,7 +112,8 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             dependencies: {
               '@slates/provider-handler': '1.0.0-rc.6',
               '@slates/proto': '1.0.0-rc.6',
-              slates: '1.0.0-rc.6'
+              slates: '1.0.0-rc.6',
+              '@lowerdeck/serialize': 'latest'
             }
           },
           null,
@@ -125,12 +126,17 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
           import { provider } from './index';
           import { createProviderHandler } from '@slates/provider-handler';
           import { SlatesProviderProtoHandlerManager } from '@slates/proto';
+          import { serialize } from '@lowerdeck/serialize';
 
           let handler = createProviderHandler(provider, [
             e => e.forEach(e => console.log(e.type.toUpperCase(), e.message))
           ]);
 
           export default async (input) => {
+            if (input._encoded) {
+              input = serialize.decode(input._encoded);
+            }
+
             let manager = await handler.run();
 
             let messages = [];
@@ -138,12 +144,19 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             for (let m of input.messages) {
               console.log('[Slates:] Processing input message', m.method + (m.id ? \`(\${m.id})\` : ''));
               let result = await SlatesProviderProtoHandlerManager.handleInput(manager, m);
-              if (result) messages.push(result);
+              if (result) {
+                if (m.id) result.id = m.id;
+                messages.push(result);
 
-              if (result.error) {
-                console.error('[Slates:] Error in processing:', result.error);
-                break;
+                if (typeof result.error == 'object' && result.error) {
+                  console.error('[Slates:] Error in processing:', result.error);
+                  break;
+                }
               }
+            }
+
+            if (input._encoded) {
+              return { _encoded: serialize.encode({ messages }) };
             }
 
             return { messages };

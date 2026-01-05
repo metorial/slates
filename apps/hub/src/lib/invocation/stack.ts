@@ -1,6 +1,7 @@
 import { delay } from '@lowerdeck/delay';
 import { badRequestError, ServiceError } from '@lowerdeck/error';
 import { generatePlainId } from '@lowerdeck/id';
+import { serialize } from '@lowerdeck/serialize';
 import {
   slatesResponsesByMethod,
   type SlatesParticipant,
@@ -73,14 +74,12 @@ export class SlateInvocationStack {
       ...this.#productiveMessages
     ];
 
-    console.log(messages);
-
     let invocationId = await ID.generateId('slateInvocation');
     let [providerInvocation, invocationRecord] = await Promise.all([
       functionBay.function.invoke({
         tenantId: functionBayTenant.id,
         functionId: this.#slateVersion.providerDeploymentInfo.functionId,
-        payload: { messages, invocationId }
+        payload: { _encoded: serialize.encode({ messages, invocationId }) }
       }),
       db.slateInvocation.create({
         data: {
@@ -126,9 +125,12 @@ export class SlateInvocationStack {
       };
     }
 
-    let resultMessages = providerInvocation.result.messages as SlatesResponse[];
+    // If the result is encoded, decode it
+    if (providerInvocation.result._encoded) {
+      providerInvocation.result = serialize.decode(providerInvocation.result._encoded);
+    }
 
-    console.log(JSON.stringify(resultMessages, null, 2));
+    let resultMessages = providerInvocation.result.messages as SlatesResponse[];
 
     storeSlateInvocation({
       slateVersion: this.#slateVersion,
@@ -174,6 +176,30 @@ export class SlateInvocationStack {
           m => 'id' in m && m.id == inputMessage.id
         );
         if (!outputMessage || typeof outputMessage != 'object' || outputMessage === null) {
+          let errorMessage = resultMessages.find(m => 'error' in m);
+          if (errorMessage) {
+            let parse = errorSchema.safeParse(errorMessage);
+            if (!parse.success) {
+              return {
+                status: 'error',
+                invocation: invocationRecord,
+                error: {
+                  code: 'invalid_error_message',
+                  message: `Output error message for method ${key} is invalid: ${parse.error.message}`
+                }
+              };
+            }
+
+            return {
+              status: 'error',
+              invocation: invocationRecord,
+              error: {
+                ...parse.data.error,
+                code: parse.data.error.code || 'unknown_error'
+              } as any
+            };
+          }
+
           return {
             status: 'error',
             invocation: invocationRecord,
