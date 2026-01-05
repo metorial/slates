@@ -79,7 +79,7 @@ export class SlateInvocationStack {
       functionBay.function.invoke({
         tenantId: functionBayTenant.id,
         functionId: this.#slateVersion.providerDeploymentInfo.functionId,
-        payload: { _encoded: serialize.encode({ messages, invocationId }) }
+        payload: { messages, invocationId }
       }),
       db.slateInvocation.create({
         data: {

@@ -5,8 +5,16 @@ import type { Slate } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
-  slate: true
+  slate: true,
+  slateAuthMethods: {
+    include: { authMethod: true }
+  },
+  slateActions: {
+    include: { action: true }
+  }
 };
+
+let omit = { authMethods: true, actions: true };
 
 class slateSpecificationServiceImpl {
   async getSlateSpecificationById(d: { slate: Slate; id: string }) {
@@ -15,7 +23,8 @@ class slateSpecificationServiceImpl {
         slateOid: d.slate.oid,
         id: d.id
       },
-      include
+      include,
+      omit
     });
     if (!slateSpecification) throw new ServiceError(notFoundError('slate.specification'));
     return slateSpecification;
@@ -43,7 +52,8 @@ class slateSpecificationServiceImpl {
                 ? { some: { oid: { in: versions.map(v => v.oid) } } }
                 : undefined
             },
-            include
+            include,
+            omit
           })
       )
     );
