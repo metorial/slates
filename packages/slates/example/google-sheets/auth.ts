@@ -10,7 +10,7 @@ export let auth = SlateAuth.create()
     z.object({
       token: z.string(),
       refreshToken: z.string().optional(),
-      expiresAt: z.date().optional()
+      expiresAt: z.string().optional()
     })
   )
   .addOauth({
@@ -78,7 +78,7 @@ export let auth = SlateAuth.create()
           token: data.access_token,
           refreshToken: data.refresh_token,
           expiresAt: data.expires_in
-            ? new Date(Date.now() + data.expires_in * 1000)
+            ? new Date(Date.now() + data.expires_in * 1000).toISOString()
             : undefined
         },
         input: ctx.input
@@ -116,7 +116,7 @@ export let auth = SlateAuth.create()
           token: data.access_token,
           refreshToken: data.refresh_token || ctx.output.refreshToken,
           expiresAt: data.expires_in
-            ? new Date(Date.now() + data.expires_in * 1000)
+            ? new Date(Date.now() + data.expires_in * 1000).toISOString()
             : undefined
         },
         input: ctx.input
@@ -237,7 +237,7 @@ let generateServiceAccountToken = async (
     token_uri?: string;
   },
   scopes: string[]
-): Promise<{ accessToken: string; expiresAt: Date }> => {
+): Promise<{ accessToken: string; expiresAt: string }> => {
   let now = Math.floor(Date.now() / 1000);
   let exp = now + 3600;
 
@@ -276,7 +276,7 @@ let generateServiceAccountToken = async (
 
   return {
     accessToken: data.access_token,
-    expiresAt: new Date(Date.now() + data.expires_in * 1000)
+    expiresAt: new Date(Date.now() + data.expires_in * 1000).toISOString()
   };
 };
 
