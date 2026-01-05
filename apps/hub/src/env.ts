@@ -4,7 +4,10 @@ import { v } from '@lowerdeck/validation';
 export let env = createValidatedEnv({
   service: {
     REDIS_URL: v.string(),
-    DATABASE_URL: v.string()
+    DATABASE_URL: v.string(),
+
+    SERVICE_PUBLIC_URL: v.string(),
+    METORIAL_ENV: v.enumOf(['development', 'staging', 'production'])
   },
 
   functionBay: {
