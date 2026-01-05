@@ -61,11 +61,7 @@ let rediscoverSlateQueue = createQueue<{ slateVersionId: string }>({
 
 export let rediscoverSlateQueueProcessor = rediscoverSlateQueue.process(async data => {
   await discoverSlateQueue.add(
-    {
-      versionId: data.slateVersionId
-    },
-    {
-      id: data.slateVersionId
-    }
+    { versionId: data.slateVersionId },
+    { id: data.slateVersionId }
   );
 });
