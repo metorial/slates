@@ -3,10 +3,15 @@ import { SlateContext } from './context';
 
 let asyncLocalStorage = new AsyncLocalStorage<SlateContext<any, any, any>>();
 
-export let runWithContext = <ConfigType extends {}, AuthType extends {}, InputType extends {}>(
+export let runWithContext = <
+  ConfigType extends {},
+  AuthType extends {},
+  InputType extends {},
+  RV
+>(
   context: SlateContext<ConfigType, AuthType, InputType>,
-  fn: () => Promise<void>
-) => {
+  fn: () => Promise<RV>
+): Promise<RV> => {
   return asyncLocalStorage.run(context, fn);
 };
 

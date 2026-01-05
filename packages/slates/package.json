@@ -1,6 +1,6 @@
 {
   "name": "slates",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.6",
   "publishConfig": {
     "access": "public"
   },
@@ -30,7 +30,7 @@
     "build": "microbundle"
   },
   "dependencies": {
-    "@slates/provider": "^1.0.0-rc.2"
+    "@slates/provider": "^1.0.0-rc.6"
   },
   "devDependencies": {
     "microbundle": "^0.15.1",

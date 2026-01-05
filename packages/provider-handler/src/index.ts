@@ -1,6 +1,12 @@
 import { badRequestError, preconditionFailedError, ServiceError } from '@lowerdeck/error';
 import { createSlatesProviderProtoHandler, SlatesParticipant } from '@slates/proto';
-import { Slate, SlateContext, SlateLogger, SlateLogListener } from '@slates/provider';
+import {
+  runWithContext,
+  Slate,
+  SlateContext,
+  SlateLogger,
+  SlateLogListener
+} from '@slates/provider';
 import { getAction, getActionWithType, getAuthMethod, mapAction, mapAuthMethod } from './spec';
 import { State } from './state';
 import { toJsonSchema, validate } from './validation';
@@ -64,6 +70,8 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         auth: currentAuth
       };
     };
+
+    let getEmptyContext = () => new SlateContext({}, {}, {}, slate.spec as any, logger);
 
     manager.onNotification('slates/hello', async ({ params }) => {
       protocol.set(params.protocol);
@@ -199,7 +207,9 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         return { input: null };
       }
 
-      return { input: await authMethod.getDefaultInput() };
+      return {
+        input: await runWithContext(getEmptyContext(), () => authMethod.getDefaultInput!())
+      };
     });
 
     manager.onRequest('slates/auth.input.changed', async ({ params }) => {
@@ -210,10 +220,12 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         return { success: true, input: params.newInput };
       }
 
-      let updatedInput = await authMethod.onInputChanged({
-        previousInput: params.previousInput as any | null,
-        newInput: params.newInput
-      });
+      let updatedInput = await runWithContext(getEmptyContext(), () =>
+        authMethod.onInputChanged!({
+          previousInput: params.previousInput as any | null,
+          newInput: params.newInput
+        })
+      );
 
       return { success: true, input: updatedInput?.input ?? params.newInput };
     });
@@ -234,7 +246,9 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       }
 
       if ('getOutput' in authMethod) {
-        let outputRes = await authMethod.getOutput({ input });
+        let outputRes = await runWithContext(getEmptyContext(), () =>
+          authMethod.getOutput({ input })
+        );
         return { output: outputRes.output };
       }
 
@@ -246,15 +260,18 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       let authMethod = getAuthMethod(slate, params.authenticationMethodId);
 
       if ('handleCallback' in authMethod) {
-        let callbackRes = await authMethod.handleCallback({
-          code: params.code,
-          state: params.state,
-          redirectUri: params.redirectUri,
-          input: params.input,
-          clientId: params.clientId,
-          clientSecret: params.clientSecret,
-          scopes: params.scopes
-        });
+        let callbackRes = await runWithContext(getEmptyContext(), () =>
+          authMethod.handleCallback({
+            code: params.code,
+            state: params.state,
+            redirectUri: params.redirectUri,
+            input: params.input,
+            clientId: params.clientId,
+            clientSecret: params.clientSecret,
+            scopes: params.scopes,
+            callbackState: params.callbackState || {}
+          })
+        );
 
         return {
           output: callbackRes.output,
@@ -274,18 +291,21 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       let authMethod = getAuthMethod(slate, params.authenticationMethodId);
 
       if ('getAuthorizationUrl' in authMethod) {
-        let urlRes = await authMethod.getAuthorizationUrl({
-          redirectUri: params.redirectUri,
-          state: params.state,
-          input: params.input,
-          clientId: params.clientId,
-          clientSecret: params.clientSecret,
-          scopes: params.scopes
-        });
+        let urlRes = await runWithContext(getEmptyContext(), () =>
+          authMethod.getAuthorizationUrl({
+            redirectUri: params.redirectUri,
+            state: params.state,
+            input: params.input,
+            clientId: params.clientId,
+            clientSecret: params.clientSecret,
+            scopes: params.scopes
+          })
+        );
 
         return {
           authorizationUrl: urlRes.url,
-          input: urlRes.input
+          input: urlRes.input,
+          callbackState: urlRes.callbackState
         };
       }
 
@@ -301,11 +321,13 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       let authMethod = getAuthMethod(slate, params.authenticationMethodId);
 
       if (authMethod.getProfile) {
-        let profileRes = await authMethod.getProfile({
-          output: params.output as any,
-          input: params.input,
-          scopes: params.scopes
-        });
+        let profileRes = await runWithContext(getEmptyContext(), () =>
+          authMethod.getProfile!({
+            output: params.output as any,
+            input: params.input,
+            scopes: params.scopes
+          })
+        );
 
         return {
           profile: profileRes.profile
@@ -324,13 +346,15 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       let authMethod = getAuthMethod(slate, params.authenticationMethodId);
 
       if ('handleTokenRefresh' in authMethod && authMethod.handleTokenRefresh) {
-        let refreshRes = await authMethod.handleTokenRefresh({
-          output: params.output as any,
-          input: params.input,
-          clientId: params.clientId,
-          clientSecret: params.clientSecret,
-          scopes: params.scopes
-        });
+        let refreshRes = await runWithContext(getEmptyContext(), () =>
+          authMethod.handleTokenRefresh!({
+            output: params.output as any,
+            input: params.input,
+            clientId: params.clientId,
+            clientSecret: params.clientSecret,
+            scopes: params.scopes
+          })
+        );
 
         return {
           output: refreshRes.output,
@@ -373,9 +397,8 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         `Invalid input for tool ID: ${params.actionId}`
       );
 
-      let res = await action.handleInvocation(
-        new SlateContext(ctx.config, input, ctx.auth?.output!, slate.spec, logger)
-      );
+      let context = new SlateContext(ctx.config, input, ctx.auth?.output!, slate.spec, logger);
+      let res = await runWithContext(context, () => action.handleInvocation(context));
 
       return { output: res.output, message: res.message };
     });
@@ -391,9 +414,8 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         `Invalid event for trigger ID: ${params.actionId}`
       );
 
-      let res = await action.handleEvent(
-        new SlateContext(ctx.config, input, ctx.auth?.output!, slate.spec, logger)
-      );
+      let context = new SlateContext(ctx.config, input, ctx.auth?.output!, slate.spec, logger);
+      let res = await runWithContext(context, () => action.handleEvent(context));
 
       return { id: res.id, type: res.type, output: res.output };
     });
@@ -410,15 +432,14 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         );
       }
 
-      let res = await action.pollEvents(
-        new SlateContext(
-          ctx.config,
-          { state: params.state },
-          ctx.auth?.output!,
-          slate.spec,
-          logger
-        )
+      let context = new SlateContext(
+        ctx.config,
+        { state: params.state },
+        ctx.auth?.output!,
+        slate.spec,
+        logger
       );
+      let res = await runWithContext(context, () => action.pollEvents!(context));
 
       return { inputs: res.inputs, updatedState: res.updatedState };
     });
@@ -443,15 +464,14 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
           : null
       });
 
-      let res = await action.handleRequest(
-        new SlateContext(
-          ctx.config,
-          { request: req, state: params.state },
-          ctx.auth?.output!,
-          slate.spec,
-          logger
-        )
+      let context = new SlateContext(
+        ctx.config,
+        { request: req, state: params.state },
+        ctx.auth?.output!,
+        slate.spec,
+        logger
       );
+      let res = await runWithContext(context, () => action.handleRequest!(context));
 
       return { inputs: res.inputs, updatedState: res.updatedState };
     });
@@ -468,15 +488,14 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         );
       }
 
-      let res = await action.autoRegisterWebhook(
-        new SlateContext(
-          ctx.config,
-          { webhookBaseUrl: params.webhookBaseUrl },
-          ctx.auth?.output!,
-          slate.spec,
-          logger
-        )
+      let context = new SlateContext(
+        ctx.config,
+        { webhookBaseUrl: params.webhookBaseUrl },
+        ctx.auth?.output!,
+        slate.spec,
+        logger
       );
+      let res = await runWithContext(context, () => action.autoRegisterWebhook!(context));
 
       return { registrationDetails: res.registrationDetails, state: res.state };
     });
@@ -493,19 +512,18 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
         );
       }
 
-      await action.autoUnregisterWebhook(
-        new SlateContext(
-          ctx.config,
-          {
-            webhookBaseUrl: params.webhookBaseUrl,
-            registrationDetails: params.registrationDetails,
-            state: params.state
-          },
-          ctx.auth?.output!,
-          slate.spec,
-          logger
-        )
+      let context = new SlateContext(
+        ctx.config,
+        {
+          webhookBaseUrl: params.webhookBaseUrl,
+          registrationDetails: params.registrationDetails,
+          state: params.state
+        },
+        ctx.auth?.output!,
+        slate.spec,
+        logger
       );
+      await runWithContext(context, () => action.autoUnregisterWebhook!(context));
 
       return {};
     });
