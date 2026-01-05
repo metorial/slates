@@ -110,9 +110,9 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             version: '1.0.0',
             main: 'slates_entry_point.js',
             dependencies: {
-              '@slates/provider-handler': '1.0.0-rc.4',
-              '@slates/proto': '1.0.0-rc.5',
-              slates: '1.0.0-rc.2'
+              '@slates/provider-handler': '1.0.0-rc.6',
+              '@slates/proto': '1.0.0-rc.6',
+              slates: '1.0.0-rc.6'
             }
           },
           null,
@@ -391,9 +391,10 @@ export let deploySlateVersionCompletedQueueProcessor =
         }
       });
 
-      await discoverSlateQueue.add({
-        versionId: deployment.slateVersion.id
-      });
+      await discoverSlateQueue.add(
+        { versionId: deployment.slateVersion.id },
+        { delay: 10_000 }
+      );
     });
   });
 

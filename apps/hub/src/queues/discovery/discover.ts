@@ -23,8 +23,6 @@ export let discoverSlateQueue = createQueue<{ versionId: string }>({
   }
 });
 
-// discoverSlateQueue.add({ versionId: 'shslv_0mjwuqt1gj7rrEXQpN7597' });
-
 let discoverLock = createLock({
   name: 'shub/dis/lock',
   redisUrl: env.service.REDIS_URL
