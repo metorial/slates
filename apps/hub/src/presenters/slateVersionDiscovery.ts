@@ -5,7 +5,6 @@ import type {
   SlateVersion,
   SlateVersionDiscovery
 } from '../../prisma/generated/client';
-import { slateSpecificationPresenter } from './slateSpecification';
 
 export let slateVersionDiscoveryPresenter = (
   discovery: SlateVersionDiscovery & {
@@ -22,19 +21,13 @@ export let slateVersionDiscoveryPresenter = (
 
   slateVersionId: discovery.slateVersion.id,
   slateInvocationId: discovery.invocation?.id,
+  specificationId: discovery.specification?.id,
 
   error: discovery.errorMessage
     ? {
         code: 'version_discovery_error',
         message: discovery.errorMessage
       }
-    : undefined,
-
-  specification: discovery.specification
-    ? slateSpecificationPresenter({
-        ...discovery.specification,
-        slate: discovery.slateVersion.slate
-      })
     : undefined,
 
   createdAt: discovery.createdAt

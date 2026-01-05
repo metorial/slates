@@ -132,7 +132,30 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             e => e.forEach(e => console.log(e.type.toUpperCase(), e.message))
           ]);
 
+          let initialGlobals = {}
+          for (let key of Object.getOwnPropertyNames(globalThis)) {
+            initialGlobals[key] = globalThis[key]
+          }
+
+          let reset = () => {
+            for (let key of Object.getOwnPropertyNames(globalThis)) {
+              if (!(key in initialGlobals)) {
+                delete globalThis[key]
+              }
+            }
+
+            for (let key in initialGlobals) {
+              globalThis[key] = initialGlobals[key]
+            }
+
+            for (let key in require.cache) {
+              delete require.cache[key]
+            }
+          }
+
           export default async (input) => {
+            reset();
+
             if (input._encoded) {
               input = serialize.decode(input._encoded);
             }
