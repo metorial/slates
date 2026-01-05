@@ -139,6 +139,11 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
               console.log('[Slates:] Processing input message', m.method + (m.id ? \`(\${m.id})\` : ''));
               let result = await SlatesProviderProtoHandlerManager.handleInput(manager, m);
               if (result) messages.push(result);
+
+              if (result.error) {
+                console.error('[Slates:] Error in processing:', result.error);
+                break;
+              }
             }
 
             return { messages };

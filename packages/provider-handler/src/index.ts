@@ -21,7 +21,6 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
 
     let auth = new State<{ authenticationMethodId: string; output: AuthType } | null>(null);
     let config = new State<{ value: ConfigType } | null>(null);
-
     let session = new State<{ id: string; state: any } | null>(null);
 
     let logger = new SlateLogger(listeners);

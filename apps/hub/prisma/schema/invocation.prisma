@@ -24,4 +24,6 @@ model SlateInvocation {
 
   slateVersionDiscoveries       SlateVersionDiscovery[]
   slateInstanceOAuthSetupEvents SlateInstanceOAuthSetupEvent[]
+  slateAuthConfigEvents         SlateAuthConfigEvent[]
+  slateSessionToolCalls         SlateSessionToolCall[]
 }

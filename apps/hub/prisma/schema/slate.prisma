@@ -40,6 +40,7 @@ model Slate {
   slateOAuthCredentials     SlateOAuthCredentials[]
   slateInstanceOAuthSetups  SlateInstanceOAuthSetup[]
   slateAuthConfigs          SlateAuthConfig[]
+  slateSessions             SlateSession[]
 
   @@unique([registryOid, slateIdOnRegistry])
   @@unique([registryOid, slateFullIdentifierOnRegistry])
@@ -99,6 +100,8 @@ model SlateVersion {
   slateSpecifications        SlateSpecification[]       @relation("mostRecentSpecificationVersion")
   slateInstances             SlateInstance[]
   slateInstanceOAuthSetups   SlateInstanceOAuthSetup[]
+  slateSessions              SlateSession[]
+  slateSessionToolCalls      SlateSessionToolCall[]
 
   @@unique([slateOid, version])
 }
@@ -215,7 +218,10 @@ model SlateAction {
 
   createdAt DateTime @default(now())
 
-  slateSpecifications SlateSpecificationAction[]
+  slateSpecifications   SlateSpecificationAction[]
+  slateSessionToolCalls SlateSessionToolCall[]
+
+  @@index([key])
 }
 
 model SlateSpecificationAction {

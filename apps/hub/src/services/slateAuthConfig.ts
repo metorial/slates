@@ -1,6 +1,5 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
-import { getSentry } from '@lowerdeck/sentry';
 import { Service } from '@lowerdeck/service';
 import type { Slate, SlateInstance, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
@@ -9,8 +8,6 @@ import { extractExpiresAt } from '../lib/extractExpiresAt';
 import { validateJsonSchema } from '../lib/validateJsonSchema';
 import { processAuthQueue } from '../queues/instance/processAuth';
 import { secretService } from './secret';
-
-let Sentry = getSentry();
 
 let include = {
   slate: true,
@@ -126,7 +123,7 @@ class slateAuthConfigServiceImpl {
       },
       include
     });
-    if (!slateAuthConfig) throw new ServiceError(notFoundError('slate.instance.auth_config'));
+    if (!slateAuthConfig) throw new ServiceError(notFoundError('slate.auth_config'));
     return slateAuthConfig;
   }
 

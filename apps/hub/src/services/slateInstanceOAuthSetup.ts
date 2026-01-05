@@ -146,15 +146,7 @@ class slateInstanceOAuthSetupServiceImpl {
         ...include,
         events: {
           include: {
-            invocation: {
-              include: {
-                deployment: {
-                  include: {
-                    slateVersion: true
-                  }
-                }
-              }
-            }
+            invocation: true
           }
         }
       }

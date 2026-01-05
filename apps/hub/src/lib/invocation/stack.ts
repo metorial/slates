@@ -73,7 +73,9 @@ export class SlateInvocationStack {
       ...this.#productiveMessages
     ];
 
-    let invocationId = await ID.generateId('slateRun');
+    console.log(messages);
+
+    let invocationId = await ID.generateId('slateInvocation');
     let [providerInvocation, invocationRecord] = await Promise.all([
       functionBay.function.invoke({
         tenantId: functionBayTenant.id,
@@ -125,6 +127,8 @@ export class SlateInvocationStack {
     }
 
     let resultMessages = providerInvocation.result.messages as SlatesResponse[];
+
+    console.log(JSON.stringify(resultMessages, null, 2));
 
     storeSlateInvocation({
       slateVersion: this.#slateVersion,

@@ -25,6 +25,7 @@ model SlateInstance {
   events         SlateInstanceEvent[]
   oAuthSetups    SlateInstanceOAuthSetup[]
   usedAuthConfig SlateAuthConfigUsedForInstance[]
+  slateSessions  SlateSession[]
 }
 
 enum SlateInstanceEventType {
@@ -141,6 +142,7 @@ model SlateAuthConfig {
   defaultForInstances      SlateInstance[]                  @relation(name: "defaultAuthConfig")
   slateInstanceOAuthSetups SlateInstanceOAuthSetup[]
   usingInstances           SlateAuthConfigUsedForInstance[]
+  slateAuthConfigEvents    SlateAuthConfigEvent[]
 }
 
 model SlateAuthConfigUsedForInstance {
@@ -155,6 +157,24 @@ model SlateAuthConfigUsedForInstance {
   createdAt DateTime @default(now())
 
   @@unique([configOid, instanceOid])
+}
+
+enum SlateAuthConfigEventType {
+  oauth_token_refresh_completed
+  oauth_token_refresh_failed
+}
+
+model SlateAuthConfigEvent {
+  oid  BigInt                   @id
+  type SlateAuthConfigEventType
+
+  configOid BigInt
+  config    SlateAuthConfig @relation(fields: [configOid], references: [oid], onDelete: Cascade)
+
+  invocationOid BigInt?
+  invocation    SlateInvocation? @relation(fields: [invocationOid], references: [oid], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
 
 enum SlateInstanceOAuthSetupStatus {

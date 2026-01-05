@@ -24,6 +24,7 @@
         "@lowerdeck/cache": "^1.0.0",
         "@lowerdeck/canonicalize": "^1.0.4",
         "@lowerdeck/cron": "^1.0.4",
+        "@lowerdeck/delay": "^1.0.4",
         "@lowerdeck/encryption": "^1.0.6",
         "@lowerdeck/env": "^1.0.4",
         "@lowerdeck/error": "^1.0.8",
@@ -147,7 +148,7 @@
     },
     "packages/proto": {
       "name": "@slates/proto",
-      "version": "1.0.0-rc.5",
+      "version": "1.0.0-rc.6",
       "dependencies": {
         "@lowerdeck/emitter": "^1.0.4",
         "@lowerdeck/error": "^1.0.8",
@@ -164,7 +165,7 @@
     },
     "packages/provider": {
       "name": "@slates/provider",
-      "version": "1.0.0-rc.2",
+      "version": "1.0.0-rc.6",
       "dependencies": {
         "@toon-format/toon": "^2.1.0",
         "axios": "^1.13.2",
@@ -179,7 +180,7 @@
     },
     "packages/provider-handler": {
       "name": "@slates/provider-handler",
-      "version": "1.0.0-rc.4",
+      "version": "1.0.0-rc.6",
       "dependencies": {
         "@lowerdeck/error": "^1.0.8",
         "@slates/proto": "^1.0.0-rc.5",
@@ -195,7 +196,7 @@
     },
     "packages/slates": {
       "name": "slates",
-      "version": "1.0.0-rc.2",
+      "version": "1.0.0-rc.6",
       "dependencies": {
         "@slates/provider": "^1.0.0",
       },
