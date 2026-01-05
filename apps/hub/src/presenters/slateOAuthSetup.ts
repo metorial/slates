@@ -10,7 +10,7 @@ import { slateAuthConfigPresenter } from './slateAuthConfig';
 import { slateOAuthCredentialsPresenter } from './slateOAuthCredentials';
 
 export let slateInstanceOAuthSetupPresenter = (
-  inst: SlateInstanceOAuthSetup & {
+  setup: SlateInstanceOAuthSetup & {
     slate: Slate;
     oauthCredentials: SlateOAuthCredentials;
     slateAuthConfig: (SlateAuthConfig & { authMethod: SlateAuthMethod }) | null;
@@ -18,36 +18,36 @@ export let slateInstanceOAuthSetupPresenter = (
 ) => ({
   object: 'slate.oauth_setup',
 
-  id: inst.id,
-  slateId: inst.slate.id,
-  status: inst.status,
-  redirectUrl: inst.redirectUrl,
+  id: setup.id,
+  slateId: setup.slate.id,
+  status: setup.status,
+  redirectUrl: setup.redirectUrl,
 
   url:
-    inst.status == 'completed'
+    setup.status == 'completed'
       ? null
-      : `${env.service.SERVICE_PUBLIC_URL}/slates-hub/authorization?setup_id=${inst.id}`,
+      : `${env.service.SERVICE_PUBLIC_URL}/slates-hub/authorization?setup_id=${setup.id}`,
 
-  error: inst.errorCode
+  error: setup.errorCode
     ? {
-        code: inst.errorCode,
-        message: inst.errorMessage ?? inst.errorCode
+        code: setup.errorCode,
+        message: setup.errorMessage ?? setup.errorCode
       }
     : null,
 
   credentials: slateOAuthCredentialsPresenter({
-    ...inst.oauthCredentials,
-    slate: inst.slate
+    ...setup.oauthCredentials,
+    slate: setup.slate
   }),
 
-  authConfig: inst.slateAuthConfig
+  authConfig: setup.slateAuthConfig
     ? slateAuthConfigPresenter({
-        ...inst.slateAuthConfig,
-        slate: inst.slate,
-        oauthCredentials: inst.oauthCredentials
+        ...setup.slateAuthConfig,
+        slate: setup.slate,
+        oauthCredentials: setup.oauthCredentials
       })
     : null,
 
-  createdAt: inst.createdAt,
-  updatedAt: inst.updatedAt
+  createdAt: setup.createdAt,
+  updatedAt: setup.updatedAt
 });

@@ -1,6 +1,7 @@
 export * from './registry';
 export * from './secret';
 export * from './slate';
+export * from './slateAction';
 export * from './slateAuthConfig';
 export * from './slateDeployment';
 export * from './slateEvent';
@@ -9,6 +10,8 @@ export * from './slateInvocation';
 export * from './slateOAuthCredentials';
 export * from './slateOAuthSetup';
 export * from './slateOAuthSetupLogs';
+export * from './slateSession';
+export * from './slateSessionToolCall';
 export * from './slateSpecification';
 export * from './slateSpecificationChange';
 export * from './slateVersion';

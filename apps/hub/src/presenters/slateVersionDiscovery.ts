@@ -8,7 +8,7 @@ import type {
 import { slateSpecificationPresenter } from './slateSpecification';
 
 export let slateVersionDiscoveryPresenter = (
-  spec: SlateVersionDiscovery & {
+  discovery: SlateVersionDiscovery & {
     slateVersion: SlateVersion & {
       slate: Slate;
     };
@@ -18,24 +18,24 @@ export let slateVersionDiscoveryPresenter = (
 ) => ({
   object: 'slate.version_discovery',
 
-  id: spec.id,
+  id: discovery.id,
 
-  slateVersionId: spec.slateVersion.id,
-  slateInvocationId: spec.invocation?.id,
+  slateVersionId: discovery.slateVersion.id,
+  slateInvocationId: discovery.invocation?.id,
 
-  error: spec.errorMessage
+  error: discovery.errorMessage
     ? {
         code: 'version_discovery_error',
-        message: spec.errorMessage
+        message: discovery.errorMessage
       }
     : undefined,
 
-  specification: spec.specification
+  specification: discovery.specification
     ? slateSpecificationPresenter({
-        ...spec.specification,
-        slate: spec.slateVersion.slate
+        ...discovery.specification,
+        slate: discovery.slateVersion.slate
       })
     : undefined,
 
-  createdAt: spec.createdAt
+  createdAt: discovery.createdAt
 });

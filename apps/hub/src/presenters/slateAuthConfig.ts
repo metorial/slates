@@ -8,7 +8,7 @@ import { slateAuthMethodPresenter } from './slateAuthMethod';
 import { slateOAuthCredentialsPresenter } from './slateOAuthCredentials';
 
 export let slateAuthConfigPresenter = (
-  inst: SlateAuthConfig & {
+  config: SlateAuthConfig & {
     slate: Slate;
     oauthCredentials: SlateOAuthCredentials | null;
     authMethod: SlateAuthMethod;
@@ -16,35 +16,35 @@ export let slateAuthConfigPresenter = (
 ) => ({
   object: 'slate.auth_config',
 
-  id: inst.id,
-  slateId: inst.slate.id,
-  status: inst.errorCode
+  id: config.id,
+  slateId: config.slate.id,
+  status: config.errorCode
     ? ('failed' as const)
-    : inst.isProcessing
+    : config.isProcessing
       ? ('processing' as const)
       : ('active' as const),
 
-  error: inst.errorCode
+  error: config.errorCode
     ? {
-        code: inst.errorCode,
-        message: inst.errorMessage ?? inst.errorCode
+        code: config.errorCode,
+        message: config.errorMessage ?? config.errorCode
       }
     : null,
 
   authMethod: slateAuthMethodPresenter({
-    ...inst.authMethod,
-    slate: inst.slate
+    ...config.authMethod,
+    slate: config.slate
   }),
 
-  oauthCredentials: inst.oauthCredentials
+  oauthCredentials: config.oauthCredentials
     ? slateOAuthCredentialsPresenter({
-        ...inst.oauthCredentials,
-        slate: inst.slate
+        ...config.oauthCredentials,
+        slate: config.slate
       })
     : null,
 
-  tokenExpiresAt: inst.tokenExpiresAt,
+  tokenExpiresAt: config.tokenExpiresAt,
 
-  createdAt: inst.createdAt,
-  updatedAt: inst.updatedAt
+  createdAt: config.createdAt,
+  updatedAt: config.updatedAt
 });

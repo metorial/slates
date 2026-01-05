@@ -1,19 +1,19 @@
 import type { Slate, SlateOAuthCredentials } from '../../prisma/generated/client';
 
 export let slateOAuthCredentialsPresenter = (
-  inst: SlateOAuthCredentials & {
+  creds: SlateOAuthCredentials & {
     slate: Slate;
   }
 ) => ({
   object: 'slate.oauth_credentials',
 
-  id: inst.id,
-  slateId: inst.slate.id,
+  id: creds.id,
+  slateId: creds.slate.id,
 
-  clientId: inst.clientId,
+  clientId: creds.clientId,
   // clientSecret: inst.clientSecret,
-  scopes: inst.scopes,
+  scopes: creds.scopes,
 
-  createdAt: inst.createdAt,
-  updatedAt: inst.updatedAt
+  createdAt: creds.createdAt,
+  updatedAt: creds.updatedAt
 });
