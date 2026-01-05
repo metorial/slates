@@ -60,11 +60,6 @@ export let storeSlateInvocation = (
 
       let idToMethodMap = new Map<string, SlatesRequest['method']>();
 
-      console.log({
-        requestMessages: d.requestMessages,
-        responseMessages: d.responseMessages
-      });
-
       let sanitizedRequests = d.requestMessages.map(m => {
         if ('id' in m && m.id) idToMethodMap.set(m.id, m.method);
 
