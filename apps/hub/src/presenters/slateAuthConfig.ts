@@ -31,6 +31,15 @@ export let slateAuthConfigPresenter = (
       }
     : null,
 
+  profile: config.profile
+    ? {
+        id: config.profileUid,
+        email: config.profileEmail,
+        name: config.profileName,
+        data: config.profile
+      }
+    : null,
+
   authMethod: slateAuthMethodPresenter({
     ...config.authMethod,
     slate: config.slate

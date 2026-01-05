@@ -35,5 +35,13 @@ declare global {
     type AnyRecord = Record<string, any>;
 
     type SlateProviderInfo = SlatesMessageProviderIdentifyResponse['result']['provider'];
+
+    type AuthProfile = {
+      id?: string;
+      email?: string;
+      name?: string;
+      imageUrl?: string;
+      [key: string]: any;
+    };
   }
 }

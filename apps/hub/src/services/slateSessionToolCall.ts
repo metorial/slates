@@ -139,7 +139,6 @@ class slateSessionToolCallServiceImpl {
           }
         : null
     });
-
     let callRes = await slateInvocationService.invokeToolAction({
       stack,
       actionId: action.key,

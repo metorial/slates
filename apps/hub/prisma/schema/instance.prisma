@@ -118,6 +118,12 @@ model SlateAuthConfig {
 
   tokenExpiresAt DateTime?
 
+  /// [AuthProfile]
+  profile      Json?
+  profileUid   String?
+  profileEmail String?
+  profileName  String?
+
   instanceOid BigInt?
   instance    SlateInstance? @relation(fields: [instanceOid], references: [oid], onDelete: Cascade)
 

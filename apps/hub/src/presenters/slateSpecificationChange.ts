@@ -1,6 +1,10 @@
 import type {
   Slate,
+  SlateAction,
+  SlateAuthMethod,
   SlateSpecification,
+  SlateSpecificationAction,
+  SlateSpecificationAuthMethod,
   SlateSpecificationChange,
   SlateVersion
 } from '../../prisma/generated/client';
@@ -13,8 +17,14 @@ export let slateSpecificationChangePresenter = (
     fromVersion: SlateVersion;
     toVersion: SlateVersion;
 
-    fromSpecification: SlateSpecification;
-    toSpecification: SlateSpecification;
+    fromSpecification: SlateSpecification & {
+      slateAuthMethods: (SlateSpecificationAuthMethod & { authMethod: SlateAuthMethod })[];
+      slateActions: (SlateSpecificationAction & { action: SlateAction })[];
+    };
+    toSpecification: SlateSpecification & {
+      slateAuthMethods: (SlateSpecificationAuthMethod & { authMethod: SlateAuthMethod })[];
+      slateActions: (SlateSpecificationAction & { action: SlateAction })[];
+    };
   }
 ) => ({
   object: 'slate.specification_change',

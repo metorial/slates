@@ -8,8 +8,18 @@ let include = {
   slate: true,
   fromVersion: true,
   toVersion: true,
-  fromSpecification: true,
-  toSpecification: true
+  fromSpecification: {
+    include: {
+      slateAuthMethods: { include: { authMethod: true } },
+      slateActions: { include: { action: true } }
+    }
+  },
+  toSpecification: {
+    include: {
+      slateAuthMethods: { include: { authMethod: true } },
+      slateActions: { include: { action: true } }
+    }
+  }
 };
 
 class slateSpecificationChangeServiceImpl {

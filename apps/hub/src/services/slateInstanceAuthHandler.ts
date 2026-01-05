@@ -130,7 +130,6 @@ class slateAuthHandlerServiceImpl {
           slateVersion: version,
           participants: []
         });
-
         let res = await slateInvocationService.refreshOAuthToken({
           stack,
           authenticationMethodId: authMethod.key,

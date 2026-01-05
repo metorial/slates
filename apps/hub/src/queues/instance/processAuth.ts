@@ -3,6 +3,7 @@ import { db } from '../../db';
 import { env } from '../../env';
 import { extractExpiresAt } from '../../lib/extractExpiresAt';
 import { secretService, slateInvocationService } from '../../services';
+import { updateProfileQueue } from './updateProfile';
 
 export let processAuthQueue = createQueue<{
   configId: string;
@@ -118,4 +119,10 @@ export let processAuthQueueProcessor = processAuthQueue.process(async data => {
     where: { oid: authConfig.oid },
     data: { isProcessing: false, errorCode: null, errorMessage: null }
   });
+
+  if (authConfig.authMethod.spec.capabilities.getProfile?.enabled) {
+    await updateProfileQueue.add({
+      configId: authConfig.id
+    });
+  }
 });
