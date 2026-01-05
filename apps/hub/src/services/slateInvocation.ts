@@ -21,10 +21,10 @@ class slateInvocationServiceImpl {
 
   async createInvocationWithState(
     d: SlateInvocationBaseParams & {
-      messages: SlatesRequest[];
+      initialMessages?: SlatesRequest[];
       config: Record<string, any>;
       session: { id: string; state: Record<string, any> };
-      auth: { authenticationMethodId: string; data: Record<string, any> };
+      auth: { authenticationMethodId: string; data: Record<string, any> } | null;
     }
   ) {
     return this.createInvocation({
@@ -35,20 +35,24 @@ class slateInvocationServiceImpl {
           method: 'slates/config.set',
           params: { config: d.config }
         },
-        {
-          jsonrpc: '2.0',
-          method: 'slates/auth.set',
-          params: {
-            authenticationMethodId: d.auth.authenticationMethodId,
-            output: d.auth.data
-          }
-        },
+        ...(d.auth
+          ? [
+              {
+                jsonrpc: '2.0' as const,
+                method: 'slates/auth.set' as const,
+                params: {
+                  authenticationMethodId: d.auth.authenticationMethodId,
+                  output: d.auth.data
+                }
+              }
+            ]
+          : []),
         {
           jsonrpc: '2.0',
           method: 'slates/session.start',
           params: { sessionId: d.session.id, state: d.session.state }
         },
-        ...d.messages
+        ...(d.initialMessages ?? [])
       ]
     });
   }
@@ -292,7 +296,7 @@ class slateInvocationServiceImpl {
       },
       include
     });
-    if (!slateInvocation) throw new ServiceError(notFoundError('slate.specification'));
+    if (!slateInvocation) throw new ServiceError(notFoundError('slate.invocation'));
     return slateInvocation;
   }
 }

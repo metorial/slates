@@ -14,24 +14,26 @@ export let ID = createIdGenerator({
 
   slate: idType.sorted('shslt'),
   slateVersion: idType.sorted('shslv'),
-  slateVersionDiscovery: idType.sorted('shsdd'),
-  slateDeployment: idType.sorted('shsld'),
+  slateVersionDiscovery: idType.sorted('shvd'),
+  slateDeployment: idType.sorted('shdpl'),
   slateEvent: idType.sorted('shsev'),
-  slateSpecification: idType.sorted('shssp'),
+  slateSpecification: idType.sorted('shspe'),
   slateSpecificationChange: idType.sorted('shspc'),
-  slateAction: idType.sorted('shsac'),
-  slateConfigSchema: idType.sorted('shscs'),
-  slateAuthMethod: idType.sorted('shsam'),
+  slateAction: idType.sorted('shac'),
+  slateConfigSchema: idType.sorted('shcs'),
+  slateAuthMethod: idType.sorted('sham'),
 
-  slateInstance: idType.sorted('shsli'),
-  slateInstanceConfig: idType.sorted('shslc'),
-  slateAuthConfig: idType.sorted('shsla'),
-  slateInstanceEvent: idType.sorted('hslev'),
-  slateInstanceOAuthSetup: idType.sorted('shsox'),
+  slateInstance: idType.sorted('shin'),
+  slateInstanceConfig: idType.sorted('shic'),
+  slateAuthConfig: idType.sorted('shiac'),
+  slateInstanceEvent: idType.sorted('hsiev'),
+  slateInstanceOAuthSetup: idType.sorted('shios'),
 
-  slateOAuthCredentials: idType.sorted('shsoc'),
+  slateInvocation: idType.sorted('shiv'),
 
-  slateRun: idType.sorted('shslr')
+  slateOAuthCredentials: idType.sorted('shoc'),
+  slateToolCall: idType.sorted('shtc'),
+  slateSession: idType.sorted('shses')
 });
 
 let workerIdBits = 12;
