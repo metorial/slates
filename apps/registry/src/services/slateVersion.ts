@@ -300,15 +300,15 @@ class slateVersionServiceImpl {
   }
 
   async getSlateVersionById(d: { id: string; slate: Slate }) {
-    let func = await db.slateVersion.findFirst({
+    let version = await db.slateVersion.findFirst({
       where: {
         slateOid: d.slate.oid,
         OR: [{ id: d.id }, { version: d.id }]
       },
       include
     });
-    if (!func) throw new ServiceError(notFoundError('slate.version'));
-    return func;
+    if (!version) throw new ServiceError(notFoundError('slate.version'));
+    return version;
   }
 
   async listSlateVersions(d: { slate: Slate }) {

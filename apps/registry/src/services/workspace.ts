@@ -66,7 +66,7 @@ class workspaceServiceImpl {
   }
 
   async getWorkspaceById(d: { id: string; tenant?: Tenant }) {
-    let func = await db.workspace.findFirst({
+    let workspace = await db.workspace.findFirst({
       where: {
         OR: [{ id: d.id }, { identifier: d.id }],
         tenantOid: d.tenant?.oid,
@@ -74,8 +74,8 @@ class workspaceServiceImpl {
       },
       include
     });
-    if (!func) throw new ServiceError(notFoundError('workspace'));
-    return func;
+    if (!workspace) throw new ServiceError(notFoundError('workspace'));
+    return workspace;
   }
 
   async listWorkspaces(d: { tenant?: Tenant }) {

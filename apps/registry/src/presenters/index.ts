@@ -3,6 +3,7 @@ export * from './readerToken';
 export * from './scope';
 export * from './slate';
 export * from './slateVersion';
+export * from './subRegistry';
 export * from './tenant';
 export * from './user';
 export * from './userToken';

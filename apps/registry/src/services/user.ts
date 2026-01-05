@@ -67,7 +67,7 @@ class userServiceImpl {
   }
 
   async getUserById(d: { id: string; tenant?: Tenant }) {
-    let func = await db.user.findFirst({
+    let user = await db.user.findFirst({
       where: {
         OR: [{ id: d.id }, { identifier: d.id }],
         tenantOid: d.tenant?.oid,
@@ -75,8 +75,8 @@ class userServiceImpl {
       },
       include
     });
-    if (!func) throw new ServiceError(notFoundError('user'));
-    return func;
+    if (!user) throw new ServiceError(notFoundError('user'));
+    return user;
   }
 
   async listUsers(d: { tenant?: Tenant }) {
