@@ -51,6 +51,7 @@ class slateInstanceOAuthSetupServiceImpl {
     if (!oauthAuthMethod) {
       throw new ServiceError(
         badRequestError({
+          code: 'oauth_not_supported',
           message: 'OAuth is not supported by this provider.'
         })
       );

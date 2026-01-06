@@ -51,6 +51,7 @@ class slateAuthHandlerServiceImpl {
       if (i++ > 30) {
         throw new ServiceError(
           badRequestError({
+            code: 'timeout',
             message: 'Timed out waiting for authentication configuration to be ready.'
           })
         );
@@ -89,7 +90,8 @@ class slateAuthHandlerServiceImpl {
         if (authConfig.type != 'oauth_automated') {
           throw new ServiceError(
             badRequestError({
-              message: 'Authentication token has expired.'
+              code: 'authentication_expired',
+              message: 'Authentication configuration has expired.'
             })
           );
         }
@@ -153,6 +155,7 @@ class slateAuthHandlerServiceImpl {
         if (res.status == 'error') {
           throw new ServiceError(
             badRequestError({
+              code: 'oauth_token_refresh_failed',
               message: 'Failed to refresh authentication token: ' + res.error.message
             })
           );
