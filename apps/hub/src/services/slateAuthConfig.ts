@@ -47,6 +47,7 @@ class slateAuthConfigServiceImpl {
       if (d.input.authMethodId) {
         throw new ServiceError(
           badRequestError({
+            code: 'invalid_auth_method_id',
             message: 'Invalid authentication method ID.'
           })
         );
@@ -54,7 +55,8 @@ class slateAuthConfigServiceImpl {
 
       throw new ServiceError(
         badRequestError({
-          message: 'No authentication methods are configured for this provider.'
+          code: 'auto_not_supported',
+          message: 'Authentication is not supported for this provider.'
         })
       );
     }

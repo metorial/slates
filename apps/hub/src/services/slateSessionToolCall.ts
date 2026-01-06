@@ -89,6 +89,7 @@ class slateSessionToolCallServiceImpl {
     if (d.input.authConfigId && !version.specification.authMethods.length) {
       throw new ServiceError(
         badRequestError({
+          code: 'authentication_not_supported',
           message: 'Provider does not have any authentication methods configured.'
         })
       );
@@ -96,6 +97,7 @@ class slateSessionToolCallServiceImpl {
     if (!d.input.authConfigId && version.specification.authMethods.length) {
       throw new ServiceError(
         badRequestError({
+          code: 'authentication_required',
           message: 'Authentication method is required for this provider.'
         })
       );
@@ -121,6 +123,7 @@ class slateSessionToolCallServiceImpl {
     if (!action) {
       throw new ServiceError(
         badRequestError({
+          code: 'invalid_tool_action',
           message: 'Tool action not found for this provider.'
         })
       );
