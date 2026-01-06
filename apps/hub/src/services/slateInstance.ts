@@ -12,7 +12,7 @@ import type {
   Tenant
 } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 import { validateJsonSchema } from '../lib/validateJsonSchema';
 import { slateInstanceConfigChangedQueue } from '../queues/instance/configChanged';
 
@@ -47,8 +47,7 @@ class slateInstanceServiceImpl {
     return await db.$transaction(async db => {
       let instance = await db.slateInstance.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateInstance'),
+          ...getId('slateInstance'),
           slateOid: d.slate.oid,
           tenantOid: d.tenant.oid,
           lockedSlateVersionOid: d.input.lockedVersion?.oid
@@ -56,8 +55,7 @@ class slateInstanceServiceImpl {
       });
       await db.slateInstanceEvent.createMany({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateInstanceEvent'),
+          ...getId('slateInstanceEvent'),
           instanceOid: instance.oid,
           tenantOid: d.tenant.oid,
           type: 'slate_instance_created',
@@ -67,8 +65,7 @@ class slateInstanceServiceImpl {
 
       let config = await db.slateInstanceConfig.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateInstanceConfig'),
+          ...getId('slateInstanceConfig'),
           instanceOid: instance.oid,
           tenantOid: d.tenant.oid,
           schemaOid: schema.oid,
@@ -77,8 +74,7 @@ class slateInstanceServiceImpl {
       });
       await db.slateInstanceEvent.createMany({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateInstanceEvent'),
+          ...getId('slateInstanceEvent'),
           instanceOid: instance.oid,
           tenantOid: d.tenant.oid,
           type: 'slate_config_set',
@@ -122,8 +118,7 @@ class slateInstanceServiceImpl {
     return await db.$transaction(async db => {
       let config = await db.slateInstanceConfig.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateInstanceConfig'),
+          ...getId('slateInstanceConfig'),
           instanceOid: d.slateInstance.oid,
           schemaOid: schema.oid,
           tenantOid: d.slateInstance.tenantOid,
@@ -132,8 +127,7 @@ class slateInstanceServiceImpl {
       });
       await db.slateInstanceEvent.createMany({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateInstanceEvent'),
+          ...getId('slateInstanceEvent'),
           instanceOid: d.slateInstance.oid,
           tenantOid: d.slateInstance.tenantOid,
           type: 'slate_config_set',

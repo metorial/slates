@@ -9,7 +9,7 @@ import { Service } from '@lowerdeck/service';
 import type { User, UserToken } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 import { apiKeys } from '../keys';
 
 let include = {
@@ -27,8 +27,7 @@ class userTokenServiceImpl {
   }) {
     return await db.userToken.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('userToken'),
+        ...getId('userToken'),
         status: 'active',
 
         name: d.input.name,

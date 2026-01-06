@@ -2,7 +2,7 @@ import { badRequestError, ServiceError } from '@lowerdeck/error';
 import { Service } from '@lowerdeck/service';
 import { db } from '../db';
 import { env } from '../env';
-import { ID, snowflake } from '../id';
+import { getId, snowflake } from '../id';
 import { extractExpiresAt } from '../lib/extractExpiresAt';
 import { processAuthQueue } from '../queues/instance/processAuth';
 import { secretService } from './secret';
@@ -273,8 +273,7 @@ class slateInstanceOAuthHandlerServiceImpl {
 
     let authConfig = await db.slateAuthConfig.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateAuthConfig'),
+        ...getId('slateAuthConfig'),
         isProcessing: true,
         type: 'oauth_automated',
         tokenExpiresAt,

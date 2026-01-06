@@ -7,7 +7,7 @@ import unzipper from 'unzipper';
 import { db } from '../../db';
 import { env } from '../../env';
 import { functionBay, functionBayProvider, functionBayTenant } from '../../functionBay';
-import { ID, snowflake } from '../../id';
+import { getId } from '../../id';
 import { getRegistryClient } from '../../registry';
 import { discoverSlateQueue } from '../discovery/discover';
 
@@ -27,8 +27,7 @@ export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(as
 
   let deployment = await db.slateDeployment.create({
     data: {
-      oid: snowflake.nextId(),
-      id: await ID.generateId('slateDeployment'),
+      ...getId('slateDeployment'),
       status: 'pending',
 
       slateVersionOid: version.oid,
@@ -46,8 +45,7 @@ export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(as
 
   await db.slateEvent.create({
     data: {
-      oid: snowflake.nextId(),
-      id: await ID.generateId('slateEvent'),
+      ...getId('slateEvent'),
       type: 'deployment_started',
       message: `Deployment for version ${version.version} started`,
       slateOid: version.slateOid,
@@ -352,8 +350,7 @@ export let deploySlateVersionFailedQueueProcessor = deploySlateVersionFailedQueu
 
     await db.slateEvent.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateEvent'),
+        ...getId('slateEvent'),
         type: 'deployment_failed',
         message: `Deployment for version ${deployment.slateVersion.version} failed: ${data.errorMessage}`,
         slateOid: deployment.slateOid,
@@ -423,8 +420,7 @@ export let deploySlateVersionCompletedQueueProcessor =
 
       await db.slateEvent.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateEvent'),
+          ...getId('slateEvent'),
           type: 'deployment_succeeded',
           message: `Deployment for version ${deployment.slateVersion.version} succeeded.`,
           slateOid: slate.oid,

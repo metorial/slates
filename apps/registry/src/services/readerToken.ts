@@ -3,7 +3,7 @@ import { Service } from '@lowerdeck/service';
 import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 import { apiKeys } from '../keys';
 
 let include = {
@@ -15,13 +15,12 @@ class readerTokenServiceImpl {
     input: {
       name: string;
       expiresAt?: Date;
-      tenant?: Tenant;
+      tenant: Tenant;
     };
   }) {
     return await db.readerToken.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('readerToken'),
+        ...getId('readerToken'),
         status: 'active',
 
         name: d.input.name,

@@ -5,7 +5,7 @@ import type { SlatesParticipant } from '@slates/proto';
 import { differenceInMinutes } from 'date-fns';
 import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId, snowflake } from '../id';
 import { slateAuthHandlerService } from './slateInstanceAuthHandler';
 import { slateInvocationService } from './slateInvocation';
 import { slateSessionService } from './slateSession';
@@ -146,8 +146,7 @@ class slateSessionToolCallServiceImpl {
     });
     let call = await db.slateSessionToolCall.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateToolCall'),
+        ...getId('slateToolCall'),
 
         status: callRes.status === 'success' ? 'succeeded' : 'failed',
 

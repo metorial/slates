@@ -3,7 +3,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import type { Slate, SlateInstance, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId, snowflake } from '../id';
 
 let include = {
   slate: true,
@@ -25,8 +25,7 @@ class slateSessionServiceImpl {
 
     return await db.slateSession.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateSession'),
+        ...getId('slateSession'),
 
         tenantOid: d.tenant.oid,
         slateOid: d.input.slate.oid,

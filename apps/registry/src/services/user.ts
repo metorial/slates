@@ -3,7 +3,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import type { Tenant, User } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 
 let include = {
   scope: true,
@@ -34,8 +34,7 @@ class userServiceImpl {
 
       let scope = await db.scope.create({
         data: {
-          id: await ID.generateId('scope'),
-          oid: snowflake.nextId(),
+          ...getId('scope'),
           type: 'user' as const,
           status: 'active',
 
@@ -50,8 +49,7 @@ class userServiceImpl {
 
       return await db.user.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('user'),
+          ...getId('user'),
           status: 'active',
           access: 'read_write',
 

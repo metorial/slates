@@ -3,7 +3,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import type { Slate, SlateOAuthCredentials, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 import { createCredentialsUpdateEventsQueue } from '../queues/instance/credentials';
 import { secretService } from './secret';
 
@@ -32,8 +32,7 @@ class slateOAuthCredentialsServiceImpl {
 
     return await db.slateOAuthCredentials.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateOAuthCredentials'),
+        ...getId('slateOAuthCredentials'),
 
         slateOid: d.input.slate.oid,
         tenantOid: d.tenant.oid,

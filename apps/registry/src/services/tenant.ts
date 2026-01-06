@@ -1,7 +1,7 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Service } from '@lowerdeck/service';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 
 let include = {};
 
@@ -16,8 +16,7 @@ class tenantServiceImpl {
       where: { identifier: d.input.identifier },
       update: { name: d.input.name },
       create: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('tenant'),
+        ...getId('tenant'),
         name: d.input.name,
         identifier: d.input.identifier
       },

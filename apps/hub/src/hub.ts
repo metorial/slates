@@ -2,7 +2,7 @@ import { generatePlainId } from '@lowerdeck/id';
 import { slugify } from '@lowerdeck/slugify';
 import { db } from './db';
 import { env } from './env';
-import { ID, snowflake } from './id';
+import { getId } from './id';
 
 export let hub = await db.hub.upsert({
   where: {
@@ -10,8 +10,7 @@ export let hub = await db.hub.upsert({
   },
   update: {},
   create: {
-    oid: snowflake.nextId(),
-    id: await ID.generateId('hub'),
+    ...getId('hub'),
     internalIdentifier: 'default',
     identifier: `slates::hub::${slugify(env.slates.SLATES_HUB_INSTANCE_IDENTIFIER)}::${generatePlainId(20)}`
   }

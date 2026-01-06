@@ -1,7 +1,7 @@
 import { createQueue } from '@lowerdeck/queue';
 import { db } from '../../db';
 import { env } from '../../env';
-import { ID, snowflake } from '../../id';
+import { getId } from '../../id';
 
 export let createCredentialsUpdateEventsQueue = createQueue<{
   credentialsOid: bigint;
@@ -44,8 +44,7 @@ export let createCredentialsUpdateEventQueueProcessor =
   createCredentialsUpdateEventQueue.process(async data => {
     await db.slateInstanceEvent.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateInstanceEvent'),
+        ...getId('slateInstanceEvent'),
         type: 'slate_auth_credentials_updated',
         instanceOid: data.instanceOid,
         tenantOid: data.tenantOid,

@@ -16,7 +16,7 @@ import unzipper from 'unzipper';
 import { type Slate, SlateAccess, type User } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
-import { ID, snowflake } from '../id';
+import { getId, ID, snowflake } from '../id';
 import { storage } from '../storage';
 
 let include = {
@@ -201,8 +201,7 @@ class slateVersionServiceImpl {
         if (!slate) {
           slate = await db.slate.create({
             data: {
-              oid: snowflake.nextId(),
-              id: await ID.generateId('slate'),
+              ...getId('slate'),
               status: 'active',
               access: d.input.access,
 
@@ -228,8 +227,7 @@ class slateVersionServiceImpl {
 
         let artifact = await db.artifact.create({
           data: {
-            oid: snowflake.nextId(),
-            id: await ID.generateId('artifact'),
+            ...getId('artifact'),
             storageKey,
             bucket,
             size: 0,
@@ -245,8 +243,7 @@ class slateVersionServiceImpl {
 
         let version = await db.slateVersion.create({
           data: {
-            oid: snowflake.nextId(),
-            id: await ID.generateId('slateVersion'),
+            ...getId('slateVersion'),
             version: slateJson.version,
             slateOid: slate.oid,
             bundleArtifactOid: artifact.oid,
@@ -258,8 +255,7 @@ class slateVersionServiceImpl {
 
         await db.changeNotification.create({
           data: {
-            oid: snowflake.nextId(),
-            id: await ID.generateId('changeNotification'),
+            ...getId('changeNotification'),
             type: 'slate_version_created',
             slateOid: slate.oid,
             slateId: slate.id,

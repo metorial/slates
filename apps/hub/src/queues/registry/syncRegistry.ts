@@ -2,7 +2,7 @@ import { createLock } from '@lowerdeck/lock';
 import { createQueue } from '@lowerdeck/queue';
 import { db } from '../../db';
 import { env } from '../../env';
-import { ID, snowflake } from '../../id';
+import { getId } from '../../id';
 import { getRegistryClient } from '../../registry';
 import { syncSlateQueue } from './syncSlate';
 
@@ -56,8 +56,7 @@ export let syncRegistryQueueProcessor = syncRegistryQueue.process(data =>
 
     await db.registrySync.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('registrySync'),
+        ...getId('registrySync'),
         registryOid: reg.oid,
 
         slatesSyncedIds: items.map(i => i.slate.fullIdentifier),

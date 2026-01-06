@@ -4,7 +4,7 @@ import { Service } from '@lowerdeck/service';
 import type { Secret, SecretType, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { encryption } from '../encryption';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 
 let include = {};
 
@@ -72,8 +72,7 @@ class secretServiceImpl {
 
     return await db.secret.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('secret'),
+        ...getId('secret'),
         type: d.purpose,
         status: 'active',
         tenantOid: d.tenant.oid,

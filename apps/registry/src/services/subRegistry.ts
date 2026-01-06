@@ -4,7 +4,7 @@ import { Service } from '@lowerdeck/service';
 import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 
 let include = {
   tenant: true
@@ -39,8 +39,7 @@ class subRegistryServiceImpl {
 
       return await db.subRegistry.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('subRegistry'),
+          ...getId('subRegistry'),
 
           identifier: d.input.identifier,
           name: d.input.name,

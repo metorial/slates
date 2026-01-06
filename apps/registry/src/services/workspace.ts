@@ -3,7 +3,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import type { Tenant, Workspace } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 
 let include = {
   scope: true,
@@ -34,8 +34,7 @@ class workspaceServiceImpl {
 
       let scope = await db.scope.create({
         data: {
-          id: await ID.generateId('scope'),
-          oid: snowflake.nextId(),
+          ...getId('scope'),
           type: 'workspace' as const,
           status: 'active',
 
@@ -50,8 +49,7 @@ class workspaceServiceImpl {
 
       return await db.workspace.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('workspace'),
+          ...getId('workspace'),
           status: 'active',
 
           identifier: d.input.identifier,

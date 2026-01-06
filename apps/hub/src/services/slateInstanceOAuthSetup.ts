@@ -5,7 +5,7 @@ import { Service } from '@lowerdeck/service';
 import type { SlateInstance, SlateInstanceOAuthSetup } from '../../prisma/generated/browser';
 import type { Slate, SlateOAuthCredentials, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 import { validateJsonSchema } from '../lib/validateJsonSchema';
 import { secretService, type SecretSlateInstanceOauthSetup } from './secret';
 
@@ -84,8 +84,7 @@ class slateInstanceOAuthSetupServiceImpl {
 
     return await db.slateInstanceOAuthSetup.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateInstanceOAuthSetup'),
+        ...getId('slateInstanceOAuthSetup'),
         status: 'unused',
 
         redirectUrl: d.input.redirectUrl,
