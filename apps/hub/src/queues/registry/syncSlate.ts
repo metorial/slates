@@ -3,7 +3,7 @@ import { createLock } from '@lowerdeck/lock';
 import { createQueue } from '@lowerdeck/queue';
 import { db } from '../../db';
 import { env } from '../../env';
-import { ID, snowflake } from '../../id';
+import { getId, ID, snowflake } from '../../id';
 import { getRegistryClient } from '../../registry';
 import { deploySlateVersionQueue } from '../deployment/deploy';
 
@@ -64,8 +64,7 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
         }
       },
       create: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slate'),
+        ...getId('slate'),
         status: 'active',
 
         registryOid: reg.oid,
@@ -125,8 +124,7 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
       if (newVersionId == version.id) {
         await db.slateEvent.create({
           data: {
-            oid: snowflake.nextId(),
-            id: await ID.generateId('slateEvent'),
+            ...getId('slateEvent'),
             type: 'version_pulled',
             message: `New version ${version.version} pulled from registry`,
             slateOid: slate.oid,

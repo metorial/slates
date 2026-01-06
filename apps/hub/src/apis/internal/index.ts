@@ -4,8 +4,14 @@ import { app } from './_app';
 import { registryController } from './registry';
 import { secretController } from './secret';
 import { slateController } from './slate';
+import { slateAuthConfigController } from './slateAuthConfig';
 import { slateDeploymentController } from './slateDeployment';
+import { slateInstanceController } from './slateInstance';
 import { slateInvocationController } from './slateInvocation';
+import { slateOAuthCredentialsController } from './slateOAuthCredentials';
+import { slateOAuthSetupController } from './slateOAuthSetup';
+import { slateSessionController } from './slateSession';
+import { slateSessionToolCallController } from './slateSessionToolCall';
 import { slateSpecificationController } from './slateSpecification';
 import { slateVersionController } from './slateVersion';
 import { tenantController } from './tenant';
@@ -20,7 +26,13 @@ export let rootController = app.controller({
   slateVersion: slateVersionController,
   slateInvocation: slateInvocationController,
   slateDeployment: slateDeploymentController,
-  slateSpecification: slateSpecificationController
+  slateSpecification: slateSpecificationController,
+  slateInstance: slateInstanceController,
+  slateOAuthCredentials: slateOAuthCredentialsController,
+  slateOAuthSetup: slateOAuthSetupController,
+  slateAuthConfig: slateAuthConfigController,
+  slateSession: slateSessionController,
+  slateSessionToolCall: slateSessionToolCallController
 });
 
 export let slatesHubRPC = createServer({})(rootController);

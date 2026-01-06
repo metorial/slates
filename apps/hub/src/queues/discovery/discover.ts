@@ -6,7 +6,7 @@ import { differenceInMinutes } from 'date-fns';
 import semver from 'semver';
 import { db } from '../../db';
 import { env } from '../../env';
-import { ID, snowflake } from '../../id';
+import { getId, snowflake } from '../../id';
 import { getStackError, getStackResultsOrThrow } from '../../lib/invocation/error';
 import type { InvocationError } from '../../lib/invocation/types';
 import { slateInvocationService } from '../../services';
@@ -22,8 +22,6 @@ export let discoverSlateQueue = createQueue<{ versionId: string }>({
     concurrency: 2
   }
 });
-
-// discoverSlateQueue.add({ versionId: 'shslv_0mjwuqt1gj7rrEXQpN7597' });
 
 let discoverLock = createLock({
   name: 'shub/dis/lock',
@@ -44,22 +42,24 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
     if (!version) throw new QueueRetryError();
     if (!version.providerDeploymentInfo || !version.activeDeploymentOid) return;
 
-    console.log(`Discovering slate version ${version.id} (${version.version})`);
-
     if (
       version.lastDiscoveredAt &&
       differenceInMinutes(new Date(), version.lastDiscoveredAt) < 10
     ) {
+      console.log(
+        `Skipping discovery for slate version ${version.id} (${version.version}) - recently discovered`
+      );
       // Recently discovered, skip
       return;
     }
+
+    console.log(`Discovering slate version ${version.id} (${version.version})`);
 
     let slate = version.slate;
 
     await db.slateEvent.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateEvent'),
+        ...getId('slateEvent'),
         type: 'discovery_started',
         message: `Discovery started for version ${version.version}`,
         slateOid: slate.oid,
@@ -124,8 +124,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
           identifier: specificationIdentifier
         },
         create: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateSpecification'),
+          ...getId('slateSpecification'),
           hash,
           identifier: specificationIdentifier,
           slateOid: slate.oid,
@@ -137,43 +136,51 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
         update: specificationData
       });
 
-      let upsertedActions = await db.slateAction.createManyAndReturn({
+      let actionUpsertData = await Promise.all(
+        specification.actions.map(async action => {
+          let hash = await Hash.sha256(
+            canonicalize({
+              id: action.id,
+              type: action.type,
+              input: action.inputSchema,
+              output: action.outputSchema,
+              invocationType:
+                action.type == 'action.trigger' ? action.invocation.type : undefined
+            })
+          );
+          let identifier = `${identifierBase}::action::${action.id}::${hash}`;
+
+          return {
+            ...getId('slateAction'),
+            slateOid: slate.oid,
+            mostRecentSpecificationOid: specification.oid,
+
+            type: {
+              'action.tool': 'tool' as const,
+              'action.trigger': 'trigger' as const
+            }[action.type],
+
+            hash,
+            identifier,
+
+            spec: action,
+
+            key: action.id,
+            name: action.name
+          };
+        })
+      );
+      await db.slateAction.createManyAndReturn({
         skipDuplicates: true,
-        data: await Promise.all(
-          specification.actions.map(async action => {
-            let hash = await Hash.sha256(
-              canonicalize({
-                id: action.id,
-                type: action.type,
-                input: action.inputSchema,
-                output: action.outputSchema,
-                invocationType:
-                  action.type == 'action.trigger' ? action.invocation.type : undefined
-              })
-            );
-            let identifier = `${identifierBase}::action::${action.id}::${hash}`;
-
-            return {
-              oid: snowflake.nextId(),
-              id: await ID.generateId('slateAction'),
-              slateOid: slate.oid,
-              mostRecentSpecificationOid: specification.oid,
-
-              type: {
-                'action.tool': 'tool' as const,
-                'action.trigger': 'trigger' as const
-              }[action.type],
-
-              hash,
-              identifier,
-
-              spec: action,
-
-              key: action.id,
-              name: action.name
-            };
-          })
-        )
+        data: actionUpsertData
+      });
+      let upsertedActions = await db.slateAction.findMany({
+        where: {
+          slateOid: slate.oid,
+          identifier: {
+            in: actionUpsertData.map(a => a.identifier)
+          }
+        }
       });
 
       await db.slateSpecificationAction.createMany({
@@ -185,42 +192,50 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
         }))
       });
 
-      let upsertedAuthMethods = await db.slateAuthMethod.createManyAndReturn({
+      let authMethodUpsertData = await Promise.all(
+        specification.authMethods.map(async method => {
+          let hash = await Hash.sha256(
+            canonicalize({
+              id: method.id,
+              type: method.type,
+              output: method.outputSchema
+            })
+          );
+          let identifier = `${identifierBase}::auth_method::${method.id}::${hash}`;
+
+          return {
+            ...getId('slateAuthMethod'),
+            slateOid: slate.oid,
+            mostRecentSpecificationOid: specification.oid,
+
+            type: {
+              'auth.oauth': 'oauth' as const,
+              'auth.token': 'token' as const,
+              'auth.service_account': 'service_account' as const,
+              'auth.custom': 'custom' as const
+            }[method.type],
+
+            hash,
+            identifier,
+
+            spec: method,
+
+            key: method.id,
+            name: method.name
+          };
+        })
+      );
+      await db.slateAuthMethod.createManyAndReturn({
         skipDuplicates: true,
-        data: await Promise.all(
-          specification.authMethods.map(async method => {
-            let hash = await Hash.sha256(
-              canonicalize({
-                id: method.id,
-                type: method.type,
-                output: method.outputSchema
-              })
-            );
-            let identifier = `${identifierBase}::auth_method::${method.id}::${hash}`;
-
-            return {
-              oid: snowflake.nextId(),
-              id: await ID.generateId('slateAuthMethod'),
-              slateOid: slate.oid,
-              mostRecentSpecificationOid: specification.oid,
-
-              type: {
-                'auth.oauth': 'oauth' as const,
-                'auth.token': 'token' as const,
-                'auth.service_account': 'service_account' as const,
-                'auth.custom': 'custom' as const
-              }[method.type],
-
-              hash,
-              identifier,
-
-              spec: method,
-
-              key: method.id,
-              name: method.name
-            };
-          })
-        )
+        data: authMethodUpsertData
+      });
+      let upsertedAuthMethods = await db.slateAuthMethod.findMany({
+        where: {
+          slateOid: slate.oid,
+          identifier: {
+            in: authMethodUpsertData.map(a => a.identifier)
+          }
+        }
       });
 
       await db.slateSpecificationAuthMethod.createMany({
@@ -240,8 +255,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
           identifier: configIdentifier
         },
         create: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateConfigSchema'),
+          ...getId('slateConfigSchema'),
           mostRecentSpecificationOid: specification.oid,
           slateOid: slate.oid,
 
@@ -271,8 +285,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
 
       await db.slateVersionDiscovery.createMany({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateVersionDiscovery'),
+          ...getId('slateVersionDiscovery'),
           slateVersionOid: version.oid,
           specificationOid: specification.oid,
           invocationOid: invocation.oid,
@@ -282,8 +295,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
 
       await db.slateEvent.createMany({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateEvent'),
+          ...getId('slateEvent'),
           type: 'discovery_succeeded',
           message: `Discovery succeeded for version ${version.version}`,
           slateOid: slate.oid,
@@ -303,8 +315,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
       if (version.specificationOid && version.specificationOid !== specification.oid) {
         await db.slateSpecificationChange.create({
           data: {
-            oid: snowflake.nextId(),
-            id: await ID.generateId('slateSpecificationChange'),
+            ...getId('slateSpecificationChange'),
             type: 'same_version',
             slateOid: slate.oid,
             fromVersionOid: version.oid,
@@ -358,8 +369,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
 
           await db.slateEvent.create({
             data: {
-              oid: snowflake.nextId(),
-              id: await ID.generateId('slateEvent'),
+              ...getId('slateEvent'),
               type: 'version_set_as_current',
               message: `Version ${version.version} activated as current version`,
               slateOid: slate.oid,
@@ -374,8 +384,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
           ) {
             await db.slateSpecificationChange.create({
               data: {
-                oid: snowflake.nextId(),
-                id: await ID.generateId('slateSpecificationChange'),
+                ...getId('slateSpecificationChange'),
                 type: 'between_versions',
                 slateOid: slate.oid,
                 fromVersionOid: slate.currentVersion.oid,
@@ -419,8 +428,7 @@ export let discoverSlateErrorQueueProcessor = discoverSlateErrorQueue.process(as
 
   await db.slateEvent.create({
     data: {
-      oid: snowflake.nextId(),
-      id: await ID.generateId('slateEvent'),
+      ...getId('slateEvent'),
       type: 'discovery_failed',
       message: `Discovery failed for version ${version.version}`,
       slateOid: version.slate.oid,
@@ -430,8 +438,7 @@ export let discoverSlateErrorQueueProcessor = discoverSlateErrorQueue.process(as
 
   await db.slateVersionDiscovery.create({
     data: {
-      oid: snowflake.nextId(),
-      id: await ID.generateId('slateVersionDiscovery'),
+      ...getId('slateVersionDiscovery'),
       slateVersionOid: version.oid,
       status: 'failed',
       invocationOid: data.invocationOid,

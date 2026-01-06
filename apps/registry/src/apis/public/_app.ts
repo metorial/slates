@@ -1,7 +1,7 @@
 import { ServiceError, unauthorizedError } from '@lowerdeck/error';
 import type { Context } from 'hono';
 import { env } from '../../env';
-import { readerTokenService, userTokenService } from '../../services';
+import { readerTokenService, subRegistryService, userTokenService } from '../../services';
 
 let useExtractToken = async (ctx: Context) => {
   let authHeader = ctx.req.header('Authorization');
@@ -31,7 +31,17 @@ export let useAuth = async (ctx: Context) => {
     );
   }
 
-  if (!token) return { type: 'public' as const, tenant: undefined, user: undefined };
+  if (!token) {
+    let subRegistry = await subRegistryService.getSubRegistryFromUrl({
+      url: ctx.req.url,
+      subRegistryId:
+        ctx.req.header('Metorial-Sub-Registry-Id') ??
+        ctx.req.header('Slates-Sub-Registry-Id') ??
+        undefined
+    });
+
+    return { type: 'public' as const, tenant: subRegistry?.tenant, user: undefined };
+  }
 
   let userAuth = await userTokenService.authenticateWithUserToken({ secret: token });
   if (userAuth.status == 'success') {

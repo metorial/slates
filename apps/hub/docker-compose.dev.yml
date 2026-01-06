@@ -147,6 +147,7 @@ services:
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-hub
       REDIS_URL: redis://redis:6379/0
+      METORIAL_ENV: development
 
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
 
@@ -161,6 +162,7 @@ services:
       INITIAL_REGISTRIES: "http://slates-registry:52040"
 
       SLATES_HUB_INSTANCE_IDENTIFIER: dev-slates-hub
+      SERVICE_PUBLIC_URL: http://localhost:52045
 
     volumes:
       - ./src:/app/apps/hub/src:ro

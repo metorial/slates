@@ -7,7 +7,7 @@ import unzipper from 'unzipper';
 import { db } from '../../db';
 import { env } from '../../env';
 import { functionBay, functionBayProvider, functionBayTenant } from '../../functionBay';
-import { ID, snowflake } from '../../id';
+import { getId } from '../../id';
 import { getRegistryClient } from '../../registry';
 import { discoverSlateQueue } from '../discovery/discover';
 
@@ -27,8 +27,7 @@ export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(as
 
   let deployment = await db.slateDeployment.create({
     data: {
-      oid: snowflake.nextId(),
-      id: await ID.generateId('slateDeployment'),
+      ...getId('slateDeployment'),
       status: 'pending',
 
       slateVersionOid: version.oid,
@@ -46,8 +45,7 @@ export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(as
 
   await db.slateEvent.create({
     data: {
-      oid: snowflake.nextId(),
-      id: await ID.generateId('slateEvent'),
+      ...getId('slateEvent'),
       type: 'deployment_started',
       message: `Deployment for version ${version.version} started`,
       slateOid: version.slateOid,
@@ -110,9 +108,10 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             version: '1.0.0',
             main: 'slates_entry_point.js',
             dependencies: {
-              '@slates/provider-handler': '1.0.0-rc.4',
-              '@slates/proto': '1.0.0-rc.5',
-              slates: '1.0.0-rc.2'
+              '@slates/provider-handler': '1.0.0-rc.6',
+              '@slates/proto': '1.0.0-rc.6',
+              slates: '1.0.0-rc.6',
+              '@lowerdeck/serialize': 'latest'
             }
           },
           null,
@@ -125,12 +124,40 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
           import { provider } from './index';
           import { createProviderHandler } from '@slates/provider-handler';
           import { SlatesProviderProtoHandlerManager } from '@slates/proto';
+          import { serialize } from '@lowerdeck/serialize';
 
           let handler = createProviderHandler(provider, [
             e => e.forEach(e => console.log(e.type.toUpperCase(), e.message))
           ]);
 
+          let initialGlobals = {}
+          for (let key of Object.getOwnPropertyNames(globalThis)) {
+            initialGlobals[key] = globalThis[key]
+          }
+
+          let reset = () => {
+            for (let key of Object.getOwnPropertyNames(globalThis)) {
+              if (!(key in initialGlobals)) {
+                delete globalThis[key]
+              }
+            }
+
+            for (let key in initialGlobals) {
+              globalThis[key] = initialGlobals[key]
+            }
+
+            for (let key in require.cache) {
+              delete require.cache[key]
+            }
+          }
+
           export default async (input) => {
+            reset();
+
+            if (input._encoded) {
+              input = serialize.decode(input._encoded);
+            }
+
             let manager = await handler.run();
 
             let messages = [];
@@ -138,7 +165,19 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             for (let m of input.messages) {
               console.log('[Slates:] Processing input message', m.method + (m.id ? \`(\${m.id})\` : ''));
               let result = await SlatesProviderProtoHandlerManager.handleInput(manager, m);
-              if (result) messages.push(result);
+              if (result) {
+                if (m.id) result.id = m.id;
+                messages.push(result);
+
+                if (typeof result.error == 'object' && result.error) {
+                  console.error('[Slates:] Error in processing:', result.error);
+                  break;
+                }
+              }
+            }
+
+            if (input._encoded) {
+              return { _encoded: serialize.encode({ messages }) };
             }
 
             return { messages };
@@ -311,8 +350,7 @@ export let deploySlateVersionFailedQueueProcessor = deploySlateVersionFailedQueu
 
     await db.slateEvent.create({
       data: {
-        oid: snowflake.nextId(),
-        id: await ID.generateId('slateEvent'),
+        ...getId('slateEvent'),
         type: 'deployment_failed',
         message: `Deployment for version ${deployment.slateVersion.version} failed: ${data.errorMessage}`,
         slateOid: deployment.slateOid,
@@ -382,8 +420,7 @@ export let deploySlateVersionCompletedQueueProcessor =
 
       await db.slateEvent.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('slateEvent'),
+          ...getId('slateEvent'),
           type: 'deployment_succeeded',
           message: `Deployment for version ${deployment.slateVersion.version} succeeded.`,
           slateOid: slate.oid,
@@ -391,9 +428,10 @@ export let deploySlateVersionCompletedQueueProcessor =
         }
       });
 
-      await discoverSlateQueue.add({
-        versionId: deployment.slateVersion.id
-      });
+      await discoverSlateQueue.add(
+        { versionId: deployment.slateVersion.id },
+        { delay: 10_000 }
+      );
     });
   });
 

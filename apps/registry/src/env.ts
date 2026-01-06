@@ -17,6 +17,7 @@ export let env = createValidatedEnv({
   },
 
   url: {
-    SERVICE_PUBLIC_URL: v.string()
+    SERVICE_PUBLIC_URL: v.string(),
+    SUB_REGISTRY_BASE_DOMAIN: v.optional(v.string())
   }
 });

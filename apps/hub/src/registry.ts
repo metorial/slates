@@ -9,7 +9,7 @@ import type { Registry } from '../prisma/generated/client';
 import { db } from './db';
 import { encryption } from './encryption';
 import { env } from './env';
-import { ID, snowflake } from './id';
+import { getId } from './id';
 
 let hubInstanceId = generatePlainId(10);
 
@@ -58,8 +58,7 @@ for (let registry of predefinedRegistries) {
       isPredefined: true
     },
     create: {
-      oid: snowflake.nextId(),
-      id: await ID.generateId('registry'),
+      ...getId('registry'),
       status: 'active',
       isPredefined: true,
 

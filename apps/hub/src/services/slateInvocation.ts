@@ -1,7 +1,5 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
-import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Slate } from '../../prisma/generated/client';
 import { db } from '../db';
 import { SlateInvocationStack } from '../lib/invocation/stack';
 import type { SlateInvocationBaseParams, SlatesRequest } from '../lib/invocation/types';
@@ -23,10 +21,10 @@ class slateInvocationServiceImpl {
 
   async createInvocationWithState(
     d: SlateInvocationBaseParams & {
-      messages: SlatesRequest[];
+      initialMessages?: SlatesRequest[];
       config: Record<string, any>;
       session: { id: string; state: Record<string, any> };
-      auth: { authenticationMethodId: string; data: Record<string, any> };
+      auth: { authenticationMethodId: string; data: Record<string, any> } | null;
     }
   ) {
     return this.createInvocation({
@@ -37,20 +35,24 @@ class slateInvocationServiceImpl {
           method: 'slates/config.set',
           params: { config: d.config }
         },
-        {
-          jsonrpc: '2.0',
-          method: 'slates/auth.set',
-          params: {
-            authenticationMethodId: d.auth.authenticationMethodId,
-            output: d.auth.data
-          }
-        },
+        ...(d.auth
+          ? [
+              {
+                jsonrpc: '2.0' as const,
+                method: 'slates/auth.set' as const,
+                params: {
+                  authenticationMethodId: d.auth.authenticationMethodId,
+                  output: d.auth.data
+                }
+              }
+            ]
+          : []),
         {
           jsonrpc: '2.0',
           method: 'slates/session.start',
           params: { sessionId: d.session.id, state: d.session.state }
         },
-        ...d.messages
+        ...(d.initialMessages ?? [])
       ]
     });
   }
@@ -128,6 +130,7 @@ class slateInvocationServiceImpl {
     state: string;
     redirectUri: string;
     input: Record<string, any>;
+    callbackState: Record<string, any> | undefined;
     clientId: string;
     clientSecret: string;
     scopes: string[];
@@ -138,6 +141,7 @@ class slateInvocationServiceImpl {
       state: d.state,
       redirectUri: d.redirectUri,
       input: d.input,
+      callbackState: d.callbackState,
       clientId: d.clientId,
       clientSecret: d.clientSecret,
       scopes: d.scopes
@@ -285,44 +289,15 @@ class slateInvocationServiceImpl {
     });
   }
 
-  async getSlateInvocationById(d: { slate: Slate; id: string }) {
+  async DANGEROUSLY_getSlateInvocationById(d: { id: string }) {
     let slateInvocation = await db.slateInvocation.findFirst({
       where: {
-        deployment: { slateOid: d.slate.oid },
         id: d.id
       },
       include
     });
-    if (!slateInvocation) throw new ServiceError(notFoundError('slate.specification'));
+    if (!slateInvocation) throw new ServiceError(notFoundError('slate.invocation'));
     return slateInvocation;
-  }
-
-  async listSlateInvocations(d: { slate: Slate; versionIds?: string[] }) {
-    let versions = d.versionIds
-      ? await db.slateVersion.findMany({
-          where: {
-            status: 'active',
-            OR: [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
-          },
-          select: { oid: true }
-        })
-      : undefined;
-
-    return Paginator.create(({ prisma }) =>
-      prisma(
-        async opts =>
-          await db.slateInvocation.findMany({
-            ...opts,
-            where: {
-              deployment: {
-                slateOid: d.slate.oid,
-                slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined
-              }
-            },
-            include
-          })
-      )
-    );
   }
 }
 

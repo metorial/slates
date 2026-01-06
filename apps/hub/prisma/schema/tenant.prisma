@@ -7,6 +7,13 @@ model Tenant {
 
   createdAt DateTime @default(now())
 
-  secrets    Secret[]
-  registries Registry[]
+  secrets                  Secret[]
+  registries               Registry[]
+  slateInstances           SlateInstance[]
+  slateOAuthCredentials    SlateOAuthCredentials[]
+  slateAuthConfigs         SlateAuthConfig[]
+  slateInstanceOAuthSetups SlateInstanceOAuthSetup[]
+  slateInstanceConfigs     SlateInstanceConfig[]
+  slateInstanceEvents      SlateInstanceEvent[]
+  slateSessions            SlateSession[]
 }

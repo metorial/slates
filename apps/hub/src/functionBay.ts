@@ -1,7 +1,7 @@
 import { createFunctionBayClient } from '@metorial-services/function-bay-client';
 import { db } from './db';
 import { env } from './env';
-import { ID, snowflake } from './id';
+import { getId } from './id';
 
 export let functionBay: ReturnType<typeof createFunctionBayClient> = createFunctionBayClient({
   endpoint: env.functionBay.FUNCTION_BAY_API_URL
@@ -15,8 +15,7 @@ export let functionBayTenant = await functionBay.tenant.upsert({
 export let functionBayProvider = await db.deploymentProvider.upsert({
   where: { identifier: 'function-bay' },
   create: {
-    oid: snowflake.nextId(),
-    id: await ID.generateId('deploymentProvider'),
+    ...getId('deploymentProvider'),
     name: 'Function Bay',
     identifier: 'function-bay'
   },

@@ -8,13 +8,7 @@ import { getStoredInvocationStorageKey } from '../lib/invocation/store';
 import type { StoredSlateInvocation } from '../lib/invocation/types';
 import { invocationsBucketRecord, storage } from '../storage';
 
-export let slateInvocationPresenter = async (
-  inv: SlateInvocation & {
-    deployment: SlateDeployment & {
-      slateVersion: SlateVersion;
-    };
-  }
-) => {
+export let slateInvocationLitePresenter = async (inv: SlateInvocation) => {
   let i = 0;
   while (inv.isPending) {
     if (i++ > 10) {
@@ -53,10 +47,13 @@ export let slateInvocationPresenter = async (
     object: 'slate.invocation',
 
     id: inv.id,
-    status: output.provider ? output.provider.status : ('processing_result' as const),
-
-    slateDeploymentId: inv.deployment.id,
-    slateVersionId: inv.deployment.slateVersion.id,
+    status: inv.isPending
+      ? ('processing_result' as const)
+      : output.provider?.status == 'failed' || inv.hasInvocationError
+        ? ('invocation_failed' as const)
+        : inv.hasResponseError
+          ? ('message_failed' as const)
+          : ('succeeded' as const),
 
     requests: output.requests,
     responses: output.responses,
@@ -76,5 +73,22 @@ export let slateInvocationPresenter = async (
       : null,
 
     createdAt: inv.createdAt
+  };
+};
+
+export let slateInvocationPresenter = async (
+  inv: SlateInvocation & {
+    deployment: SlateDeployment & {
+      slateVersion: SlateVersion;
+    };
+  }
+) => {
+  let inner = await slateInvocationLitePresenter(inv);
+
+  return {
+    ...inner,
+
+    slateDeploymentId: inv.deployment.id,
+    slateVersionId: inv.deployment.slateVersion.id
   };
 };

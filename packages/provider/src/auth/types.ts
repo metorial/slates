@@ -38,6 +38,7 @@ export type SlateAuthWithOauth<
   }) => Promise<{
     url: string;
     input?: InputType;
+    callbackState?: Record<string, any>;
   }>;
 
   handleCallback: (ctx: {
@@ -48,6 +49,7 @@ export type SlateAuthWithOauth<
     clientId: string;
     clientSecret: string;
     scopes: string[];
+    callbackState: Record<string, any>;
   }) => Promise<{
     output: OutputType;
     input?: InputType;

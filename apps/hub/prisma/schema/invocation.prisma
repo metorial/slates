@@ -22,5 +22,8 @@ model SlateInvocation {
 
   createdAt DateTime @default(now())
 
-  slateVersionDiscoveries SlateVersionDiscovery[]
+  slateVersionDiscoveries       SlateVersionDiscovery[]
+  slateInstanceOAuthSetupEvents SlateInstanceOAuthSetupEvent[]
+  slateAuthConfigEvents         SlateAuthConfigEvent[]
+  slateSessionToolCalls         SlateSessionToolCall[]
 }

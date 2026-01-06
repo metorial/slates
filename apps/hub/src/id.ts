@@ -14,16 +14,26 @@ export let ID = createIdGenerator({
 
   slate: idType.sorted('shslt'),
   slateVersion: idType.sorted('shslv'),
-  slateVersionDiscovery: idType.sorted('shsdd'),
-  slateDeployment: idType.sorted('shsld'),
+  slateVersionDiscovery: idType.sorted('shvd'),
+  slateDeployment: idType.sorted('shdpl'),
   slateEvent: idType.sorted('shsev'),
-  slateSpecification: idType.sorted('shssp'),
+  slateSpecification: idType.sorted('shspe'),
   slateSpecificationChange: idType.sorted('shspc'),
-  slateAction: idType.sorted('shsac'),
-  slateConfigSchema: idType.sorted('shscs'),
-  slateAuthMethod: idType.sorted('shsam'),
+  slateAction: idType.sorted('shac'),
+  slateConfigSchema: idType.sorted('shcs'),
+  slateAuthMethod: idType.sorted('sham'),
 
-  slateRun: idType.sorted('shslr')
+  slateInstance: idType.sorted('shin'),
+  slateInstanceConfig: idType.sorted('shic'),
+  slateAuthConfig: idType.sorted('shiac'),
+  slateInstanceEvent: idType.sorted('hsiev'),
+  slateInstanceOAuthSetup: idType.sorted('shios'),
+
+  slateInvocation: idType.sorted('shiv'),
+
+  slateOAuthCredentials: idType.sorted('shoc'),
+  slateToolCall: idType.sorted('shtc'),
+  slateSession: idType.sorted('shses')
 });
 
 let workerIdBits = 12;
@@ -40,4 +50,9 @@ export let snowflake = new SnowflakeId(workerId, 0, {
   datacenterIdBits: 0,
   sequenceBits: 9,
   epoch: new Date('2025-06-01T00:00:00Z').getTime()
+});
+
+export let getId = <K extends Parameters<typeof ID.generateIdSync>[0]>(model: K) => ({
+  oid: snowflake.nextId(),
+  id: ID.generateIdSync(model)
 });

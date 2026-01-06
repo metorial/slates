@@ -12,15 +12,15 @@ let include = {
 
 class scopeServiceImpl {
   async getScopeById(d: { id: string }) {
-    let func = await db.scope.findFirst({
+    let scope = await db.scope.findFirst({
       where: {
         OR: [{ id: d.id }, { identifier: d.id }],
         status: 'active'
       },
       include
     });
-    if (!func) throw new ServiceError(notFoundError('scope'));
-    return func;
+    if (!scope) throw new ServiceError(notFoundError('scope'));
+    return scope;
   }
 
   async listScopes(d: {}) {

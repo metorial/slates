@@ -32,6 +32,21 @@ model Tenant {
   userTokens          UserToken[]
   readerTokens        ReaderToken[]
   changeNotifications ChangeNotification[]
+  subRegistries       SubRegistry[]
+}
+
+model SubRegistry {
+  oid BigInt @id
+  id  String @unique
+
+  identifier String @unique
+  name       String
+
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 enum ScopeType {

@@ -1,6 +1,6 @@
 {
   "name": "@slates/proto",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.6",
   "publishConfig": {
     "access": "public"
   },
@@ -11,7 +11,7 @@
     "package.json"
   ],
   "author": "Tobias Herber",
-  "license": "Apache 2",
+  "license": "FSL 1.1",
   "type": "module",
   "source": "src/index.ts",
   "exports": {

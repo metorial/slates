@@ -1,6 +1,7 @@
 import { delay } from '@lowerdeck/delay';
 import { badRequestError, ServiceError } from '@lowerdeck/error';
 import { generatePlainId } from '@lowerdeck/id';
+import { serialize } from '@lowerdeck/serialize';
 import {
   slatesResponsesByMethod,
   type SlatesParticipant,
@@ -73,7 +74,7 @@ export class SlateInvocationStack {
       ...this.#productiveMessages
     ];
 
-    let invocationId = await ID.generateId('slateRun');
+    let invocationId = await ID.generateId('slateInvocation');
     let [providerInvocation, invocationRecord] = await Promise.all([
       functionBay.function.invoke({
         tenantId: functionBayTenant.id,
@@ -124,6 +125,11 @@ export class SlateInvocationStack {
       };
     }
 
+    // If the result is encoded, decode it
+    if (providerInvocation.result._encoded) {
+      providerInvocation.result = serialize.decode(providerInvocation.result._encoded);
+    }
+
     let resultMessages = providerInvocation.result.messages as SlatesResponse[];
 
     storeSlateInvocation({
@@ -170,6 +176,30 @@ export class SlateInvocationStack {
           m => 'id' in m && m.id == inputMessage.id
         );
         if (!outputMessage || typeof outputMessage != 'object' || outputMessage === null) {
+          let errorMessage = resultMessages.find(m => 'error' in m);
+          if (errorMessage) {
+            let parse = errorSchema.safeParse(errorMessage);
+            if (!parse.success) {
+              return {
+                status: 'error',
+                invocation: invocationRecord,
+                error: {
+                  code: 'invalid_error_message',
+                  message: `Output error message for method ${key} is invalid: ${parse.error.message}`
+                }
+              };
+            }
+
+            return {
+              status: 'error',
+              invocation: invocationRecord,
+              error: {
+                ...parse.data.error,
+                code: parse.data.error.code || 'unknown_error'
+              } as any
+            };
+          }
+
           return {
             status: 'error',
             invocation: invocationRecord,
