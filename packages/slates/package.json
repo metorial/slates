@@ -1,11 +1,11 @@
 {
   "name": "slates",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.6",
   "publishConfig": {
     "access": "public"
   },
   "author": "Tobias Herber",
-  "license": "Apache 2",
+  "license": "FSL 1.1",
   "type": "module",
   "source": "src/index.ts",
   "files": [
@@ -30,7 +30,7 @@
     "build": "microbundle"
   },
   "dependencies": {
-    "@slates/provider": "^1.0.0-rc.2"
+    "@slates/provider": "^1.0.0-rc.6"
   },
   "devDependencies": {
     "microbundle": "^0.15.1",

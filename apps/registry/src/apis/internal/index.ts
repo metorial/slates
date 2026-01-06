@@ -2,6 +2,7 @@ import { apiMux } from '@lowerdeck/api-mux';
 import { createServer, rpcMux, type InferClient } from '@lowerdeck/rpc-server';
 import { app } from './_app';
 import { readerTokenController } from './readerTokens';
+import { subRegistryController } from './subRegistry';
 import { tenantController } from './tenant';
 import { userController } from './user';
 import { workspaceController } from './workspace';
@@ -10,7 +11,8 @@ export let rootController = app.controller({
   tenant: tenantController,
   user: userController,
   workspace: workspaceController,
-  readerToken: readerTokenController
+  readerToken: readerTokenController,
+  subRegistry: subRegistryController
 });
 
 export let slatesRegistryRPC = createServer({})(rootController);

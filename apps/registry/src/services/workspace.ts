@@ -3,7 +3,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import type { Tenant, Workspace } from '../../prisma/generated/client';
 import { db } from '../db';
-import { ID, snowflake } from '../id';
+import { getId } from '../id';
 
 let include = {
   scope: true,
@@ -34,8 +34,7 @@ class workspaceServiceImpl {
 
       let scope = await db.scope.create({
         data: {
-          id: await ID.generateId('scope'),
-          oid: snowflake.nextId(),
+          ...getId('scope'),
           type: 'workspace' as const,
           status: 'active',
 
@@ -50,8 +49,7 @@ class workspaceServiceImpl {
 
       return await db.workspace.create({
         data: {
-          oid: snowflake.nextId(),
-          id: await ID.generateId('workspace'),
+          ...getId('workspace'),
           status: 'active',
 
           identifier: d.input.identifier,
@@ -66,7 +64,7 @@ class workspaceServiceImpl {
   }
 
   async getWorkspaceById(d: { id: string; tenant?: Tenant }) {
-    let func = await db.workspace.findFirst({
+    let workspace = await db.workspace.findFirst({
       where: {
         OR: [{ id: d.id }, { identifier: d.id }],
         tenantOid: d.tenant?.oid,
@@ -74,8 +72,8 @@ class workspaceServiceImpl {
       },
       include
     });
-    if (!func) throw new ServiceError(notFoundError('workspace'));
-    return func;
+    if (!workspace) throw new ServiceError(notFoundError('workspace'));
+    return workspace;
   }
 
   async listWorkspaces(d: { tenant?: Tenant }) {

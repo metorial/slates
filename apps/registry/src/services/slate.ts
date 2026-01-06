@@ -13,7 +13,7 @@ let include = {
 
 class slateServiceImpl {
   async getSlateById(d: { id: string; tenant?: Tenant }) {
-    let func = await db.slate.findFirst({
+    let slate = await db.slate.findFirst({
       where: {
         status: 'active',
 
@@ -29,8 +29,8 @@ class slateServiceImpl {
       },
       include
     });
-    if (!func) throw new ServiceError(notFoundError('slate'));
-    return func;
+    if (!slate) throw new ServiceError(notFoundError('slate'));
+    return slate;
   }
 
   async listSlates(d: {

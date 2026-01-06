@@ -157,7 +157,8 @@ export let slatesMessageAuthAuthorizationUrlGetResponse = z.object({
   id: z.string(),
   result: z.object({
     authorizationUrl: z.string(),
-    input: z.record(z.string(), z.any()).optional()
+    input: z.record(z.string(), z.any()).optional(),
+    callbackState: z.record(z.string(), z.any()).optional()
   })
 });
 
@@ -181,7 +182,8 @@ export let slatesMessageAuthAuthorizationCallbackHandleRequest = z.object({
     input: z.record(z.string(), z.any()),
     clientId: z.string(),
     clientSecret: z.string(),
-    scopes: z.array(z.string())
+    scopes: z.array(z.string()),
+    callbackState: z.record(z.string(), z.any()).optional()
   })
 });
 

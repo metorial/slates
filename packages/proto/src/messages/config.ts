@@ -47,6 +47,7 @@ export type SlatesMessageConfigSchemaGetResponse = z.infer<
 export let slatesMessageConfigChangedRequest = z.object({
   jsonrpc: z.literal('2.0'),
   method: z.literal('slates/config.changed'),
+  id: z.string(),
   params: z.object({
     previousConfig: z.record(z.string(), z.any()).nullable(),
     newConfig: z.record(z.string(), z.any())
