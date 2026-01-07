@@ -28,6 +28,8 @@ export let slatesController = createHono()
         scopeIds: query.scopeId?.split(','),
         userIds: query.userId?.split(','),
         workspaceIds: query.workspaceId?.split(',')
+
+        // Filter by sub-registry filters
       });
       let list = await paginator.run(query);
 
@@ -40,6 +42,8 @@ export let slatesController = createHono()
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
+
+      // Filter by sub-registry filters
     });
 
     return c.json(await slatePresenter(slate));
@@ -81,6 +85,8 @@ export let slatesController = createHono()
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
+
+      // Filter by sub-registry filters
     });
 
     let paginator = await slateVersionService.listSlateVersions({ slate });
@@ -94,6 +100,8 @@ export let slatesController = createHono()
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
+
+      // Filter by sub-registry filters
     });
 
     let slateVersion = await slateVersionService.getSlateVersionById({
@@ -109,6 +117,8 @@ export let slatesController = createHono()
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
+
+      // Filter by sub-registry filters
     });
 
     let slateVersion = await slateVersionService.getSlateVersionById({

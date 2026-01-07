@@ -13,6 +13,7 @@ export let changeNotificationsController = createHono()
 
     let paginator = await changeNotificationService.listChangeNotifications({
       tenant: auth.tenant
+      // Filter by sub-registry filters
     });
     let list = await paginator.run(query);
 
@@ -24,6 +25,7 @@ export let changeNotificationsController = createHono()
     let slate = await changeNotificationService.getChangeNotificationById({
       id: c.req.param('changeNotificationId'),
       tenant: auth.tenant
+      // Filter by sub-registry filters
     });
 
     return c.json(await changeNotificationPresenter(slate));

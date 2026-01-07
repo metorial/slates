@@ -31,26 +31,56 @@ export let useAuth = async (ctx: Context) => {
     );
   }
 
-  if (!token) {
-    let subRegistry = await subRegistryService.getSubRegistryFromUrl({
-      url: ctx.req.url,
-      subRegistryId:
-        ctx.req.header('Metorial-Sub-Registry-Id') ??
-        ctx.req.header('Slates-Sub-Registry-Id') ??
-        undefined
-    });
+  let subRegistry = await subRegistryService.getSubRegistryFromUrl({
+    url: ctx.req.url,
+    subRegistryId:
+      ctx.req.header('Metorial-Sub-Registry-Id') ??
+      ctx.req.header('Slates-Sub-Registry-Id') ??
+      undefined
+  });
 
-    return { type: 'public' as const, tenant: subRegistry?.tenant, user: undefined };
+  if (!token) {
+    return {
+      type: 'public' as const,
+      tenant: subRegistry?.tenant,
+      subRegistry,
+      user: undefined
+    };
   }
 
   let userAuth = await userTokenService.authenticateWithUserToken({ secret: token });
   if (userAuth.status == 'success') {
-    return { type: 'user' as const, ...userAuth };
+    if (subRegistry && userAuth.tenant.oid !== subRegistry?.tenant.oid) {
+      throw new ServiceError(
+        unauthorizedError({
+          message: 'Token does not have access to the specified sub-registry'
+        })
+      );
+    }
+
+    return { type: 'user' as const, subRegistry, ...userAuth };
   }
 
   let readerAuth = await readerTokenService.authenticateWithReaderToken({ secret: token });
   if (readerAuth.status == 'success') {
-    return { type: 'reader' as const, ...readerAuth };
+    if (
+      subRegistry &&
+      readerAuth.tenant &&
+      readerAuth.tenant.oid !== subRegistry?.tenant.oid
+    ) {
+      throw new ServiceError(
+        unauthorizedError({
+          message: 'Token does not have access to the specified sub-registry'
+        })
+      );
+    }
+
+    return {
+      type: 'reader' as const,
+      subRegistry,
+      ...readerAuth,
+      tenant: readerAuth.tenant ?? subRegistry?.tenant
+    };
   }
 
   throw new ServiceError(userAuth.error || readerAuth.error);
