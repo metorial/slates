@@ -252,6 +252,16 @@ class slateInstanceServiceImpl {
 
     return { schema, storedConfig };
   }
+
+  async getManySlateInstancesByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateInstance.findMany({
+      where: {
+        tenantOid: d.tenant.oid,
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateInstanceService = Service.create(

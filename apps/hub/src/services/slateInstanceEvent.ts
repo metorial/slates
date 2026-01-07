@@ -43,6 +43,16 @@ class slateInstanceEventServiceImpl {
       )
     );
   }
+
+  async getManySlateInstanceEventsByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateInstanceEvent.findMany({
+      where: {
+        tenantOid: d.tenant.oid,
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateInstanceEventService = Service.create(

@@ -85,5 +85,22 @@ export let slateAuthConfigController = app.controller({
         slateAuthConfigId: v.string()
       })
     )
-    .do(async ctx => slateAuthConfigPresenter(ctx.slateAuthConfig))
+    .do(async ctx => slateAuthConfigPresenter(ctx.slateAuthConfig)),
+
+  getMany: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateAuthConfigIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let slateAuthConfigs = await slateAuthConfigService.getManySlateAuthConfigsByIds({
+        ids: ctx.input.slateAuthConfigIds,
+        tenant: ctx.tenant
+      });
+
+      return slateAuthConfigs.map(slateAuthConfigPresenter);
+    })
 });

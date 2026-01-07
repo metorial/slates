@@ -60,6 +60,16 @@ class slateServiceImpl {
       )
     );
   }
+
+  async getManySlatesByIds(d: { ids: string[] }) {
+    return db.slate.findMany({
+      where: {
+        status: 'active',
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateService = Service.create('slateService', () => new slateServiceImpl()).build();

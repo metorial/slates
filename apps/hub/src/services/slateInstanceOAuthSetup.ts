@@ -189,6 +189,16 @@ class slateInstanceOAuthSetupServiceImpl {
 
     return fullVersion;
   }
+
+  async getManySlateInstanceOAuthSetupsByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateInstanceOAuthSetup.findMany({
+      where: {
+        tenantOid: d.tenant.oid,
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateInstanceOAuthSetupService = Service.create(

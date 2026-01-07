@@ -44,7 +44,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
 
     if (
       version.lastDiscoveredAt &&
-      differenceInMinutes(new Date(), version.lastDiscoveredAt) < 10
+      Math.abs(differenceInMinutes(new Date(), version.lastDiscoveredAt)) < 10
     ) {
       console.log(
         `Skipping discovery for slate version ${version.id} (${version.version}) - recently discovered`

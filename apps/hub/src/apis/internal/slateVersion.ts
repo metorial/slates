@@ -60,5 +60,20 @@ export let slateVersionController = app.controller({
         await slateVersionService.getSlateVersionRegistryRecord({
           slateVersion: ctx.slateVersion
         })
+    ),
+
+  getMany: app
+    .handler()
+    .input(
+      v.object({
+        slateVersionIds: v.array(v.string())
+      })
     )
+    .do(async ctx => {
+      let slateVersions = await slateVersionService.getManySlateVersionsByIds({
+        ids: ctx.input.slateVersionIds
+      });
+
+      return slateVersions.map(slateVersionPresenter);
+    })
 });

@@ -48,5 +48,20 @@ export let slateController = app.controller({
         await slateService.getSlateRegistryRecord({
           slate: ctx.slate
         })
+    ),
+
+  getMany: app
+    .handler()
+    .input(
+      v.object({
+        slateIds: v.array(v.string())
+      })
     )
+    .do(async ctx => {
+      let slates = await slateService.getManySlatesByIds({
+        ids: ctx.input.slateIds
+      });
+
+      return slates.map(slatePresenter);
+    })
 });

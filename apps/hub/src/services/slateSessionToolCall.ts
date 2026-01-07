@@ -58,7 +58,7 @@ class slateSessionToolCallServiceImpl {
     }
 
     let lastActiveOrCreatedAt = session.lastActiveAt ?? session.createdAt;
-    if (differenceInMinutes(new Date(), lastActiveOrCreatedAt) > 5) {
+    if (Math.abs(differenceInMinutes(new Date(), lastActiveOrCreatedAt)) > 5) {
       let version = await slateSessionService.getSessionVersion({
         slate: session.slate,
         slateInstance: session.slateInstance
@@ -255,6 +255,16 @@ class slateSessionToolCallServiceImpl {
           })
       )
     );
+  }
+
+  async getManySlateToolCallsByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateSessionToolCall.findMany({
+      where: {
+        session: { tenantOid: d.tenant.oid },
+        id: { in: d.ids }
+      },
+      include
+    });
   }
 }
 
