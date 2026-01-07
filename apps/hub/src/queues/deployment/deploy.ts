@@ -108,9 +108,9 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             version: '1.0.0',
             main: 'slates_entry_point.js',
             dependencies: {
-              '@slates/provider-handler': '1.0.0-rc.6',
-              '@slates/proto': '1.0.0-rc.6',
-              slates: '1.0.0-rc.6',
+              '@slates/provider-handler': 'latest',
+              '@slates/proto': 'latest',
+              slates: 'latest',
               '@lowerdeck/serialize': 'latest'
             }
           },
