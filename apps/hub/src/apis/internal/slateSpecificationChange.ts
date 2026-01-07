@@ -24,7 +24,6 @@ export let slateSpecificationChangeController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          tenantId: v.string(),
           slateId: v.string(),
           versionIds: v.optional(v.array(v.string()))
         })
@@ -45,7 +44,6 @@ export let slateSpecificationChangeController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateSpecificationChangeId: v.string()
       })

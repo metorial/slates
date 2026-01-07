@@ -54,8 +54,7 @@ export let slateInstanceController = app.controller({
     )
     .do(async ctx => {
       let slate = await slateService.getSlateById({
-        id: ctx.input.slateId,
-        tenant: ctx.tenant
+        id: ctx.input.slateId
       });
 
       let lockedVersion = ctx.input.lockedVersionId

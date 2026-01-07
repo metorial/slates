@@ -62,8 +62,7 @@ export let slateOAuthSetupController = app.controller({
     )
     .do(async ctx => {
       let slate = await slateService.getSlateById({
-        id: ctx.input.slateId,
-        tenant: ctx.tenant
+        id: ctx.input.slateId
       });
       let oauthCredentials = await slateOAuthCredentialsService.getSlateOAuthCredentialsById({
         id: ctx.input.slateOAuthCredentialsId,
