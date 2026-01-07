@@ -138,16 +138,22 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
           let reset = () => {
             for (let key of Object.getOwnPropertyNames(globalThis)) {
               if (!(key in initialGlobals)) {
-                delete globalThis[key]
+                try {
+                  delete globalThis[key];
+                } catch {}
               }
             }
 
             for (let key in initialGlobals) {
-              globalThis[key] = initialGlobals[key]
+              try {
+                globalThis[key] = initialGlobals[key];
+              } catch {}
             }
 
             for (let key in require.cache) {
-              delete require.cache[key]
+              try {
+                delete require.cache[key];
+              } catch {}
             }
           }
 
