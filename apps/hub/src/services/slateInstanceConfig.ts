@@ -43,6 +43,16 @@ class slateInstanceConfigServiceImpl {
       )
     );
   }
+
+  async getManySlateInstanceConfigsByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateInstanceConfig.findMany({
+      where: {
+        tenantOid: d.tenant.oid,
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateInstanceConfigService = Service.create(

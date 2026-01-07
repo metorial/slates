@@ -63,6 +63,15 @@ class slateVersionServiceImpl {
       )
     );
   }
+
+  async getManySlateVersionsByIds(d: { ids: string[] }) {
+    return db.slateVersion.findMany({
+      where: {
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateVersionService = Service.create(

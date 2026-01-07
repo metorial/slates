@@ -201,6 +201,16 @@ class slateAuthConfigServiceImpl {
 
     return fullVersion;
   }
+
+  async getManySlateAuthConfigsByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateAuthConfig.findMany({
+      where: {
+        tenantOid: d.tenant.oid,
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateAuthConfigService = Service.create(
