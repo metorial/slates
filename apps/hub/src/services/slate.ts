@@ -1,7 +1,7 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Registry, Slate, Tenant } from '../../prisma/generated/client';
+import type { Registry, Slate } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getRegistryClient } from '../registry';
 
@@ -15,7 +15,7 @@ let include = {
 };
 
 class slateServiceImpl {
-  async getSlateById(d: { id: string; tenant: Tenant }) {
+  async getSlateById(d: { id: string }) {
     let slate = await db.slate.findFirst({
       where: {
         id: d.id,
@@ -46,7 +46,7 @@ class slateServiceImpl {
     return await res.json();
   }
 
-  async listSlates(d: { tenant: Tenant }) {
+  async listSlates(d: {}) {
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>

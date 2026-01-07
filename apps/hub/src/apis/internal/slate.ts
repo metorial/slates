@@ -3,34 +3,24 @@ import { v } from '@lowerdeck/validation';
 import { slatePresenter } from '../../presenters';
 import { slateService } from '../../services';
 import { app } from './_app';
-import { tenantApp } from './tenant';
 
-export let slateApp = tenantApp.use(async ctx => {
+export let slateApp = app.use(async ctx => {
   let slateId = ctx.body.slateId;
   if (!slateId) throw new Error('Slate ID is required');
 
   let slate = await slateService.getSlateById({
-    id: slateId,
-    tenant: ctx.tenant
+    id: slateId
   });
 
   return { slate };
 });
 
 export let slateController = app.controller({
-  list: tenantApp
+  list: app
     .handler()
-    .input(
-      Paginator.validate(
-        v.object({
-          tenantId: v.string()
-        })
-      )
-    )
+    .input(Paginator.validate(v.object({})))
     .do(async ctx => {
-      let paginator = await slateService.listSlates({
-        tenant: ctx.tenant
-      });
+      let paginator = await slateService.listSlates({});
 
       let list = await paginator.run(ctx.input);
 
@@ -41,7 +31,6 @@ export let slateController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string()
       })
     )
@@ -51,7 +40,6 @@ export let slateController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string()
       })
     )

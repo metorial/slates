@@ -52,8 +52,7 @@ export let slateSessionController = app.controller({
     )
     .do(async ctx => {
       let slate = await slateService.getSlateById({
-        id: ctx.input.slateId,
-        tenant: ctx.tenant
+        id: ctx.input.slateId
       });
       let slateInstance = await slateInstanceService.getSlateInstanceById({
         id: ctx.input.slateInstanceId,
