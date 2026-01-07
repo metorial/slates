@@ -35,7 +35,7 @@
     "@lowerdeck/pagination": "^1.0.4",
     "@lowerdeck/queue": "^1.0.4",
     "@lowerdeck/rpc-client": "^1.0.2",
-    "@lowerdeck/rpc-server": "^1.0.4",
+    "@lowerdeck/rpc-server": "^1.0.5",
     "@lowerdeck/sentry": "^1.0.2",
     "@lowerdeck/serialize": "^1.0.4",
     "@lowerdeck/service": "^1.0.3",
