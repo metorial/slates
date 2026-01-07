@@ -41,6 +41,7 @@ model Slate {
   slateInstanceOAuthSetups  SlateInstanceOAuthSetup[]
   slateAuthConfigs          SlateAuthConfig[]
   slateSessions             SlateSession[]
+  changeNotifications       ChangeNotification[]
 
   @@unique([registryOid, slateIdOnRegistry])
   @@unique([registryOid, slateFullIdentifierOnRegistry])
@@ -102,6 +103,7 @@ model SlateVersion {
   slateInstanceOAuthSetups   SlateInstanceOAuthSetup[]
   slateSessions              SlateSession[]
   slateSessionToolCalls      SlateSessionToolCall[]
+  changeNotifications        ChangeNotification[]
 
   @@unique([slateOid, version])
 }

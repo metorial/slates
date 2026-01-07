@@ -396,6 +396,19 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
           }
         });
       }
+
+      await db.changeNotification.create({
+        data: {
+          ...getId('changeNotification'),
+          type: 'slate_version_created',
+
+          slateOid: slate.oid,
+          slateVersionOid: version.oid,
+
+          slateId: slate.id,
+          slateVersionId: version.id
+        }
+      });
     } catch (e) {
       console.error('Error during discovery:', e);
 

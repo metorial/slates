@@ -1,3 +1,4 @@
+export * from './changeNotification';
 export * from './registry';
 export * from './secret';
 export * from './slate';

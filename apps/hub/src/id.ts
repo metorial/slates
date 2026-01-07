@@ -33,7 +33,9 @@ export let ID = createIdGenerator({
 
   slateOAuthCredentials: idType.sorted('shoc'),
   slateToolCall: idType.sorted('shtc'),
-  slateSession: idType.sorted('shses')
+  slateSession: idType.sorted('shses'),
+
+  changeNotification: idType.sorted('shcn')
 });
 
 let workerIdBits = 12;
