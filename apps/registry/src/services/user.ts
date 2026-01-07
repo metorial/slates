@@ -64,6 +64,26 @@ class userServiceImpl {
     });
   }
 
+  async ensureUserByIdentifier(d: { identifier: string; name: string; tenant: Tenant }) {
+    let user = await db.user.findFirst({
+      where: {
+        identifier: d.identifier,
+        tenantOid: d.tenant.oid,
+        status: 'active'
+      },
+      include
+    });
+    if (user) return user;
+
+    return this.createUser({
+      input: {
+        identifier: d.identifier,
+        name: d.name
+      },
+      tenant: d.tenant
+    });
+  }
+
   async getUserById(d: { id: string; tenant?: Tenant }) {
     let user = await db.user.findFirst({
       where: {
