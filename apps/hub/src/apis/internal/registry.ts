@@ -31,8 +31,6 @@ export let registryController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
-        slateId: v.string(),
         registryId: v.string()
       })
     )
