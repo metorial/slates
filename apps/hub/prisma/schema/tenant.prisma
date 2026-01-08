@@ -5,6 +5,8 @@ model Tenant {
   identifier String @unique
   name       String
 
+  signalTenantId String? @unique
+
   createdAt DateTime @default(now())
 
   secrets                  Secret[]
