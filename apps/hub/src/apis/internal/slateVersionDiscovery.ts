@@ -23,7 +23,6 @@ export let slateVersionDiscoveryController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          tenantId: v.string(),
           slateId: v.string(),
           versionIds: v.optional(v.array(v.string()))
         })
@@ -44,7 +43,6 @@ export let slateVersionDiscoveryController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateVersionDiscoveryId: v.string()
       })

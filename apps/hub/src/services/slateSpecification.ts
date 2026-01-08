@@ -58,6 +58,17 @@ class slateSpecificationServiceImpl {
       )
     );
   }
+
+  async getManySlateSpecificationsByIds(d: { ids: string[]; slate: Slate }) {
+    return db.slateSpecification.findMany({
+      where: {
+        slateOid: d.slate.oid,
+        id: { in: d.ids }
+      },
+      include,
+      omit
+    });
+  }
 }
 
 export let slateSpecificationService = Service.create(

@@ -1,6 +1,7 @@
 import { apiMux } from '@lowerdeck/api-mux';
 import { createServer, rpcMux, type InferClient } from '@lowerdeck/rpc-server';
 import { app } from './_app';
+import { changeNotificationController } from './changeNotification';
 import { registryController } from './registry';
 import { secretController } from './secret';
 import { slateController } from './slate';
@@ -21,6 +22,8 @@ export let rootController = app.controller({
   secret: secretController,
 
   registry: registryController,
+
+  changeNotification: changeNotificationController,
 
   slate: slateController,
   slateVersion: slateVersionController,

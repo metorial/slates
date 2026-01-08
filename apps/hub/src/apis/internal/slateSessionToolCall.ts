@@ -101,5 +101,24 @@ export let slateSessionToolCallController = app.controller({
         slateSessionToolCallId: v.string()
       })
     )
-    .do(async ctx => slateSessionToolCallLogsPresenter(ctx.slateSessionToolCall))
+    .do(async ctx => slateSessionToolCallLogsPresenter(ctx.slateSessionToolCall)),
+
+  getMany: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateSessionToolCallIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let slateSessionToolCalls = await slateSessionToolCallService.getManySlateToolCallsByIds(
+        {
+          ids: ctx.input.slateSessionToolCallIds,
+          tenant: ctx.tenant
+        }
+      );
+
+      return slateSessionToolCalls.map(slateSessionToolCallPresenter);
+    })
 });

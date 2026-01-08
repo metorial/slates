@@ -130,6 +130,16 @@ class slateOAuthCredentialsServiceImpl {
       )
     );
   }
+
+  async getManySlateOAuthCredentialsByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateOAuthCredentials.findMany({
+      where: {
+        tenantOid: d.tenant.oid,
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateOAuthCredentialsService = Service.create(

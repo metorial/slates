@@ -23,7 +23,6 @@ export let slateVersionController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          tenantId: v.string(),
           slateId: v.string()
         })
       )
@@ -42,7 +41,6 @@ export let slateVersionController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateVersionId: v.string()
       })
@@ -53,7 +51,6 @@ export let slateVersionController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateVersionId: v.string()
       })
@@ -63,5 +60,20 @@ export let slateVersionController = app.controller({
         await slateVersionService.getSlateVersionRegistryRecord({
           slateVersion: ctx.slateVersion
         })
+    ),
+
+  getMany: app
+    .handler()
+    .input(
+      v.object({
+        slateVersionIds: v.array(v.string())
+      })
     )
+    .do(async ctx => {
+      let slateVersions = await slateVersionService.getManySlateVersionsByIds({
+        ids: ctx.input.slateVersionIds
+      });
+
+      return slateVersions.map(slateVersionPresenter);
+    })
 });

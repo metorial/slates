@@ -23,7 +23,6 @@ export let slateDeploymentController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          tenantId: v.string(),
           slateId: v.string(),
           versionIds: v.optional(v.array(v.string()))
         })
@@ -44,7 +43,6 @@ export let slateDeploymentController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateDeploymentId: v.string()
       })
@@ -55,7 +53,6 @@ export let slateDeploymentController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateDeploymentId: v.string()
       })

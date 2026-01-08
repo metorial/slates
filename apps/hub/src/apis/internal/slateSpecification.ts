@@ -23,7 +23,6 @@ export let slateSpecificationController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          tenantId: v.string(),
           slateId: v.string(),
           versionIds: v.optional(v.array(v.string()))
         })
@@ -44,10 +43,27 @@ export let slateSpecificationController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateSpecificationId: v.string()
       })
     )
-    .do(async ctx => slateSpecificationPresenter(ctx.slateSpecification))
+    .do(async ctx => slateSpecificationPresenter(ctx.slateSpecification)),
+
+  getMany: slateApp
+    .handler()
+    .input(
+      v.object({
+        slateId: v.string(),
+        slateSpecificationIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let slateSpecifications =
+        await slateSpecificationService.getManySlateSpecificationsByIds({
+          ids: ctx.input.slateSpecificationIds,
+          slate: ctx.slate
+        });
+
+      return slateSpecifications.map(slateSpecificationPresenter);
+    })
 });

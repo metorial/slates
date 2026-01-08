@@ -31,10 +31,36 @@ export let registryController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
-        slateId: v.string(),
         registryId: v.string()
       })
     )
-    .do(async ctx => registryPresenter(ctx.registry))
+    .do(async ctx => registryPresenter(ctx.registry)),
+
+  listAll: app
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string()
+      })
+    )
+    .do(async ctx => {
+      let res = await registryService.listAllRegistries({});
+
+      return res.map(registryPresenter);
+    }),
+
+  getMany: app
+    .handler()
+    .input(
+      v.object({
+        registryIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let registries = await registryService.getManyRegistriesByIds({
+        ids: ctx.input.registryIds
+      });
+
+      return registries.map(registryPresenter);
+    })
 });

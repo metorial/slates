@@ -42,6 +42,32 @@ class registryServiceImpl {
       )
     );
   }
+
+  async listAllRegistries(d: { tenant?: Tenant }) {
+    return db.registry.findMany({
+      where: {
+        status: 'active'
+      },
+      include
+    });
+  }
+
+  async getManyRegistriesByIds(d: { ids: string[]; tenant?: Tenant }) {
+    return db.registry.findMany({
+      where: {
+        status: 'active',
+        AND: [
+          {
+            OR: d.tenant ? [{ tenantOid: d.tenant.oid }, { tenantOid: null }] : undefined
+          },
+          {
+            id: { in: d.ids }
+          }
+        ].filter(Boolean)
+      },
+      include
+    });
+  }
 }
 
 export let registryService = Service.create(

@@ -62,8 +62,7 @@ export let slateOAuthSetupController = app.controller({
     )
     .do(async ctx => {
       let slate = await slateService.getSlateById({
-        id: ctx.input.slateId,
-        tenant: ctx.tenant
+        id: ctx.input.slateId
       });
       let oauthCredentials = await slateOAuthCredentialsService.getSlateOAuthCredentialsById({
         id: ctx.input.slateOAuthCredentialsId,
@@ -118,5 +117,23 @@ export let slateOAuthSetupController = app.controller({
       });
 
       return await slateInstanceOAuthSetupLogsPresenter(logs);
+    }),
+
+  getMany: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateOAuthSetupIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let slateOAuthSetups =
+        await slateInstanceOAuthSetupService.getManySlateInstanceOAuthSetupsByIds({
+          ids: ctx.input.slateOAuthSetupIds,
+          tenant: ctx.tenant
+        });
+
+      return slateOAuthSetups.map(slateInstanceOAuthSetupPresenter);
     })
 });

@@ -54,8 +54,7 @@ export let slateInstanceController = app.controller({
     )
     .do(async ctx => {
       let slate = await slateService.getSlateById({
-        id: ctx.input.slateId,
-        tenant: ctx.tenant
+        id: ctx.input.slateId
       });
 
       let lockedVersion = ctx.input.lockedVersionId
@@ -86,5 +85,22 @@ export let slateInstanceController = app.controller({
         slateInstanceId: v.string()
       })
     )
-    .do(async ctx => slateInstancePresenter(ctx.slateInstance))
+    .do(async ctx => slateInstancePresenter(ctx.slateInstance)),
+
+  getMany: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateInstanceIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let slateInstances = await slateInstanceService.getManySlateInstancesByIds({
+        ids: ctx.input.slateInstanceIds,
+        tenant: ctx.tenant
+      });
+
+      return slateInstances.map(slateInstancePresenter);
+    })
 });

@@ -44,7 +44,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
 
     if (
       version.lastDiscoveredAt &&
-      differenceInMinutes(new Date(), version.lastDiscoveredAt) < 10
+      Math.abs(differenceInMinutes(new Date(), version.lastDiscoveredAt)) < 10
     ) {
       console.log(
         `Skipping discovery for slate version ${version.id} (${version.version}) - recently discovered`
@@ -396,6 +396,19 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
           }
         });
       }
+
+      await db.changeNotification.create({
+        data: {
+          ...getId('changeNotification'),
+          type: 'slate_version_created',
+
+          slateOid: slate.oid,
+          slateVersionOid: version.oid,
+
+          slateId: slate.id,
+          slateVersionId: version.id
+        }
+      });
     } catch (e) {
       console.error('Error during discovery:', e);
 

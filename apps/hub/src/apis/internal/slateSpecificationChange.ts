@@ -24,7 +24,6 @@ export let slateSpecificationChangeController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          tenantId: v.string(),
           slateId: v.string(),
           versionIds: v.optional(v.array(v.string()))
         })
@@ -45,10 +44,27 @@ export let slateSpecificationChangeController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.string(),
         slateId: v.string(),
         slateSpecificationChangeId: v.string()
       })
     )
-    .do(async ctx => slateSpecificationChangePresenter(ctx.slateSpecificationChange))
+    .do(async ctx => slateSpecificationChangePresenter(ctx.slateSpecificationChange)),
+
+  getMany: slateApp
+    .handler()
+    .input(
+      v.object({
+        slateId: v.string(),
+        slateSpecificationChangeIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let slateSpecificationChanges =
+        await slateSpecificationChangeService.getManySlateSpecificationChangesByIds({
+          ids: ctx.input.slateSpecificationChangeIds,
+          slate: ctx.slate
+        });
+
+      return slateSpecificationChanges.map(slateSpecificationChangePresenter);
+    })
 });

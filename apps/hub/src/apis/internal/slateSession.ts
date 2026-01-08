@@ -52,8 +52,7 @@ export let slateSessionController = app.controller({
     )
     .do(async ctx => {
       let slate = await slateService.getSlateById({
-        id: ctx.input.slateId,
-        tenant: ctx.tenant
+        id: ctx.input.slateId
       });
       let slateInstance = await slateInstanceService.getSlateInstanceById({
         id: ctx.input.slateInstanceId,
@@ -80,5 +79,22 @@ export let slateSessionController = app.controller({
         slateSessionId: v.string()
       })
     )
-    .do(async ctx => slateSessionPresenter(ctx.slateSession))
+    .do(async ctx => slateSessionPresenter(ctx.slateSession)),
+
+  getMany: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateSessionIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let list = await slateSessionService.getManySlateSessionsByIds({
+        ids: ctx.input.slateSessionIds,
+        tenant: ctx.tenant
+      });
+
+      return list.map(slateSessionPresenter);
+    })
 });

@@ -135,6 +135,16 @@ class slateSessionServiceImpl {
 
     return fullVersion;
   }
+
+  async getManySlateSessionsByIds(d: { ids: string[]; tenant: Tenant }) {
+    return db.slateSession.findMany({
+      where: {
+        slateInstance: { tenantOid: d.tenant.oid },
+        id: { in: d.ids }
+      },
+      include
+    });
+  }
 }
 
 export let slateSessionService = Service.create(

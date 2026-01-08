@@ -55,8 +55,7 @@ export let slateOAuthCredentialsController = app.controller({
     )
     .do(async ctx => {
       let slate = await slateService.getSlateById({
-        id: ctx.input.slateId,
-        tenant: ctx.tenant
+        id: ctx.input.slateId
       });
 
       let res = await slateOAuthCredentialsService.createSlateOAuthCredentials({
@@ -81,5 +80,23 @@ export let slateOAuthCredentialsController = app.controller({
         slateOAuthCredentialsId: v.string()
       })
     )
-    .do(async ctx => slateOAuthCredentialsPresenter(ctx.slateOAuthCredentials))
+    .do(async ctx => slateOAuthCredentialsPresenter(ctx.slateOAuthCredentials)),
+
+  getMany: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateOAuthCredentialsIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let slateOAuthCredentialsList =
+        await slateOAuthCredentialsService.getManySlateOAuthCredentialsByIds({
+          ids: ctx.input.slateOAuthCredentialsIds,
+          tenant: ctx.tenant
+        });
+
+      return slateOAuthCredentialsList.map(slateOAuthCredentialsPresenter);
+    })
 });
