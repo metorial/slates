@@ -237,6 +237,7 @@ model Slate {
   name           String
 
   logoUrl String?
+  skills  String[]
 
   description String?
 
