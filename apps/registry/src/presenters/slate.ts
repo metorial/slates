@@ -19,6 +19,8 @@ export let slatePresenter = (
   name: slate.name,
   description: slate.description,
 
+  logoUrl: slate.logoUrl,
+
   identifier: slate.identifier,
   fullIdentifier: slate.fullIdentifier,
 
