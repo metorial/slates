@@ -217,6 +217,8 @@ model Slate {
   fullIdentifier String @unique
   name           String
 
+  logoUrl String?
+
   description String?
 
   scopeOid BigInt
