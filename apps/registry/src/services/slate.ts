@@ -1,7 +1,7 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Tenant } from '../../prisma/generated/client';
+import type { Slate, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
@@ -31,6 +31,25 @@ class slateServiceImpl {
     });
     if (!slate) throw new ServiceError(notFoundError('slate'));
     return slate;
+  }
+
+  async updateSlate(d: {
+    slate: Slate;
+    input: {
+      name?: string;
+      description?: string;
+      logoUrl?: string | null;
+    };
+  }) {
+    return await db.slate.update({
+      where: { oid: d.slate.oid },
+      data: {
+        name: d.input.name ?? d.slate.name,
+        description: d.input.description ?? d.slate.description,
+        logoUrl: d.input.logoUrl !== undefined ? d.input.logoUrl : d.slate.logoUrl
+      },
+      include
+    });
   }
 
   async listSlates(d: {

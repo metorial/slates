@@ -47,6 +47,31 @@ export let slateController = app.controller({
     )
     .do(async ctx => slatePresenter(ctx.slate)),
 
+  setLogo: slateApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateId: v.string(),
+
+        logoUrl: v.string({
+          modifiers: [
+            v.url({ hostnames: ['logos.metorial-cdn.com', 'provider-logos.metorial-cdn.com'] })
+          ]
+        })
+      })
+    )
+    .do(async ctx => {
+      let slate = await slateService.updateSlate({
+        slate: ctx.slate,
+        input: {
+          logoUrl: ctx.input.logoUrl
+        }
+      });
+
+      return slatePresenter(slate);
+    }),
+
   version: app.controller({
     list: slateApp
       .handler()
