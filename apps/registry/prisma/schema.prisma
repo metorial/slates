@@ -186,6 +186,17 @@ model ReaderToken {
   @@index([status])
 }
 
+model SlateCategory {
+  oid BigInt @id
+  id  String @unique
+
+  identifier String @unique
+  name       String
+
+  createdAt                DateTime                  @default(now())
+  slateCategoryAssignments SlateCategoryAssignment[]
+}
+
 enum SlateStatus {
   active
   deleted
@@ -225,6 +236,17 @@ model Slate {
 
   slateVersions       SlateVersion[]
   changeNotifications ChangeNotification[]
+  categories          SlateCategoryAssignment[]
+}
+
+model SlateCategoryAssignment {
+  slateOid BigInt
+  slate    Slate  @relation(fields: [slateOid], references: [oid], onDelete: Cascade)
+
+  categoryOid BigInt
+  category    SlateCategory @relation(fields: [categoryOid], references: [oid], onDelete: Cascade)
+
+  @@id([slateOid, categoryOid])
 }
 
 model SlateVersion {

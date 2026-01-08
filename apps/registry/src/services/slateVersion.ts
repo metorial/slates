@@ -51,7 +51,8 @@ let slateJsonValidation = v.object({
         return [];
       }
     ]
-  })
+  }),
+  categories: v.optional(v.array(v.string()))
 });
 
 class slateVersionServiceImpl {
@@ -217,6 +218,36 @@ class slateVersionServiceImpl {
             include: { currentVersion: true }
           });
         }
+
+        let existingCategories = await db.slateCategory.findMany({
+          where: { identifier: { in: slateJson.categories ?? [] } }
+        });
+        let existingCategoryIds = existingCategories.map(c => c.oid);
+        let existingCategoryIdentifiers = existingCategories.map(c => c.identifier);
+        let missingCategories = (slateJson.categories ?? []).filter(
+          c => !existingCategoryIdentifiers.includes(c)
+        );
+
+        for (let missing of missingCategories) {
+          let newCategory = await db.slateCategory.upsert({
+            where: { identifier: missing },
+            create: {
+              ...getId('slateCategory'),
+              identifier: missing,
+              name: missing
+            },
+            update: {}
+          });
+          existingCategoryIds.push(newCategory.oid);
+        }
+
+        await db.slateCategoryAssignment.createMany({
+          skipDuplicates: true,
+          data: existingCategoryIds.map(categoryOid => ({
+            slateOid: slate.oid,
+            categoryOid
+          }))
+        });
 
         let storageKey = `slate/${slate.id}/${slateJson.version}/bundle.zip`;
         let bucket = env.storage.PACKAGE_BUCKET_NAME;
