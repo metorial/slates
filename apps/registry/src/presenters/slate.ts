@@ -20,6 +20,7 @@ export let slatePresenter = (
   description: slate.description,
 
   logoUrl: slate.logoUrl,
+  skills: slate.skills,
 
   identifier: slate.identifier,
   fullIdentifier: slate.fullIdentifier,
