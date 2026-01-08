@@ -39,14 +39,16 @@ class slateServiceImpl {
       name?: string;
       description?: string;
       logoUrl?: string | null;
+      skills?: string[];
     };
   }) {
     return await db.slate.update({
       where: { oid: d.slate.oid },
       data: {
-        name: d.input.name ?? d.slate.name,
-        description: d.input.description ?? d.slate.description,
-        logoUrl: d.input.logoUrl !== undefined ? d.input.logoUrl : d.slate.logoUrl
+        skills: d.input.skills,
+        name: d.input.name,
+        description: d.input.description,
+        logoUrl: d.input.logoUrl ?? undefined
       },
       include
     });
