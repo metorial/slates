@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "bun ./src/server.ts",
-    "dev": "docker compose -p slates-hub -f ./docker-compose.dev.yml up --pull always --build forge function-bay object-storage slates-registry slates-hub"
+    "dev": "docker compose -p slates-hub -f ./docker-compose.dev.yml up --pull always --build forge function-bay object-storage signal slates-registry slates-hub"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -43,6 +43,7 @@
     "@lowerdeck/slugify": "^1.0.4",
     "@lowerdeck/validation": "^1.0.4",
     "@metorial-services/function-bay-client": "1.0.3",
+    "@metorial-services/signal-client": "^1.0.0",
     "@metorial-services/slates-registry-client": "^1.0.0",
     "@metorial-services/slates-registry-internal-client": "^1.0.0",
     "@prisma/adapter-pg": "^7.2.0",

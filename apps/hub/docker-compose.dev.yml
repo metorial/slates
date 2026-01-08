@@ -25,8 +25,6 @@ services:
 
   object-storage:
     image: ghcr.io/metorial/object-storage:latest
-    ports:
-      - "52010:52010"
     volumes:
       - object-store-data:/app/data
     environment:
@@ -51,8 +49,6 @@ services:
     image: ghcr.io/metorial/forge:latest
     container_name: slates-hub-forge
     restart: unless-stopped
-    ports:
-      - "52020:52020"
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/forge
       REDIS_URL: redis://redis:6379/0
@@ -80,8 +76,6 @@ services:
     image: ghcr.io/metorial/function-bay:latest
     container_name: slates-hub-function-bay
     restart: unless-stopped
-    ports:
-      - "52030:52030"
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/function-bay
       REDIS_URL: redis://redis:6379/0
@@ -103,6 +97,23 @@ services:
       - redis
       - object-storage
       - forge
+    networks:
+      - slates-hub-network
+
+  signal:  
+    image: ghcr.io/metorial/signal:latest
+    container_name: slates-hub-signal
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/signal
+      REDIS_URL: redis://redis:6379/0
+
+      OBJECT_STORAGE_URL: http://object-storage:52010
+      LOGS_BUCKET_NAME: bundles
+    depends_on:
+      - postgres
+      - redis
+      - object-storage
     networks:
       - slates-hub-network
 
@@ -161,6 +172,9 @@ services:
 
       INITIAL_REGISTRIES: "http://slates-registry:52040"
 
+      SIGNAL_API_URL: http://signal:52050/metorial-signal
+      SIGNAL_SENDER_IDENTIFIER: dev-slates-hub
+
       SLATES_HUB_INSTANCE_IDENTIFIER: dev-slates-hub
       SERVICE_PUBLIC_URL: http://localhost:52045
 
@@ -175,6 +189,7 @@ services:
       - slates-registry
       - forge
       - function-bay
+      - signal
     networks:
       - slates-hub-network
 
