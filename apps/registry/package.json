@@ -5,10 +5,17 @@
   "private": true,
   "scripts": {
     "start": "bun ./src/server.ts",
-    "dev": "docker compose -p slates-registry -f ./docker-compose.dev.yml up --pull always --build slates-registry object-storage"
+    "dev": "docker compose -p slates-registry -f ./docker-compose.dev.yml up --pull always --build slates-registry object-storage",
+    "build:admin": "vite build --config admin/vite.config.ts",
+    "dev:admin": "vite --config admin/vite.config.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.0",
+    "vite": "^5.4.0"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -39,8 +46,10 @@
     "@lowerdeck/shadow-id": "^1.0.4",
     "@lowerdeck/slugify": "^1.0.4",
     "@lowerdeck/validation": "^1.0.4",
+    "@metorial-io/ui": "^1.0.0",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
+    "@tanstack/react-query": "^5.60.0",
     "@types/semver": "^7.7.1",
     "@types/unzipper": "^0.10.11",
     "date-fns": "^4.1.0",
@@ -49,6 +58,9 @@
     "object-storage-client": "^0.2.5",
     "prisma": "^7.2.0",
     "prisma-json-types-generator": "^4.0.1",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router-dom": "^6.28.0",
     "semver": "^7.7.3",
     "snowflake-uuid": "^1.0.0",
     "unzipper": "^0.12.3",

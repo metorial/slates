@@ -1,4 +1,5 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
+import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import { db } from '../db';
 import { getId } from '../id';
@@ -6,6 +7,17 @@ import { getId } from '../id';
 let include = {};
 
 class tenantServiceImpl {
+  async listTenants(_d: {}) {
+    return Paginator.create(({ prisma }) =>
+      prisma(
+        async opts =>
+          await db.tenant.findMany({
+            ...opts,
+            include
+          })
+      )
+    );
+  }
   async upsertTenant(d: {
     input: {
       name: string;
@@ -31,6 +43,21 @@ class tenantServiceImpl {
     });
     if (!tenant) throw new ServiceError(notFoundError('tenant'));
     return tenant;
+  }
+
+  async updateTenant(d: {
+    tenant: { oid: bigint };
+    input: {
+      name?: string;
+    };
+  }) {
+    return await db.tenant.update({
+      where: { oid: d.tenant.oid },
+      data: {
+        ...(d.input.name && { name: d.input.name })
+      },
+      include
+    });
   }
 }
 

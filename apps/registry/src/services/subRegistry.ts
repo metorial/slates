@@ -1,14 +1,45 @@
-import { conflictError, notFoundError, ServiceError } from '@lowerdeck/error';
+import { badRequestError, conflictError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Tenant } from '../../prisma/generated/client';
+import type { SubRegistry, SubRegistryFilterType, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
 import { getId } from '../id';
 
 let include = {
-  tenant: true
+  tenant: true,
+  filters: true
 };
+
+let validFilterTypes = ['scope_type', 'prefix', 'package'] as const;
+
+function validateFilterType(type: string): asserts type is SubRegistryFilterType {
+  if (!validFilterTypes.includes(type as SubRegistryFilterType)) {
+    throw new ServiceError(
+      badRequestError({
+        message: `Invalid filter type "${type}". Must be one of: ${validFilterTypes.join(', ')}`
+      })
+    );
+  }
+}
+
+function validateFilterValue(type: SubRegistryFilterType, value: string): void {
+  if (type === 'scope_type' && !['user', 'workspace'].includes(value)) {
+    throw new ServiceError(
+      badRequestError({
+        message: 'scope_type filter value must be "user" or "workspace"'
+      })
+    );
+  }
+
+  if ((type === 'prefix' || type === 'package') && value.length === 0) {
+    throw new ServiceError(
+      badRequestError({
+        message: `${type} filter value cannot be empty`
+      })
+    );
+  }
+}
 
 let baseDomain = env.url.SUB_REGISTRY_BASE_DOMAIN;
 if (baseDomain && !baseDomain.startsWith('.')) {
@@ -99,6 +130,86 @@ class subRegistryServiceImpl {
           })
       )
     );
+  }
+
+  async addFilter(d: {
+    subRegistry: SubRegistry;
+    input: {
+      type: string;
+      value: string;
+    };
+  }) {
+    validateFilterType(d.input.type);
+    validateFilterValue(d.input.type, d.input.value);
+
+    return db.subRegistryFilter.create({
+      data: {
+        ...getId('subRegistryFilter'),
+        type: d.input.type,
+        value: d.input.value,
+        subRegistryOid: d.subRegistry.oid
+      }
+    });
+  }
+
+  async removeFilter(d: { subRegistry: SubRegistry; filterId: string }) {
+    let filter = await db.subRegistryFilter.findFirst({
+      where: {
+        id: d.filterId,
+        subRegistryOid: d.subRegistry.oid
+      }
+    });
+
+    if (!filter) throw new ServiceError(notFoundError('sub_registry.filter'));
+
+    await db.subRegistryFilter.delete({
+      where: { oid: filter.oid }
+    });
+  }
+
+  async listFilters(d: { subRegistry: SubRegistry }) {
+    return db.subRegistryFilter.findMany({
+      where: { subRegistryOid: d.subRegistry.oid },
+      orderBy: { createdAt: 'asc' }
+    });
+  }
+
+  async setFilters(d: {
+    subRegistry: SubRegistry;
+    filters: Array<{ type: string; value: string }>;
+  }) {
+    for (let filter of d.filters) {
+      validateFilterType(filter.type);
+      validateFilterValue(filter.type, filter.value);
+    }
+
+    return db.$transaction(async db => {
+      await db.subRegistryFilter.deleteMany({
+        where: { subRegistryOid: d.subRegistry.oid }
+      });
+
+      if (d.filters.length > 0) {
+        await db.subRegistryFilter.createMany({
+          data: d.filters.map(f => ({
+            ...getId('subRegistryFilter'),
+            type: f.type as SubRegistryFilterType,
+            value: f.value,
+            subRegistryOid: d.subRegistry.oid
+          }))
+        });
+      }
+
+      return db.subRegistry.findFirstOrThrow({
+        where: { oid: d.subRegistry.oid },
+        include
+      });
+    });
+  }
+
+  async clearFilters(d: { subRegistry: SubRegistry }) {
+    await db.subRegistryFilter.deleteMany({
+      where: { subRegistryOid: d.subRegistry.oid }
+    });
   }
 }
 

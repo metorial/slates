@@ -3,6 +3,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import type { Slate, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
+import { buildSlateFilterClause, type SubRegistryWithFilters } from '../lib/subRegistryFilter';
 
 let include = {
   scope: true,
@@ -12,7 +13,9 @@ let include = {
 };
 
 class slateServiceImpl {
-  async getSlateById(d: { id: string; tenant?: Tenant }) {
+  async getSlateById(d: { id: string; tenant?: Tenant; subRegistry?: SubRegistryWithFilters | null }) {
+    let filterClause = buildSlateFilterClause(d.subRegistry, d.tenant?.oid);
+
     let slate = await db.slate.findFirst({
       where: {
         status: 'active',
@@ -21,10 +24,7 @@ class slateServiceImpl {
           {
             OR: [{ id: d.id }, { fullIdentifier: d.id }]
           },
-
-          d.tenant
-            ? { OR: [{ tenantOid: d.tenant.oid }, { access: 'public' }] }
-            : { access: 'public' }
+          filterClause
         ]
       },
       include
@@ -56,6 +56,7 @@ class slateServiceImpl {
 
   async listSlates(d: {
     tenant?: Tenant;
+    subRegistry?: SubRegistryWithFilters | null;
     scopeIds?: string[];
     userIds?: string[];
     workspaceIds?: string[];
@@ -85,14 +86,15 @@ class slateServiceImpl {
         })
       : undefined;
 
-    let scopeOids = scopes ? scopes.map(s => s.oid) : undefined;
-    let userScopeOids = users ? users.map(u => u.scopeOid) : undefined;
-    let workspaceScopeOids = workspaces ? workspaces.map(w => w.scopeOid) : undefined;
+    let allScopeOids = [
+      ...(scopes?.map(s => s.oid) ?? []),
+      ...(users?.map(u => u.scopeOid) ?? []),
+      ...(workspaces?.map(w => w.scopeOid) ?? [])
+    ];
 
-    let anyScopeOids =
-      scopeOids || userScopeOids || workspaceScopeOids
-        ? [...(scopeOids || []), ...(userScopeOids || []), ...(workspaceScopeOids || [])]
-        : undefined;
+    let anyScopeOids = allScopeOids.length > 0 ? allScopeOids : undefined;
+
+    let filterClause = buildSlateFilterClause(d.subRegistry, d.tenant?.oid);
 
     return Paginator.create(({ prisma }) =>
       prisma(
@@ -104,11 +106,7 @@ class slateServiceImpl {
 
               scopeOid: anyScopeOids ? { in: anyScopeOids } : undefined,
 
-              AND: [
-                d.tenant
-                  ? { OR: [{ tenantOid: d.tenant.oid }, { access: 'public' }] }
-                  : { access: 'public' }
-              ]
+              AND: [filterClause]
             },
             include
           })

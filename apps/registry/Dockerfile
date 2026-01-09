@@ -37,6 +37,10 @@ RUN bun prisma generate
 COPY src ./src
 COPY tsconfig.json ./tsconfig.json
 
+# Copy admin panel source and build
+COPY admin ./admin
+RUN bun run build:admin
+
 # Production stage
 FROM base AS runner
 
@@ -57,15 +61,19 @@ COPY --from=builder /app/src ./src
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
+# Copy built admin panel
+COPY --from=builder /app/dist/admin ./dist/admin
+
 # Create non-root user for security
 RUN groupadd -r metorial && useradd -r -g metorial metorial && \
     chown -R metorial:metorial /app
 
 USER metorial
 
-# Expose port
+# Expose ports
 EXPOSE 52040
 EXPOSE 52041
+EXPOSE 52042
 
 # Health check using curl
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \

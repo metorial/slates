@@ -3,28 +3,38 @@ import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
 import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
+import {
+  buildChangeNotificationFilterClause,
+  type SubRegistryWithFilters
+} from '../lib/subRegistryFilter';
 
 class changeNotificationServiceImpl {
-  async getChangeNotificationById(d: { id: string; tenant?: Tenant }) {
-    let func = await db.changeNotification.findFirst({
+  async getChangeNotificationById(d: {
+    id: string;
+    tenant?: Tenant;
+    subRegistry?: SubRegistryWithFilters | null;
+  }) {
+    let filterClause = buildChangeNotificationFilterClause(d.subRegistry, d.tenant?.oid);
+
+    let notification = await db.changeNotification.findFirst({
       where: {
         id: d.id,
-        tenantOid: d.tenant?.oid
+        ...filterClause
       }
     });
-    if (!func) throw new ServiceError(notFoundError('change_notification'));
-    return func;
+    if (!notification) throw new ServiceError(notFoundError('change_notification'));
+    return notification;
   }
 
-  async listChangeNotifications(d: { tenant?: Tenant }) {
+  async listChangeNotifications(d: { tenant?: Tenant; subRegistry?: SubRegistryWithFilters | null }) {
+    let filterClause = buildChangeNotificationFilterClause(d.subRegistry, d.tenant?.oid);
+
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>
           await db.changeNotification.findMany({
             ...opts,
-            where: {
-              tenantOid: d.tenant?.oid
-            }
+            where: filterClause
           })
       )
     );

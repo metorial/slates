@@ -145,6 +145,6 @@ export let slateController = app.controller({
           slateId: v.string()
         })
       )
-      .do(async ctx => {})
+      .do(async _ctx => {})
   })
 });

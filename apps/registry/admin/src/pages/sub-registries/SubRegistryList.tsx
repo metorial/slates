@@ -1,0 +1,138 @@
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, Spinner, Text, Title, Flex, Spacer, Callout, Badge, Group } from '@metorial-io/ui';
+import { useSubRegistries } from '../../api/hooks';
+import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
+
+export function SubRegistryList() {
+  let navigate = useNavigate();
+  let tenantId = useSelectedTenantId();
+  let { selectedTenant } = useTenantContext();
+  let { data, isLoading, error } = useSubRegistries(tenantId);
+
+  if (!selectedTenant) {
+    return (
+      <Flex direction="column" gap={24}>
+        <div>
+          <Title size="6" weight="strong">Sub-Registries</Title>
+          <Spacer size={4} />
+          <Text size="2" color="gray600">Manage your sub-registries</Text>
+        </div>
+        <Callout color="yellow" size="3">
+          Please select a tenant first to view sub-registries.
+        </Callout>
+      </Flex>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Flex justify="center" align="center" style={{ padding: 80 }}>
+        <Spinner size={32} />
+      </Flex>
+    );
+  }
+
+  if (error) {
+    return (
+      <Flex
+        style={{
+          padding: '16px 20px',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: 8,
+          color: '#dc2626',
+          fontSize: 14
+        }}
+      >
+        Error loading sub-registries: {String(error)}
+      </Flex>
+    );
+  }
+
+  let subRegistries = data?.items ?? [];
+
+  return (
+    <Flex direction="column" gap={24}>
+      <Flex justify="space-between" align="center">
+        <div>
+          <Title size="6" weight="strong">Sub-Registries</Title>
+          <Spacer size={4} />
+          <Text size="2" color="gray600">Tenant: {selectedTenant.name}</Text>
+        </div>
+        <Button onClick={() => navigate('/sub-registries/new')}>
+          + Create Sub-Registry
+        </Button>
+      </Flex>
+
+      {subRegistries.length === 0 ? (
+        <Flex
+          direction="column"
+          align="center"
+          style={{
+            padding: '80px 40px',
+            background: '#fff',
+            borderRadius: 8,
+            border: '1px solid #e8e8e8',
+            textAlign: 'center'
+          }}
+        >
+          <Title size="4" weight="strong">No sub-registries yet</Title>
+          <Spacer size={8} />
+          <Text size="2" color="gray600">
+            Create your first sub-registry to organize slate access.
+          </Text>
+          <Spacer size={24} />
+          <Button onClick={() => navigate('/sub-registries/new')}>
+            + Create Sub-Registry
+          </Button>
+        </Flex>
+      ) : (
+        <Group.Wrapper>
+          {subRegistries.map(subRegistry => (
+            <Link
+              key={subRegistry.id}
+              to={`/sub-registries/${subRegistry.id}`}
+              style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+            >
+              <Flex
+                align="center"
+                justify="space-between"
+                style={{ padding: '14px 20px' }}
+              >
+                <Flex align="center" gap={14}>
+                  <Flex
+                    align="center"
+                    justify="center"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 6,
+                      background: '#f0f0f0',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#666'
+                    }}
+                  >
+                    {subRegistry.name.charAt(0).toUpperCase()}
+                  </Flex>
+                  <div>
+                    <Flex align="center" gap={8}>
+                      <Text size="2" weight="medium">{subRegistry.name}</Text>
+                      <Badge color="blue" size="1">{subRegistry.filters?.length ?? 0} filters</Badge>
+                    </Flex>
+                    <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
+                      {subRegistry.identifier}
+                    </Text>
+                  </div>
+                </Flex>
+                <Text size="1" color="gray500">
+                  {new Date(subRegistry.createdAt).toLocaleDateString()}
+                </Text>
+              </Flex>
+            </Link>
+          ))}
+        </Group.Wrapper>
+      )}
+    </Flex>
+  );
+}

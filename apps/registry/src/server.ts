@@ -12,8 +12,33 @@ Bun.serve({
   port: 52041
 });
 
+let adminDir = './dist/admin';
+
 Bun.serve({
-  fetch: slatesRegistryAdminApi,
+  fetch: async (req, server) => {
+    let url = new URL(req.url);
+
+    // API
+    if (url.pathname.startsWith('/slates-registry-admin')) {
+      return slatesRegistryAdminApi(req, server);
+    }
+
+    // Admin dashboard
+    if (url.pathname.startsWith('/admin') || url.pathname === '/') {
+      let path = url.pathname.replace(/^\/admin/, '') || '/index.html';
+      if (path === '/') path = '/index.html';
+
+      let file = Bun.file(`${adminDir}${path}`);
+      if (await file.exists()) return new Response(file);
+
+      if (!path.includes('.')) {
+        let index = Bun.file(`${adminDir}/index.html`);
+        if (await index.exists()) return new Response(index);
+      }
+    }
+
+    return new Response('Not Found', { status: 404 });
+  },
   port: 52042
 });
 

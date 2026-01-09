@@ -66,5 +66,73 @@ export let subRegistryController = app.controller({
         subRegistryId: v.string()
       })
     )
-    .do(async ctx => subRegistryPresenter(ctx.subRegistry))
+    .do(async ctx => subRegistryPresenter(ctx.subRegistry)),
+
+  setFilters: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string(),
+        filters: v.array(
+          v.object({
+            type: v.enumOf(['scope_type', 'prefix', 'package']),
+            value: v.string()
+          })
+        )
+      })
+    )
+    .do(async ctx => {
+      let subRegistry = await subRegistryService.setFilters({
+        subRegistry: ctx.subRegistry,
+        filters: ctx.input.filters
+      });
+      return subRegistryPresenter(subRegistry);
+    }),
+
+  addFilter: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string(),
+        type: v.enumOf(['scope_type', 'prefix', 'package']),
+        value: v.string()
+      })
+    )
+    .do(async ctx => {
+      await subRegistryService.addFilter({
+        subRegistry: ctx.subRegistry,
+        input: {
+          type: ctx.input.type,
+          value: ctx.input.value
+        }
+      });
+      let subRegistry = await subRegistryService.getSubRegistryById({
+        id: ctx.subRegistry.id,
+        tenant: ctx.tenant
+      });
+      return subRegistryPresenter(subRegistry);
+    }),
+
+  removeFilter: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string(),
+        filterId: v.string()
+      })
+    )
+    .do(async ctx => {
+      await subRegistryService.removeFilter({
+        subRegistry: ctx.subRegistry,
+        filterId: ctx.input.filterId
+      });
+      let subRegistry = await subRegistryService.getSubRegistryById({
+        id: ctx.subRegistry.id,
+        tenant: ctx.tenant
+      });
+      return subRegistryPresenter(subRegistry);
+    })
 });

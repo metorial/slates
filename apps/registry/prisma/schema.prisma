@@ -33,7 +33,6 @@ model Tenant {
   readerTokens        ReaderToken[]
   changeNotifications ChangeNotification[]
   subRegistries       SubRegistry[]
-  subRegistryFilters  SubRegistryFilter[]
 }
 
 model SubRegistry {
@@ -46,26 +45,31 @@ model SubRegistry {
   tenantOid BigInt
   tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @default(now()) @updatedAt
-  subRegistryFilters SubRegistryFilter[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  filters   SubRegistryFilter[]
+}
+
+enum SubRegistryFilterType {
+  scope_type
+  prefix
+  package
 }
 
 model SubRegistryFilter {
   oid BigInt @id
   id  String @unique
 
+  type  SubRegistryFilterType
+  value String
+
   subRegistryOid BigInt
-  subRegistry    SubRegistry @relation(fields: [subRegistryOid], references: [oid])
-
-  tenantOid BigInt
-  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
-
-  /// [FilterExpression]
-  filter Json
+  subRegistry    SubRegistry @relation(fields: [subRegistryOid], references: [oid], onDelete: Cascade)
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([subRegistryOid, type, value])
+  @@index([subRegistryOid])
 }
 
 enum ScopeType {
@@ -100,6 +104,8 @@ model Scope {
   user      User?
   workspace Workspace?
   slates    Slate[]
+
+  @@index([type])
 }
 
 enum UserStatus {
@@ -259,6 +265,11 @@ model Slate {
   slateVersions       SlateVersion[]
   changeNotifications ChangeNotification[]
   categories          SlateCategoryAssignment[]
+
+  @@index([fullIdentifier])
+  @@index([access])
+  @@index([tenantOid, access])
+  @@index([scopeOid])
 }
 
 model SlateCategoryAssignment {
@@ -360,4 +371,6 @@ model ChangeNotification {
   createdAt DateTime @default(now())
 
   @@index([type])
+  @@index([slateFullIdentifier])
+  @@index([tenantOid])
 }
