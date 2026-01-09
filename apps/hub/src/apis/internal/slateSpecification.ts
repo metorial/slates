@@ -3,35 +3,33 @@ import { v } from '@lowerdeck/validation';
 import { slateSpecificationPresenter } from '../../presenters';
 import { slateSpecificationService } from '../../services';
 import { app } from './_app';
-import { slateApp } from './slate';
 
-export let slateSpecificationApp = slateApp.use(async ctx => {
+export let slateSpecificationApp = app.use(async ctx => {
   let slateSpecificationId = ctx.body.slateSpecificationId;
   if (!slateSpecificationId) throw new Error('Slate Specification ID is required');
 
   let slateSpecification = await slateSpecificationService.getSlateSpecificationById({
-    id: slateSpecificationId,
-    slate: ctx.slate
+    id: slateSpecificationId
   });
 
   return { slateSpecification };
 });
 
 export let slateSpecificationController = app.controller({
-  list: slateApp
+  list: app
     .handler()
     .input(
       Paginator.validate(
         v.object({
-          slateId: v.string(),
-          versionIds: v.optional(v.array(v.string()))
+          versionIds: v.optional(v.array(v.string())),
+          slateIds: v.optional(v.array(v.string()))
         })
       )
     )
     .do(async ctx => {
       let paginator = await slateSpecificationService.listSlateSpecifications({
-        slate: ctx.slate,
-        versionIds: ctx.input.versionIds
+        versionIds: ctx.input.versionIds,
+        slateIds: ctx.input.slateIds
       });
 
       let list = await paginator.run(ctx.input);
@@ -43,25 +41,22 @@ export let slateSpecificationController = app.controller({
     .handler()
     .input(
       v.object({
-        slateId: v.string(),
         slateSpecificationId: v.string()
       })
     )
     .do(async ctx => slateSpecificationPresenter(ctx.slateSpecification)),
 
-  getMany: slateApp
+  getMany: app
     .handler()
     .input(
       v.object({
-        slateId: v.string(),
         slateSpecificationIds: v.array(v.string())
       })
     )
     .do(async ctx => {
       let slateSpecifications =
         await slateSpecificationService.getManySlateSpecificationsByIds({
-          ids: ctx.input.slateSpecificationIds,
-          slate: ctx.slate
+          ids: ctx.input.slateSpecificationIds
         });
 
       return slateSpecifications.map(slateSpecificationPresenter);
