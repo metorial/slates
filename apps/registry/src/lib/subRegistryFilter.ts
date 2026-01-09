@@ -2,10 +2,10 @@ import type { Prisma, SubRegistry, SubRegistryFilter, Tenant } from '../../prism
 
 export type SubRegistryWithFilters = SubRegistry & { filters: SubRegistryFilter[]; tenant: Tenant };
 
-export function buildSlateFilterClause(
+export let buildSlateFilterClause = (
   subRegistry: SubRegistryWithFilters | null | undefined,
   tenantOid?: bigint
-): Prisma.SlateWhereInput {
+): Prisma.SlateWhereInput => {
   let baseAccessClause: Prisma.SlateWhereInput = tenantOid
     ? { OR: [{ tenantOid }, { access: 'public' }] }
     : { access: 'public' };
@@ -43,10 +43,10 @@ export function buildSlateFilterClause(
   };
 }
 
-export function buildChangeNotificationFilterClause(
+export let buildChangeNotificationFilterClause = (
   subRegistry: SubRegistryWithFilters | null | undefined,
   tenantOid?: bigint
-): Prisma.ChangeNotificationWhereInput {
+): Prisma.ChangeNotificationWhereInput => {
   let baseClause: Prisma.ChangeNotificationWhereInput = tenantOid ? { tenantOid } : {};
 
   if (!subRegistry || subRegistry.filters.length === 0) {

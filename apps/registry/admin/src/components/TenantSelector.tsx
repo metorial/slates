@@ -1,7 +1,7 @@
 import { Select, Text } from '@metorial-io/ui';
 import { useTenantContext } from '../context/TenantContext';
 
-export function TenantSelector() {
+export let TenantSelector = () => {
   let { tenants, selectedTenant, setSelectedTenant, isLoading } = useTenantContext();
 
   if (isLoading) {

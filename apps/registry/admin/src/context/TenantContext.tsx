@@ -16,7 +16,7 @@ interface TenantContextValue {
 
 let TenantContext = createContext<TenantContextValue | null>(null);
 
-export function TenantProvider({ children }: { children: ReactNode }) {
+export let TenantProvider = ({ children }: { children: ReactNode }) => {
   let [selectedTenant, setSelectedTenantState] = useState<Tenant | null>(null);
 
   let { data, isLoading } = useTenants();
@@ -57,14 +57,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useTenantContext() {
+export let useTenantContext = () => {
   let ctx = useContext(TenantContext);
   if (!ctx) throw new Error('useTenantContext must be used within TenantProvider');
   return ctx;
 }
 
 // Helper hook that requires a tenant - returns undefined if no tenant selected
-export function useSelectedTenantId(): string | undefined {
+export let useSelectedTenantId = (): string | undefined => {
   let { selectedTenant } = useTenantContext();
   return selectedTenant?.id;
 }

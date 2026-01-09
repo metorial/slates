@@ -3,7 +3,7 @@ import { Button, Spinner, Text, Title, Flex, Spacer, Callout, Badge, Group } fro
 import { useSubRegistries } from '../../api/hooks';
 import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
-export function SubRegistryList() {
+export let SubRegistryList = () => {
   let navigate = useNavigate();
   let tenantId = useSelectedTenantId();
   let { selectedTenant } = useTenantContext();

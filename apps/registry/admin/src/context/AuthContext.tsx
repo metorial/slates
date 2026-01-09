@@ -9,7 +9,7 @@ interface AuthContextValue {
 
 let AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export let AuthProvider = ({ children }: { children: ReactNode }) => {
   // STUB: Always authenticated for now
   let [isAuthenticated] = useState(true);
   let [user] = useState({ id: 'admin', name: 'Admin User' });
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth() {
+export let useAuth = () => {
   let ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;

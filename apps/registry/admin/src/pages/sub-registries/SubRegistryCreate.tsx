@@ -4,7 +4,7 @@ import { Button, Input, Flex, Group, Spacer, Error, Callout } from '@metorial-io
 import { useCreateSubRegistry } from '../../api/hooks';
 import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
-export function SubRegistryCreate() {
+export let SubRegistryCreate = () => {
   let navigate = useNavigate();
   let tenantId = useSelectedTenantId();
   let { selectedTenant } = useTenantContext();

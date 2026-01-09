@@ -13,7 +13,7 @@ let tenantNavItems = [
   { path: '/slates', label: 'Slates' }
 ];
 
-export function Layout() {
+export let Layout = () => {
   let location = useLocation();
   let { selectedTenant } = useTenantContext();
 

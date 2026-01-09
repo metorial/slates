@@ -3,7 +3,7 @@ import { Spinner, Text, Title, Badge, Flex, Spacer, Callout, Group } from '@meto
 import { useSlates } from '../../api/hooks';
 import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
-export function SlateList() {
+export let SlateList = () => {
   let tenantId = useSelectedTenantId();
   let { selectedTenant } = useTenantContext();
   let { data, isLoading, error } = useSlates(tenantId);

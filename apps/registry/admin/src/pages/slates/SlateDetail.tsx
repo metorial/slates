@@ -283,7 +283,7 @@ let WarningBanner = styled.div`
   font-size: 14px;
 `;
 
-export function SlateDetail() {
+export let SlateDetail = () => {
   let { slateId } = useParams<{ slateId: string }>();
   let navigate = useNavigate();
   let tenantId = useSelectedTenantId();

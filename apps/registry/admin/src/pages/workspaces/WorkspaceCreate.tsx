@@ -4,7 +4,7 @@ import { Button, Input, Flex, Group, Spacer, Error, Callout } from '@metorial-io
 import { useCreateWorkspace } from '../../api/hooks';
 import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
-export function WorkspaceCreate() {
+export let WorkspaceCreate = () => {
   let navigate = useNavigate();
   let tenantId = useSelectedTenantId();
   let { selectedTenant } = useTenantContext();

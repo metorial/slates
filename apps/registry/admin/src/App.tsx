@@ -13,7 +13,7 @@ import { WorkspaceCreate } from './pages/workspaces/WorkspaceCreate';
 import { WorkspaceEdit } from './pages/workspaces/WorkspaceEdit';
 import { WorkspaceList } from './pages/workspaces/WorkspaceList';
 
-export function App() {
+export let App = () => {
   return (
     <Routes>
       <Route element={<Layout />}>

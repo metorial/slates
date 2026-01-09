@@ -3,7 +3,7 @@ import { Button, Spinner, Text, Title, Badge, Flex, Spacer, Callout, Group } fro
 import { useWorkspaces } from '../../api/hooks';
 import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
-export function WorkspaceList() {
+export let WorkspaceList = () => {
   let navigate = useNavigate();
   let tenantId = useSelectedTenantId();
   let { selectedTenant } = useTenantContext();

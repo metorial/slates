@@ -202,7 +202,7 @@ let WarningBanner = styled.div`
   font-size: 14px;
 `;
 
-export function WorkspaceEdit() {
+export let WorkspaceEdit = () => {
   let { workspaceId } = useParams<{ workspaceId: string }>();
   let navigate = useNavigate();
   let tenantId = useSelectedTenantId();

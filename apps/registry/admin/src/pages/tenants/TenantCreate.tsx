@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateTenant } from '../../api/hooks';
 
-export function TenantCreate() {
+export let TenantCreate = () => {
   let navigate = useNavigate();
   let createTenant = useCreateTenant();
 

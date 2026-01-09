@@ -141,7 +141,7 @@ let ErrorMessage = styled.div`
   font-size: 14px;
 `;
 
-export function TenantDetail() {
+export let TenantDetail = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
   let { data: tenant, isLoading, error } = useTenant(tenantId!);
   let { setSelectedTenant } = useTenantContext();

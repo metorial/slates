@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Spinner, Text, Title, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useTenants } from '../../api/hooks';
 
-export function TenantList() {
+export let TenantList = () => {
   let navigate = useNavigate();
   let { data, isLoading, error } = useTenants();
 

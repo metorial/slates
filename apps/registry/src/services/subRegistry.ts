@@ -23,7 +23,7 @@ function validateFilterType(type: string): asserts type is SubRegistryFilterType
   }
 }
 
-function validateFilterValue(type: SubRegistryFilterType, value: string): void {
+let validateFilterValue = (type: SubRegistryFilterType, value: string): void => {
   if (type === 'scope_type' && !['user', 'workspace'].includes(value)) {
     throw new ServiceError(
       badRequestError({

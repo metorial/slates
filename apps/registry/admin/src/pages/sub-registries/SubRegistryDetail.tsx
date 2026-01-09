@@ -172,7 +172,7 @@ let WarningBanner = styled.div`
   font-size: 14px;
 `;
 
-export function SubRegistryDetail() {
+export let SubRegistryDetail = () => {
   let { subRegistryId } = useParams<{ subRegistryId: string }>();
   let tenantId = useSelectedTenantId();
   let { selectedTenant } = useTenantContext();
