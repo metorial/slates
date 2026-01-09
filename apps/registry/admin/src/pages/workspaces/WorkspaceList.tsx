@@ -1,28 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Spinner, Text, Title, Badge, Flex, Spacer, Callout, Group } from '@metorial-io/ui';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Spinner, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useWorkspaces } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 export let WorkspaceList = () => {
   let navigate = useNavigate();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
+  let { tenantId } = useParams<{ tenantId: string }>();
   let { data, isLoading, error } = useWorkspaces(tenantId);
-
-  if (!selectedTenant) {
-    return (
-      <Flex direction="column" gap={24}>
-        <div>
-          <Title size="6" weight="strong">Workspaces</Title>
-          <Spacer size={4} />
-          <Text size="2" color="gray600">View and manage workspaces</Text>
-        </div>
-        <Callout color="yellow" size="3">
-          Please select a tenant first to view workspaces.
-        </Callout>
-      </Flex>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -57,9 +40,9 @@ export let WorkspaceList = () => {
         <div>
           <Title size="6" weight="strong">Workspaces</Title>
           <Spacer size={4} />
-          <Text size="2" color="gray600">Tenant: {selectedTenant.name}</Text>
+          <Text size="2" color="gray600">Manage workspaces for this tenant</Text>
         </div>
-        <Button onClick={() => navigate('/workspaces/new')}>
+        <Button onClick={() => navigate(`/tenants/${tenantId}/workspaces/new`)}>
           + Create Workspace
         </Button>
       </Flex>
@@ -82,7 +65,7 @@ export let WorkspaceList = () => {
             Create your first workspace to organize slates.
           </Text>
           <Spacer size={24} />
-          <Button onClick={() => navigate('/workspaces/new')}>
+          <Button onClick={() => navigate(`/tenants/${tenantId}/workspaces/new`)}>
             + Create Workspace
           </Button>
         </Flex>
@@ -91,7 +74,7 @@ export let WorkspaceList = () => {
           {workspaces.map(workspace => (
             <Link
               key={workspace.id}
-              to={`/workspaces/${workspace.id}/edit`}
+              to={`/tenants/${tenantId}/workspaces/${workspace.id}/edit`}
               style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
             >
               <Flex

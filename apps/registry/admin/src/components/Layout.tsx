@@ -1,21 +1,21 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import { Flex, Text, Spacer } from '@metorial-io/ui';
-import { useTenantContext } from '../context/TenantContext';
-import { TenantSelector } from './TenantSelector';
-
-let globalNavItems = [
-  { path: '/tenants', label: 'Tenants' }
-];
-
-let tenantNavItems = [
-  { path: '/sub-registries', label: 'Sub-Registries' },
-  { path: '/workspaces', label: 'Workspaces' },
-  { path: '/slates', label: 'Slates' }
-];
+import { useTenant } from '../api/hooks';
 
 export let Layout = () => {
   let location = useLocation();
-  let { selectedTenant } = useTenantContext();
+  let params = useParams<{ tenantId?: string }>();
+  let tenantId = params.tenantId;
+
+  let { data: tenant } = useTenant(tenantId ?? '');
+
+  let isOnTenantPage = location.pathname.startsWith('/tenants') && tenantId;
+
+  let tenantNavItems = [
+    { path: `/tenants/${tenantId}/sub-registries`, label: 'Sub-Registries' },
+    { path: `/tenants/${tenantId}/workspaces`, label: 'Workspaces' },
+    { path: `/tenants/${tenantId}/slates`, label: 'Slates' }
+  ];
 
   return (
     <Flex style={{ minHeight: '100vh' }}>
@@ -46,79 +46,73 @@ export let Layout = () => {
           <Text size="1" color="gray600">Admin Portal</Text>
         </Flex>
 
-        <Flex
-          direction="column"
-          style={{
-            padding: 20,
-            borderBottom: '1px solid #e8e8e8'
-          }}
-        >
-          <Text size="1" color="gray600" weight="medium" transform="uppercase" style={{ letterSpacing: 1, marginBottom: 10 }}>
-            Active Tenant
-          </Text>
-          <TenantSelector />
-        </Flex>
-
         <Flex direction="column" style={{ flex: 1, padding: '20px 12px' }} gap={4}>
-          <Text size="1" color="gray600" weight="medium" transform="uppercase" style={{ letterSpacing: 1, padding: '0 12px', marginBottom: 8 }}>
-            Global
-          </Text>
-          {globalNavItems.map(item => {
-            let isActive = location.pathname.startsWith(item.path);
-            return (
+          <Link
+            to="/tenants"
+            style={{
+              display: 'block',
+              padding: '10px 12px',
+              fontSize: 14,
+              fontWeight: 450,
+              color: location.pathname === '/tenants' || location.pathname === '/tenants/new' ? '#111' : '#666',
+              background: location.pathname === '/tenants' || location.pathname === '/tenants/new' ? '#e8e8e8' : 'transparent',
+              borderRadius: 8,
+              textDecoration: 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            Tenants
+          </Link>
+
+          {isOnTenantPage && tenant && (
+            <>
+              <Spacer size={16} />
+              <Text size="1" color="gray600" weight="medium" transform="uppercase" style={{ letterSpacing: 1, padding: '0 12px', marginBottom: 8 }}>
+                {tenant.name}
+              </Text>
+
               <Link
-                key={item.path}
-                to={item.path}
+                to={`/tenants/${tenantId}`}
                 style={{
                   display: 'block',
                   padding: '10px 12px',
                   fontSize: 14,
                   fontWeight: 450,
-                  color: isActive ? '#111' : '#666',
-                  background: isActive ? '#e8e8e8' : 'transparent',
+                  color: location.pathname === `/tenants/${tenantId}` ? '#111' : '#666',
+                  background: location.pathname === `/tenants/${tenantId}` ? '#e8e8e8' : 'transparent',
                   borderRadius: 8,
                   textDecoration: 'none',
                   transition: 'all 0.15s ease'
                 }}
               >
-                {item.label}
+                Overview
               </Link>
-            );
-          })}
 
-          <Spacer size={20} />
-
-          <Text size="1" color="gray600" weight="medium" transform="uppercase" style={{ letterSpacing: 1, padding: '0 12px', marginBottom: 8 }}>
-            Tenant Resources
-          </Text>
-          {tenantNavItems.map(item => {
-            let isDisabled = !selectedTenant;
-            let isActive = location.pathname.startsWith(item.path);
-            return (
-              <Link
-                key={item.path}
-                to={isDisabled ? '#' : item.path}
-                style={{
-                  display: 'block',
-                  padding: '10px 12px',
-                  fontSize: 14,
-                  fontWeight: 450,
-                  color: isDisabled ? '#ccc' : isActive ? '#111' : '#666',
-                  background: isActive ? '#e8e8e8' : 'transparent',
-                  borderRadius: 8,
-                  textDecoration: 'none',
-                  cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  pointerEvents: isDisabled ? 'none' : 'auto',
-                  transition: 'all 0.15s ease'
-                }}
-                title={isDisabled ? 'Select a tenant first' : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+              {tenantNavItems.map(item => {
+                let isActive = location.pathname.startsWith(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    style={{
+                      display: 'block',
+                      padding: '10px 12px',
+                      fontSize: 14,
+                      fontWeight: 450,
+                      color: isActive ? '#111' : '#666',
+                      background: isActive ? '#e8e8e8' : 'transparent',
+                      borderRadius: 8,
+                      textDecoration: 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </Flex>
-
       </Flex>
 
       <Flex

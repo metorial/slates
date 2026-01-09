@@ -1,7 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
 import { useSlate, useSlateVersions } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 let BackLink = styled(Link)`
   display: inline-flex;
@@ -274,26 +273,11 @@ let ErrorMessage = styled.div`
   font-size: 14px;
 `;
 
-let WarningBanner = styled.div`
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fcd34d;
-  border-radius: 12px;
-  color: #92400e;
-  font-size: 14px;
-`;
-
 export let SlateDetail = () => {
-  let { slateId } = useParams<{ slateId: string }>();
+  let { tenantId, slateId } = useParams<{ tenantId: string; slateId: string }>();
   let navigate = useNavigate();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
   let { data: slate, isLoading, error } = useSlate(tenantId, slateId!);
   let { data: versionsData, isLoading: versionsLoading } = useSlateVersions(tenantId, slateId!);
-
-  if (!selectedTenant) {
-    return <WarningBanner>Please select a tenant first.</WarningBanner>;
-  }
 
   if (isLoading) {
     return (
@@ -311,7 +295,7 @@ export let SlateDetail = () => {
 
   return (
     <div>
-      <BackLink to="/slates">← Back to Slates</BackLink>
+      <BackLink to={`/tenants/${tenantId}/slates`}>← Back to Slates</BackLink>
 
       <Card>
         <CardContent>
@@ -324,7 +308,7 @@ export let SlateDetail = () => {
             <SlateInfo>
               <SlateHeaderTop>
                 <SlateName>{slate.name}</SlateName>
-                <PublishButton onClick={() => navigate(`/slates/${slate.id}/publish`)}>
+                <PublishButton onClick={() => navigate(`/tenants/${tenantId}/slates/${slate.id}/publish`)}>
                   Publish New Version
                 </PublishButton>
               </SlateHeaderTop>

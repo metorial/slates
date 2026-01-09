@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
 import { useUpdateWorkspace, useWorkspace } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 let BackLink = styled(Link)`
   display: inline-flex;
@@ -193,20 +192,9 @@ let ErrorMessage = styled.div`
   font-size: 13px;
 `;
 
-let WarningBanner = styled.div`
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fcd34d;
-  border-radius: 12px;
-  color: #92400e;
-  font-size: 14px;
-`;
-
 export let WorkspaceEdit = () => {
-  let { workspaceId } = useParams<{ workspaceId: string }>();
+  let { tenantId, workspaceId } = useParams<{ tenantId: string; workspaceId: string }>();
   let navigate = useNavigate();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
   let { data: workspace, isLoading, error } = useWorkspace(tenantId, workspaceId!);
   let updateWorkspace = useUpdateWorkspace();
 
@@ -219,10 +207,6 @@ export let WorkspaceEdit = () => {
       setDescription(workspace.scope?.description ?? '');
     }
   }, [workspace]);
-
-  if (!selectedTenant || !tenantId) {
-    return <WarningBanner>Please select a tenant first.</WarningBanner>;
-  }
 
   if (isLoading) {
     return (
@@ -238,6 +222,7 @@ export let WorkspaceEdit = () => {
 
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!tenantId) return;
     try {
       await updateWorkspace.mutateAsync({
         tenantId,
@@ -245,7 +230,7 @@ export let WorkspaceEdit = () => {
         name,
         description
       });
-      navigate('/workspaces');
+      navigate(`/tenants/${tenantId}/workspaces`);
     } catch (error) {
       console.error('Failed to update workspace:', error);
     }
@@ -253,7 +238,7 @@ export let WorkspaceEdit = () => {
 
   return (
     <div>
-      <BackLink to="/workspaces">← Back to Workspaces</BackLink>
+      <BackLink to={`/tenants/${tenantId}/workspaces`}>← Back to Workspaces</BackLink>
 
       <FormCard>
         <CardHeader>
@@ -289,7 +274,7 @@ export let WorkspaceEdit = () => {
               <Button type="submit" disabled={updateWorkspace.isPending}>
                 {updateWorkspace.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
-              <Button type="button" $variant="secondary" onClick={() => navigate('/workspaces')}>
+              <Button type="button" $variant="secondary" onClick={() => navigate(`/tenants/${tenantId}/workspaces`)}>
                 Cancel
               </Button>
             </ButtonGroup>

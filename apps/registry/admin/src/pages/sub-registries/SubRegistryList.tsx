@@ -1,28 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Spinner, Text, Title, Flex, Spacer, Callout, Badge, Group } from '@metorial-io/ui';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Spinner, Text, Title, Flex, Spacer, Badge, Group } from '@metorial-io/ui';
 import { useSubRegistries } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 export let SubRegistryList = () => {
   let navigate = useNavigate();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
+  let { tenantId } = useParams<{ tenantId: string }>();
   let { data, isLoading, error } = useSubRegistries(tenantId);
-
-  if (!selectedTenant) {
-    return (
-      <Flex direction="column" gap={24}>
-        <div>
-          <Title size="6" weight="strong">Sub-Registries</Title>
-          <Spacer size={4} />
-          <Text size="2" color="gray600">Manage your sub-registries</Text>
-        </div>
-        <Callout color="yellow" size="3">
-          Please select a tenant first to view sub-registries.
-        </Callout>
-      </Flex>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -57,9 +40,9 @@ export let SubRegistryList = () => {
         <div>
           <Title size="6" weight="strong">Sub-Registries</Title>
           <Spacer size={4} />
-          <Text size="2" color="gray600">Tenant: {selectedTenant.name}</Text>
+          <Text size="2" color="gray600">Manage sub-registries for this tenant</Text>
         </div>
-        <Button onClick={() => navigate('/sub-registries/new')}>
+        <Button onClick={() => navigate(`/tenants/${tenantId}/sub-registries/new`)}>
           + Create Sub-Registry
         </Button>
       </Flex>
@@ -82,7 +65,7 @@ export let SubRegistryList = () => {
             Create your first sub-registry to organize slate access.
           </Text>
           <Spacer size={24} />
-          <Button onClick={() => navigate('/sub-registries/new')}>
+          <Button onClick={() => navigate(`/tenants/${tenantId}/sub-registries/new`)}>
             + Create Sub-Registry
           </Button>
         </Flex>
@@ -91,7 +74,7 @@ export let SubRegistryList = () => {
           {subRegistries.map(subRegistry => (
             <Link
               key={subRegistry.id}
-              to={`/sub-registries/${subRegistry.id}`}
+              to={`/tenants/${tenantId}/sub-registries/${subRegistry.id}`}
               style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
             >
               <Flex

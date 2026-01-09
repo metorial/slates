@@ -2,7 +2,6 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
 import { usePublishSlate, useSlate } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 let BackLink = styled(Link)`
   display: inline-flex;
@@ -243,29 +242,14 @@ let ErrorMessage = styled.div`
   font-size: 13px;
 `;
 
-let WarningBanner = styled.div`
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fcd34d;
-  border-radius: 12px;
-  color: #92400e;
-  font-size: 14px;
-`;
-
 export let SlatePublish = () => {
-  let { slateId } = useParams<{ slateId: string }>();
+  let { tenantId, slateId } = useParams<{ tenantId: string; slateId: string }>();
   let navigate = useNavigate();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
   let { data: slate, isLoading } = useSlate(tenantId, slateId!);
   let publishSlate = usePublishSlate();
 
   let [file, setFile] = useState<File | null>(null);
   let [access, setAccess] = useState<string>('private');
-
-  if (!selectedTenant || !tenantId) {
-    return <WarningBanner>Please select a tenant first.</WarningBanner>;
-  }
 
   if (isLoading) {
     return (
@@ -288,7 +272,7 @@ export let SlatePublish = () => {
 
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file || !tenantId) return;
 
     try {
       let buffer = await file.arrayBuffer();
@@ -309,7 +293,7 @@ export let SlatePublish = () => {
         access: access as 'public' | 'private'
       });
 
-      navigate(`/slates/${slateId}`);
+      navigate(`/tenants/${tenantId}/slates/${slateId}`);
     } catch (error) {
       console.error('Failed to publish slate:', error);
     }
@@ -317,7 +301,7 @@ export let SlatePublish = () => {
 
   return (
     <div>
-      <BackLink to={`/slates/${slateId}`}>← Back to Slate</BackLink>
+      <BackLink to={`/tenants/${tenantId}/slates/${slateId}`}>← Back to Slate</BackLink>
 
       <FormCard>
         <CardHeader>

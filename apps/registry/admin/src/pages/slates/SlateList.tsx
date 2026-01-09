@@ -1,27 +1,10 @@
-import { Link } from 'react-router-dom';
-import { Spinner, Text, Title, Badge, Flex, Spacer, Callout, Group } from '@metorial-io/ui';
+import { Link, useParams } from 'react-router-dom';
+import { Spinner, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useSlates } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 export let SlateList = () => {
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
+  let { tenantId } = useParams<{ tenantId: string }>();
   let { data, isLoading, error } = useSlates(tenantId);
-
-  if (!selectedTenant) {
-    return (
-      <Flex direction="column" gap={32}>
-        <div>
-          <Title size="6" weight="strong">Slates</Title>
-          <Spacer size={4} />
-          <Text size="2" color="gray600">View and manage your slates</Text>
-        </div>
-        <Callout color="yellow" size="3">
-          Please select a tenant first to view slates.
-        </Callout>
-      </Flex>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -55,7 +38,7 @@ export let SlateList = () => {
       <div>
         <Title size="6" weight="strong">Slates</Title>
         <Spacer size={4} />
-        <Text size="2" color="gray600">Tenant: {selectedTenant.name}</Text>
+        <Text size="2" color="gray600">View and manage slates for this tenant</Text>
       </div>
 
       {slates.length === 0 ? (
@@ -87,7 +70,7 @@ export let SlateList = () => {
           {slates.map(slate => (
             <Link
               key={slate.id}
-              to={`/slates/${slate.id}`}
+              to={`/tenants/${tenantId}/slates/${slate.id}`}
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               <Group.Row style={{ padding: '16px 20px', cursor: 'pointer' }}>
@@ -136,7 +119,7 @@ export let SlateList = () => {
                   </Flex>
                   <Flex align="center" style={{ width: 100 }}>
                     <Link
-                      to={`/slates/${slate.id}/publish`}
+                      to={`/tenants/${tenantId}/slates/${slate.id}/publish`}
                       onClick={e => e.stopPropagation()}
                       style={{
                         padding: '6px 12px',

@@ -1,31 +1,22 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Input, Flex, Group, Spacer, Error, Callout } from '@metorial-io/ui';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateWorkspace } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 export let WorkspaceCreate = () => {
   let navigate = useNavigate();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
+  let { tenantId } = useParams<{ tenantId: string }>();
   let createWorkspace = useCreateWorkspace();
 
   let [name, setName] = useState('');
   let [identifier, setIdentifier] = useState('');
 
-  if (!selectedTenant || !tenantId) {
-    return (
-      <Callout color="yellow" size="3">
-        Please select a tenant first.
-      </Callout>
-    );
-  }
-
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!tenantId) return;
     try {
       await createWorkspace.mutateAsync({ tenantId, name, identifier });
-      navigate('/workspaces');
+      navigate(`/tenants/${tenantId}/workspaces`);
     } catch (error) {
       console.error('Failed to create workspace:', error);
     }
@@ -33,7 +24,7 @@ export let WorkspaceCreate = () => {
 
   return (
     <Flex direction="column" gap={24}>
-      <Link to="/workspaces" style={{ color: '#64748b', fontSize: 14 }}>
+      <Link to={`/tenants/${tenantId}/workspaces`} style={{ color: '#64748b', fontSize: 14 }}>
         ← Back to Workspaces
       </Link>
 
@@ -41,7 +32,7 @@ export let WorkspaceCreate = () => {
         <Group.Wrapper>
           <Group.Header
             title="Create Workspace"
-            description={`Tenant: ${selectedTenant.name}`}
+            description="Create a new workspace for this tenant"
           />
           <Group.Content>
             <form onSubmit={handleSubmit}>
@@ -75,7 +66,7 @@ export let WorkspaceCreate = () => {
                   <Button type="submit" loading={createWorkspace.isPending}>
                     Create Workspace
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => navigate('/workspaces')}>
+                  <Button type="button" variant="outline" onClick={() => navigate(`/tenants/${tenantId}/workspaces`)}>
                     Cancel
                   </Button>
                 </Flex>

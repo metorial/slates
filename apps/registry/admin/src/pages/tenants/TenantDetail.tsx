@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
 import { useTenant } from '../../api/hooks';
-import { useTenantContext } from '../../context/TenantContext';
 
 let BackLink = styled(Link)`
   display: inline-flex;
@@ -49,24 +48,6 @@ let Badge = styled.code`
   background: #f1f5f9;
   padding: 4px 10px;
   border-radius: 6px;
-`;
-
-let SelectButton = styled.button`
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
-  }
 `;
 
 let CardContent = styled.div`
@@ -144,7 +125,6 @@ let ErrorMessage = styled.div`
 export let TenantDetail = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
   let { data: tenant, isLoading, error } = useTenant(tenantId!);
-  let { setSelectedTenant } = useTenantContext();
 
   if (isLoading) {
     return (
@@ -158,14 +138,6 @@ export let TenantDetail = () => {
     return <ErrorMessage>Error loading tenant: {String(error)}</ErrorMessage>;
   }
 
-  let handleSelectTenant = () => {
-    setSelectedTenant({
-      id: tenant.id,
-      identifier: tenant.identifier,
-      name: tenant.name
-    });
-  };
-
   return (
     <div>
       <BackLink to="/tenants">← Back to Tenants</BackLink>
@@ -176,7 +148,6 @@ export let TenantDetail = () => {
             <CardTitle>{tenant.name}</CardTitle>
             <Badge>{tenant.identifier}</Badge>
           </CardHeaderInfo>
-          <SelectButton onClick={handleSelectTenant}>Select as Current Tenant</SelectButton>
         </CardHeader>
         <CardContent>
           <DataList>

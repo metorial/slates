@@ -1,31 +1,22 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Input, Flex, Group, Spacer, Error, Callout } from '@metorial-io/ui';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateSubRegistry } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
 
 export let SubRegistryCreate = () => {
   let navigate = useNavigate();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
+  let { tenantId } = useParams<{ tenantId: string }>();
   let createSubRegistry = useCreateSubRegistry();
 
   let [name, setName] = useState('');
   let [identifier, setIdentifier] = useState('');
 
-  if (!selectedTenant || !tenantId) {
-    return (
-      <Callout color="yellow" size="3">
-        Please select a tenant first.
-      </Callout>
-    );
-  }
-
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!tenantId) return;
     try {
       await createSubRegistry.mutateAsync({ tenantId, name, identifier });
-      navigate('/sub-registries');
+      navigate(`/tenants/${tenantId}/sub-registries`);
     } catch (error) {
       console.error('Failed to create sub-registry:', error);
     }
@@ -33,7 +24,7 @@ export let SubRegistryCreate = () => {
 
   return (
     <Flex direction="column" gap={24}>
-      <Link to="/sub-registries" style={{ color: '#64748b', fontSize: 14 }}>
+      <Link to={`/tenants/${tenantId}/sub-registries`} style={{ color: '#64748b', fontSize: 14 }}>
         ← Back to Sub-Registries
       </Link>
 
@@ -41,7 +32,7 @@ export let SubRegistryCreate = () => {
         <Group.Wrapper>
           <Group.Header
             title="Create Sub-Registry"
-            description={`Tenant: ${selectedTenant.name}`}
+            description="Create a new sub-registry for this tenant"
           />
           <Group.Content>
             <form onSubmit={handleSubmit}>
@@ -75,7 +66,7 @@ export let SubRegistryCreate = () => {
                   <Button type="submit" loading={createSubRegistry.isPending}>
                     Create Sub-Registry
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => navigate('/sub-registries')}>
+                  <Button type="button" variant="outline" onClick={() => navigate(`/tenants/${tenantId}/sub-registries`)}>
                     Cancel
                   </Button>
                 </Flex>

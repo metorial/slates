@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
-import { useSubRegistry } from '../../api/hooks';
-import { useSelectedTenantId, useTenantContext } from '../../context/TenantContext';
+import { useSubRegistry, useTenant } from '../../api/hooks';
 
 let BackLink = styled(Link)`
   display: inline-flex;
@@ -163,24 +162,10 @@ let ErrorMessage = styled.div`
   font-size: 14px;
 `;
 
-let WarningBanner = styled.div`
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fcd34d;
-  border-radius: 12px;
-  color: #92400e;
-  font-size: 14px;
-`;
-
 export let SubRegistryDetail = () => {
-  let { subRegistryId } = useParams<{ subRegistryId: string }>();
-  let tenantId = useSelectedTenantId();
-  let { selectedTenant } = useTenantContext();
+  let { tenantId, subRegistryId } = useParams<{ tenantId: string; subRegistryId: string }>();
+  let { data: tenant } = useTenant(tenantId ?? '');
   let { data: subRegistry, isLoading, error } = useSubRegistry(tenantId, subRegistryId!);
-
-  if (!selectedTenant) {
-    return <WarningBanner>Please select a tenant first.</WarningBanner>;
-  }
 
   if (isLoading) {
     return (
@@ -196,7 +181,7 @@ export let SubRegistryDetail = () => {
 
   return (
     <div>
-      <BackLink to="/sub-registries">← Back to Sub-Registries</BackLink>
+      <BackLink to={`/tenants/${tenantId}/sub-registries`}>← Back to Sub-Registries</BackLink>
 
       <Card>
         <CardHeader>
@@ -211,7 +196,7 @@ export let SubRegistryDetail = () => {
             </DataItem>
             <DataItem>
               <DataLabel>Tenant</DataLabel>
-              <DataValue>{selectedTenant.name}</DataValue>
+              <DataValue>{tenant?.name ?? '-'}</DataValue>
             </DataItem>
             <DataItem>
               <DataLabel>Created</DataLabel>
