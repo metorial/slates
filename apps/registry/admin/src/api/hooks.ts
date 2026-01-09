@@ -1,198 +1,172 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createLoader } from '@metorial-io/data-hooks';
 import { adminClient } from './client';
 
-// Tenant hooks
-export let useTenants = () =>
-  useQuery({
-    queryKey: ['tenants'],
-    queryFn: () => adminClient.tenant.list({})
-  });
+// Tenant loader
+export let tenantsLoader = createLoader({
+  name: 'tenants',
+  fetch: () => adminClient.tenant.list({}),
+  mutators: {}
+});
 
-export let useTenant = (tenantId: string) =>
-  useQuery({
-    queryKey: ['tenant', tenantId],
-    queryFn: () => adminClient.tenant.get({ tenantId }),
-    enabled: !!tenantId
-  });
+export let useTenants = () => tenantsLoader.use(undefined);
 
-export let useCreateTenant = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { name: string; identifier: string }) => adminClient.tenant.upsert(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tenants'] })
-  });
-};
+export let tenantLoader = createLoader({
+  name: 'tenant',
+  fetch: (tenantId: string) => adminClient.tenant.get({ tenantId }),
+  hash: tenantId => tenantId,
+  mutators: {},
+  parents: [tenantsLoader]
+});
 
-// Sub-registry hooks
+export let useTenant = (tenantId: string) => tenantLoader.use(tenantId || null);
+
+export let useCreateTenant = tenantsLoader.createExternalMutator(
+  (data: { name: string; identifier: string }) => adminClient.tenant.upsert(data)
+);
+
+export let useUpdateTenant = tenantsLoader.createExternalMutator(
+  (data: { tenantId: string; name?: string }) => adminClient.tenant.update(data)
+);
+
+// Sub-registry loader
+export let subRegistriesLoader = createLoader({
+  name: 'subRegistries',
+  fetch: (tenantId: string) => adminClient.subRegistry.list({ tenantId }),
+  hash: tenantId => tenantId,
+  mutators: {}
+});
+
 export let useSubRegistries = (tenantId: string | undefined) =>
-  useQuery({
-    queryKey: ['subRegistries', tenantId],
-    queryFn: () => adminClient.subRegistry.list({ tenantId: tenantId! }),
-    enabled: !!tenantId
-  });
+  subRegistriesLoader.use(tenantId || null);
+
+export let subRegistryLoader = createLoader({
+  name: 'subRegistry',
+  fetch: (params: { tenantId: string; subRegistryId: string }) =>
+    adminClient.subRegistry.get(params),
+  hash: params => `${params.tenantId}:${params.subRegistryId}`,
+  mutators: {},
+  parents: [subRegistriesLoader]
+});
 
 export let useSubRegistry = (tenantId: string | undefined, subRegistryId: string) =>
-  useQuery({
-    queryKey: ['subRegistry', tenantId, subRegistryId],
-    queryFn: () => adminClient.subRegistry.get({ tenantId: tenantId!, subRegistryId }),
-    enabled: !!tenantId && !!subRegistryId
-  });
+  subRegistryLoader.use(tenantId && subRegistryId ? { tenantId, subRegistryId } : null);
 
-export let useCreateSubRegistry = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { tenantId: string; name: string; identifier: string }) =>
-      adminClient.subRegistry.create(data),
-    onSuccess: (_, vars) =>
-      queryClient.invalidateQueries({ queryKey: ['subRegistries', vars.tenantId] })
-  });
-};
+export let useCreateSubRegistry = subRegistriesLoader.createExternalMutator(
+  (data: { tenantId: string; name: string; identifier: string }) =>
+    adminClient.subRegistry.create(data)
+);
 
-// Workspace hooks
+// Sub-registry filter hooks
+export let useSetSubRegistryFilters = subRegistryLoader.createExternalMutator(
+  (data: {
+    tenantId: string;
+    subRegistryId: string;
+    filters: Array<{ type: 'scope_type' | 'prefix' | 'package'; value: string }>;
+  }) => adminClient.subRegistry.setFilters(data)
+);
+
+export let useAddSubRegistryFilter = subRegistryLoader.createExternalMutator(
+  (data: {
+    tenantId: string;
+    subRegistryId: string;
+    type: 'scope_type' | 'prefix' | 'package';
+    value: string;
+  }) => adminClient.subRegistry.addFilter(data)
+);
+
+export let useRemoveSubRegistryFilter = subRegistryLoader.createExternalMutator(
+  (data: { tenantId: string; subRegistryId: string; filterId: string }) =>
+    adminClient.subRegistry.removeFilter(data)
+);
+
+// Workspace loader
+export let workspacesLoader = createLoader({
+  name: 'workspaces',
+  fetch: (tenantId: string) => adminClient.workspace.list({ tenantId }),
+  hash: tenantId => tenantId,
+  mutators: {}
+});
+
 export let useWorkspaces = (tenantId: string | undefined) =>
-  useQuery({
-    queryKey: ['workspaces', tenantId],
-    queryFn: () => adminClient.workspace.list({ tenantId: tenantId! }),
-    enabled: !!tenantId
-  });
+  workspacesLoader.use(tenantId || null);
+
+export let workspaceLoader = createLoader({
+  name: 'workspace',
+  fetch: (params: { tenantId: string; workspaceId: string }) =>
+    adminClient.workspace.get(params),
+  hash: params => `${params.tenantId}:${params.workspaceId}`,
+  mutators: {},
+  parents: [workspacesLoader]
+});
 
 export let useWorkspace = (tenantId: string | undefined, workspaceId: string) =>
-  useQuery({
-    queryKey: ['workspace', tenantId, workspaceId],
-    queryFn: () => adminClient.workspace.get({ tenantId: tenantId!, workspaceId }),
-    enabled: !!tenantId && !!workspaceId
-  });
+  workspaceLoader.use(tenantId && workspaceId ? { tenantId, workspaceId } : null);
 
-export let useUpdateWorkspace = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: {
-      tenantId: string;
-      workspaceId: string;
-      name?: string;
-      description?: string;
-    }) => adminClient.workspace.update(data),
-    onSuccess: (_, vars) =>
-      queryClient.invalidateQueries({ queryKey: ['workspaces', vars.tenantId] })
-  });
-};
+export let useCreateWorkspace = workspacesLoader.createExternalMutator(
+  (data: { tenantId: string; name: string; identifier: string }) =>
+    adminClient.workspace.create(data)
+);
 
-// Slate hooks
-export let useSlates = (tenantId: string | undefined) =>
-  useQuery({
-    queryKey: ['slates', tenantId],
-    queryFn: () => adminClient.slate.list({ tenantId: tenantId! }),
-    enabled: !!tenantId
-  });
+export let useUpdateWorkspace = workspacesLoader.createExternalMutator(
+  (data: { tenantId: string; workspaceId: string; name?: string; description?: string }) =>
+    adminClient.workspace.update(data)
+);
+
+// Slate loader
+export let slatesLoader = createLoader({
+  name: 'slates',
+  fetch: (tenantId: string) => adminClient.slate.list({ tenantId }),
+  hash: tenantId => tenantId,
+  mutators: {}
+});
+
+export let useSlates = (tenantId: string | undefined) => slatesLoader.use(tenantId || null);
+
+export let slateLoader = createLoader({
+  name: 'slate',
+  fetch: (params: { tenantId: string; slateId: string }) => adminClient.slate.get(params),
+  hash: params => `${params.tenantId}:${params.slateId}`,
+  mutators: {},
+  parents: [slatesLoader]
+});
 
 export let useSlate = (tenantId: string | undefined, slateId: string) =>
-  useQuery({
-    queryKey: ['slate', tenantId, slateId],
-    queryFn: () => adminClient.slate.get({ tenantId: tenantId!, slateId }),
-    enabled: !!tenantId && !!slateId
-  });
+  slateLoader.use(tenantId && slateId ? { tenantId, slateId } : null);
+
+export let slateVersionsLoader = createLoader({
+  name: 'slateVersions',
+  fetch: (params: { tenantId: string; slateId: string }) =>
+    adminClient.slate.version.list(params),
+  hash: params => `${params.tenantId}:${params.slateId}`,
+  mutators: {},
+  parents: [slateLoader]
+});
 
 export let useSlateVersions = (tenantId: string | undefined, slateId: string) =>
-  useQuery({
-    queryKey: ['slateVersions', tenantId, slateId],
-    queryFn: () => adminClient.slate.version.list({ tenantId: tenantId!, slateId }),
-    enabled: !!tenantId && !!slateId
-  });
+  slateVersionsLoader.use(tenantId && slateId ? { tenantId, slateId } : null);
 
-export let usePublishSlate = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: {
-      tenantId: string;
-      slateId: string;
-      scopeIdentifier: string;
-      slateIdentifier: string;
-      contentBase64: string;
-      access: 'public' | 'private';
-    }) => adminClient.slate.version.create(data),
-    onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['slates', vars.tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['slateVersions', vars.tenantId, vars.slateId] });
-    }
-  });
-};
+export let usePublishSlate = slateVersionsLoader.createExternalMutator(
+  (data: {
+    tenantId: string;
+    slateId: string;
+    scopeIdentifier: string;
+    slateIdentifier: string;
+    contentBase64: string;
+    access: 'public' | 'private';
+  }) => adminClient.slate.version.create(data)
+);
 
-// User hooks
-export let useUsers = (tenantId: string | undefined) =>
-  useQuery({
-    queryKey: ['users', tenantId],
-    queryFn: () => adminClient.user.list({ tenantId: tenantId! }),
-    enabled: !!tenantId
-  });
+// User loader
+export let usersLoader = createLoader({
+  name: 'users',
+  fetch: (tenantId: string) => adminClient.user.list({ tenantId }),
+  hash: tenantId => tenantId,
+  mutators: {}
+});
 
-export let useCreateUser = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { tenantId: string; name: string; identifier: string }) =>
-      adminClient.user.create(data),
-    onSuccess: (_, vars) => queryClient.invalidateQueries({ queryKey: ['users', vars.tenantId] })
-  });
-};
+export let useUsers = (tenantId: string | undefined) => usersLoader.use(tenantId || null);
 
-// Tenant update hook
-export let useUpdateTenant = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { tenantId: string; name?: string }) => adminClient.tenant.update(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tenants'] })
-  });
-};
-
-// Workspace create hook
-export let useCreateWorkspace = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { tenantId: string; name: string; identifier: string }) =>
-      adminClient.workspace.create(data),
-    onSuccess: (_, vars) => queryClient.invalidateQueries({ queryKey: ['workspaces', vars.tenantId] })
-  });
-};
-
-// SubRegistry filter hooks
-export let useSetSubRegistryFilters = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: {
-      tenantId: string;
-      subRegistryId: string;
-      filters: Array<{ type: 'scope_type' | 'prefix' | 'package'; value: string }>;
-    }) => adminClient.subRegistry.setFilters(data),
-    onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['subRegistries', vars.tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['subRegistry', vars.tenantId, vars.subRegistryId] });
-    }
-  });
-};
-
-export let useAddSubRegistryFilter = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: {
-      tenantId: string;
-      subRegistryId: string;
-      type: 'scope_type' | 'prefix' | 'package';
-      value: string;
-    }) => adminClient.subRegistry.addFilter(data),
-    onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['subRegistries', vars.tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['subRegistry', vars.tenantId, vars.subRegistryId] });
-    }
-  });
-};
-
-export let useRemoveSubRegistryFilter = () => {
-  let queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { tenantId: string; subRegistryId: string; filterId: string }) =>
-      adminClient.subRegistry.removeFilter(data),
-    onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ['subRegistries', vars.tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['subRegistry', vars.tenantId, vars.subRegistryId] });
-    }
-  });
-};
+export let useCreateUser = usersLoader.createExternalMutator(
+  (data: { tenantId: string; name: string; identifier: string }) =>
+    adminClient.user.create(data)
+);

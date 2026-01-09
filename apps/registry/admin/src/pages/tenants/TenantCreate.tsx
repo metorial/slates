@@ -12,11 +12,9 @@ export let TenantCreate = () => {
 
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    try {
-      await createTenant.mutateAsync({ name, identifier });
+    let [, error] = await createTenant.mutate({ name, identifier });
+    if (!error) {
       navigate('/tenants');
-    } catch (error) {
-      console.error('Failed to create tenant:', error);
     }
   };
 
@@ -61,7 +59,7 @@ export let TenantCreate = () => {
                 <Spacer size={8} />
 
                 <Flex gap={12}>
-                  <Button type="submit" loading={createTenant.isPending}>
+                  <Button type="submit" loading={createTenant.isLoading}>
                     Create Tenant
                   </Button>
                   <Button type="button" variant="outline" onClick={() => navigate('/tenants')}>

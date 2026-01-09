@@ -14,11 +14,9 @@ export let WorkspaceCreate = () => {
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!tenantId) return;
-    try {
-      await createWorkspace.mutateAsync({ tenantId, name, identifier });
+    let [, error] = await createWorkspace.mutate({ tenantId, name, identifier });
+    if (!error) {
       navigate(`/tenants/${tenantId}/workspaces`);
-    } catch (error) {
-      console.error('Failed to create workspace:', error);
     }
   };
 
@@ -63,7 +61,7 @@ export let WorkspaceCreate = () => {
                 <Spacer size={8} />
 
                 <Flex gap={12}>
-                  <Button type="submit" loading={createWorkspace.isPending}>
+                  <Button type="submit" loading={createWorkspace.isLoading}>
                     Create Workspace
                   </Button>
                   <Button type="button" variant="outline" onClick={() => navigate(`/tenants/${tenantId}/workspaces`)}>

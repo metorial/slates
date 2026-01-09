@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { renderWithLoader } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { useSlate, useSlateVersions } from '../../api/hooks';
 
@@ -264,132 +265,114 @@ let SmallSpinner = styled(Spinner)`
   border-width: 2px;
 `;
 
-let ErrorMessage = styled.div`
-  padding: 16px 20px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #dc2626;
-  font-size: 14px;
-`;
-
 export let SlateDetail = () => {
   let { tenantId, slateId } = useParams<{ tenantId: string; slateId: string }>();
   let navigate = useNavigate();
-  let { data: slate, isLoading, error } = useSlate(tenantId, slateId!);
-  let { data: versionsData, isLoading: versionsLoading } = useSlateVersions(tenantId, slateId!);
+  let slate = useSlate(tenantId, slateId!);
+  let versions = useSlateVersions(tenantId, slateId!);
 
-  if (isLoading) {
+  return renderWithLoader({ slate })(({ slate }) => {
+    let slateData = slate.data!;
+    let versionItems = versions.data?.items ?? [];
+
     return (
-      <LoadingWrapper>
-        <Spinner />
-      </LoadingWrapper>
-    );
-  }
+      <div>
+        <BackLink to={`/tenants/${tenantId}/slates`}>← Back to Slates</BackLink>
 
-  if (error || !slate) {
-    return <ErrorMessage>Error loading slate: {String(error)}</ErrorMessage>;
-  }
+        <Card>
+          <CardContent>
+            <SlateHeader>
+              {slateData.logoUrl ? (
+                <SlateLogo src={slateData.logoUrl} alt="" />
+              ) : (
+                <SlateLogoPlaceholder>S</SlateLogoPlaceholder>
+              )}
+              <SlateInfo>
+                <SlateHeaderTop>
+                  <SlateName>{slateData.name}</SlateName>
+                  <PublishButton onClick={() => navigate(`/tenants/${tenantId}/slates/${slateData.id}/publish`)}>
+                    Publish New Version
+                  </PublishButton>
+                </SlateHeaderTop>
+                <SlateIdentifier>{slateData.fullIdentifier}</SlateIdentifier>
+                {slateData.description && <SlateDescription>{slateData.description}</SlateDescription>}
+              </SlateInfo>
+            </SlateHeader>
+          </CardContent>
 
-  let versions = versionsData?.items ?? [];
+          <CardContent style={{ borderTop: '1px solid #f1f5f9' }}>
+            <BadgeRow>
+              <Badge $color={slateData.access === 'public' ? 'green' : 'gray'}>{slateData.access}</Badge>
+              <Badge $color={slateData.status === 'active' ? 'green' : 'gray'}>{slateData.status}</Badge>
+              <Badge $color={slateData.scope?.type === 'workspace' ? 'purple' : 'blue'}>
+                {slateData.scope?.type}: {slateData.scope?.name}
+              </Badge>
+            </BadgeRow>
 
-  return (
-    <div>
-      <BackLink to={`/tenants/${tenantId}/slates`}>← Back to Slates</BackLink>
+            <DataList>
+              <DataItem>
+                <DataLabel>ID</DataLabel>
+                <MonoValue>{slateData.id}</MonoValue>
+              </DataItem>
+              <DataItem>
+                <DataLabel>Current Version</DataLabel>
+                <DataValue>{slateData.currentVersion?.version ?? 'No version'}</DataValue>
+              </DataItem>
+              <DataItem>
+                <DataLabel>Created By</DataLabel>
+                <DataValue>{slateData.createdByUser?.name ?? 'Unknown'}</DataValue>
+              </DataItem>
+              <DataItem>
+                <DataLabel>Created</DataLabel>
+                <DataValue>{new Date(slateData.createdAt).toLocaleString()}</DataValue>
+              </DataItem>
+            </DataList>
 
-      <Card>
-        <CardContent>
-          <SlateHeader>
-            {slate.logoUrl ? (
-              <SlateLogo src={slate.logoUrl} alt="" />
-            ) : (
-              <SlateLogoPlaceholder>S</SlateLogoPlaceholder>
+            {slateData.skills && slateData.skills.length > 0 && (
+              <SkillsSection>
+                <SkillsLabel>Skills</SkillsLabel>
+                <BadgeRow>
+                  {slateData.skills.map(skill => (
+                    <Badge key={skill} $color="blue">
+                      {skill}
+                    </Badge>
+                  ))}
+                </BadgeRow>
+              </SkillsSection>
             )}
-            <SlateInfo>
-              <SlateHeaderTop>
-                <SlateName>{slate.name}</SlateName>
-                <PublishButton onClick={() => navigate(`/tenants/${tenantId}/slates/${slate.id}/publish`)}>
-                  Publish New Version
-                </PublishButton>
-              </SlateHeaderTop>
-              <SlateIdentifier>{slate.fullIdentifier}</SlateIdentifier>
-              {slate.description && <SlateDescription>{slate.description}</SlateDescription>}
-            </SlateInfo>
-          </SlateHeader>
-        </CardContent>
+          </CardContent>
+        </Card>
 
-        <CardContent style={{ borderTop: '1px solid #f1f5f9' }}>
-          <BadgeRow>
-            <Badge $color={slate.access === 'public' ? 'green' : 'gray'}>{slate.access}</Badge>
-            <Badge $color={slate.status === 'active' ? 'green' : 'gray'}>{slate.status}</Badge>
-            <Badge $color={slate.scope?.type === 'workspace' ? 'purple' : 'blue'}>
-              {slate.scope?.type}: {slate.scope?.name}
-            </Badge>
-          </BadgeRow>
-
-          <DataList>
-            <DataItem>
-              <DataLabel>ID</DataLabel>
-              <MonoValue>{slate.id}</MonoValue>
-            </DataItem>
-            <DataItem>
-              <DataLabel>Current Version</DataLabel>
-              <DataValue>{slate.currentVersion?.version ?? 'No version'}</DataValue>
-            </DataItem>
-            <DataItem>
-              <DataLabel>Created By</DataLabel>
-              <DataValue>{slate.createdByUser?.name ?? 'Unknown'}</DataValue>
-            </DataItem>
-            <DataItem>
-              <DataLabel>Created</DataLabel>
-              <DataValue>{new Date(slate.createdAt).toLocaleString()}</DataValue>
-            </DataItem>
-          </DataList>
-
-          {slate.skills && slate.skills.length > 0 && (
-            <SkillsSection>
-              <SkillsLabel>Skills</SkillsLabel>
-              <BadgeRow>
-                {slate.skills.map(skill => (
-                  <Badge key={skill} $color="blue">
-                    {skill}
-                  </Badge>
+        <Card>
+          <CardHeader>
+            <CardTitle>Versions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {versions.isLoading ? (
+              <LoadingWrapper style={{ padding: 24 }}>
+                <SmallSpinner />
+              </LoadingWrapper>
+            ) : versionItems.length === 0 ? (
+              <EmptyText>No versions published yet.</EmptyText>
+            ) : (
+              <VersionList>
+                {versionItems.map(version => (
+                  <VersionItem key={version.id} $current={version.isCurrent}>
+                    <VersionInfo>
+                      <VersionNumber>v{version.version}</VersionNumber>
+                      {version.isCurrent && <Badge $color="green">Current</Badge>}
+                    </VersionInfo>
+                    <VersionMeta>
+                      {new Date(version.createdAt).toLocaleString()}
+                      {version.createdByUser && <span> by {version.createdByUser.name}</span>}
+                    </VersionMeta>
+                  </VersionItem>
                 ))}
-              </BadgeRow>
-            </SkillsSection>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Versions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {versionsLoading ? (
-            <LoadingWrapper style={{ padding: 24 }}>
-              <SmallSpinner />
-            </LoadingWrapper>
-          ) : versions.length === 0 ? (
-            <EmptyText>No versions published yet.</EmptyText>
-          ) : (
-            <VersionList>
-              {versions.map(version => (
-                <VersionItem key={version.id} $current={version.isCurrent}>
-                  <VersionInfo>
-                    <VersionNumber>v{version.version}</VersionNumber>
-                    {version.isCurrent && <Badge $color="green">Current</Badge>}
-                  </VersionInfo>
-                  <VersionMeta>
-                    {new Date(version.createdAt).toLocaleString()}
-                    {version.createdByUser && <span> by {version.createdByUser.name}</span>}
-                  </VersionMeta>
-                </VersionItem>
-              ))}
-            </VersionList>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+              </VersionList>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  });
 }

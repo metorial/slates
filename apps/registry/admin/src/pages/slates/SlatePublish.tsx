@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { renderWithLoader } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { usePublishSlate, useSlate } from '../../api/hooks';
 
@@ -212,27 +213,6 @@ let Button = styled.button<{ $variant?: 'primary' | 'secondary'; $color?: 'green
   `}
 `;
 
-let LoadingWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  padding: 80px;
-`;
-
-let Spinner = styled.div`
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
 let ErrorMessage = styled.div`
   padding: 12px 16px;
   background: #fef2f2;
@@ -245,23 +225,11 @@ let ErrorMessage = styled.div`
 export let SlatePublish = () => {
   let { tenantId, slateId } = useParams<{ tenantId: string; slateId: string }>();
   let navigate = useNavigate();
-  let { data: slate, isLoading } = useSlate(tenantId, slateId!);
+  let slate = useSlate(tenantId, slateId!);
   let publishSlate = usePublishSlate();
 
   let [file, setFile] = useState<File | null>(null);
   let [access, setAccess] = useState<string>('private');
-
-  if (isLoading) {
-    return (
-      <LoadingWrapper>
-        <Spinner />
-      </LoadingWrapper>
-    );
-  }
-
-  if (!slate) {
-    return <ErrorMessage>Slate not found.</ErrorMessage>;
-  }
 
   let handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     let selectedFile = e.target.files?.[0];
@@ -270,21 +238,23 @@ export let SlatePublish = () => {
     }
   };
 
-  let handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!file || !tenantId) return;
+  return renderWithLoader({ slate })(({ slate }) => {
+    let slateData = slate.data!;
 
-    try {
+    let handleSubmit = async (e: FormEvent) => {
+      e.preventDefault();
+      if (!file || !tenantId) return;
+
       let buffer = await file.arrayBuffer();
       let base64 = btoa(
         new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
       );
 
-      let parts = slate.fullIdentifier.split('/');
+      let parts = slateData.fullIdentifier.split('/');
       let scopeIdentifier = parts[0]!;
       let slateIdentifier = parts[1]!;
 
-      await publishSlate.mutateAsync({
+      let [, error] = await publishSlate.mutate({
         tenantId,
         slateId: slateId!,
         scopeIdentifier,
@@ -293,64 +263,64 @@ export let SlatePublish = () => {
         access: access as 'public' | 'private'
       });
 
-      navigate(`/tenants/${tenantId}/slates/${slateId}`);
-    } catch (error) {
-      console.error('Failed to publish slate:', error);
-    }
-  };
+      if (!error) {
+        navigate(`/tenants/${tenantId}/slates/${slateId}`);
+      }
+    };
 
-  return (
-    <div>
-      <BackLink to={`/tenants/${tenantId}/slates/${slateId}`}>← Back to Slate</BackLink>
+    return (
+      <div>
+        <BackLink to={`/tenants/${tenantId}/slates/${slateId}`}>← Back to Slate</BackLink>
 
-      <FormCard>
-        <CardHeader>
-          <CardTitle>Publish New Version</CardTitle>
-          <Badge>{slate.fullIdentifier}</Badge>
-        </CardHeader>
-        <CardContent>
-          {slate.currentVersion && (
-            <CurrentVersionInfo>
-              Current version: <strong>v{slate.currentVersion.version}</strong>
-            </CurrentVersionInfo>
-          )}
-
-          <Form onSubmit={handleSubmit}>
-            <FormGroup>
-              <Label>Slate Package (ZIP)</Label>
-              <FileInputWrapper>
-                <StyledFileInput type="file" accept=".zip" onChange={handleFileChange} required />
-              </FileInputWrapper>
-              <HelpText>Upload a ZIP file containing slate.json and other assets</HelpText>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>Access Level</Label>
-              <Select value={access} onChange={e => setAccess(e.target.value)}>
-                <option value="private">Private</option>
-                <option value="public">Public</option>
-              </Select>
-            </FormGroup>
-
-            {publishSlate.error && (
-              <ErrorMessage>Error: {String(publishSlate.error)}</ErrorMessage>
+        <FormCard>
+          <CardHeader>
+            <CardTitle>Publish New Version</CardTitle>
+            <Badge>{slateData.fullIdentifier}</Badge>
+          </CardHeader>
+          <CardContent>
+            {slateData.currentVersion && (
+              <CurrentVersionInfo>
+                Current version: <strong>v{slateData.currentVersion.version}</strong>
+              </CurrentVersionInfo>
             )}
 
-            <ButtonGroup>
-              <Button type="submit" $color="green" disabled={!file || publishSlate.isPending}>
-                {publishSlate.isPending ? 'Publishing...' : 'Publish Version'}
-              </Button>
-              <Button
-                type="button"
-                $variant="secondary"
-                onClick={() => navigate(`/slates/${slateId}`)}
-              >
-                Cancel
-              </Button>
-            </ButtonGroup>
-          </Form>
-        </CardContent>
-      </FormCard>
-    </div>
-  );
+            <Form onSubmit={handleSubmit}>
+              <FormGroup>
+                <Label>Slate Package (ZIP)</Label>
+                <FileInputWrapper>
+                  <StyledFileInput type="file" accept=".zip" onChange={handleFileChange} required />
+                </FileInputWrapper>
+                <HelpText>Upload a ZIP file containing slate.json and other assets</HelpText>
+              </FormGroup>
+
+              <FormGroup>
+                <Label>Access Level</Label>
+                <Select value={access} onChange={e => setAccess(e.target.value)}>
+                  <option value="private">Private</option>
+                  <option value="public">Public</option>
+                </Select>
+              </FormGroup>
+
+              {publishSlate.error && (
+                <ErrorMessage>Error: {String(publishSlate.error)}</ErrorMessage>
+              )}
+
+              <ButtonGroup>
+                <Button type="submit" $color="green" disabled={!file || publishSlate.isLoading}>
+                  {publishSlate.isLoading ? 'Publishing...' : 'Publish Version'}
+                </Button>
+                <Button
+                  type="button"
+                  $variant="secondary"
+                  onClick={() => navigate(`/tenants/${tenantId}/slates/${slateId}`)}
+                >
+                  Cancel
+                </Button>
+              </ButtonGroup>
+            </Form>
+          </CardContent>
+        </FormCard>
+      </div>
+    );
+  });
 }

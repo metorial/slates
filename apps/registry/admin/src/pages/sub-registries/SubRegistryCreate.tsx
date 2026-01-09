@@ -14,11 +14,9 @@ export let SubRegistryCreate = () => {
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!tenantId) return;
-    try {
-      await createSubRegistry.mutateAsync({ tenantId, name, identifier });
+    let [, error] = await createSubRegistry.mutate({ tenantId, name, identifier });
+    if (!error) {
       navigate(`/tenants/${tenantId}/sub-registries`);
-    } catch (error) {
-      console.error('Failed to create sub-registry:', error);
     }
   };
 
@@ -63,7 +61,7 @@ export let SubRegistryCreate = () => {
                 <Spacer size={8} />
 
                 <Flex gap={12}>
-                  <Button type="submit" loading={createSubRegistry.isPending}>
+                  <Button type="submit" loading={createSubRegistry.isLoading}>
                     Create Sub-Registry
                   </Button>
                   <Button type="button" variant="outline" onClick={() => navigate(`/tenants/${tenantId}/sub-registries`)}>

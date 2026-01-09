@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { renderWithLoader } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { useUpdateWorkspace, useWorkspace } from '../../api/hooks';
 
@@ -162,27 +163,6 @@ let Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   `}
 `;
 
-let LoadingWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  padding: 80px;
-`;
-
-let Spinner = styled.div`
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
 let ErrorMessage = styled.div`
   padding: 12px 16px;
   background: #fef2f2;
@@ -195,92 +175,84 @@ let ErrorMessage = styled.div`
 export let WorkspaceEdit = () => {
   let { tenantId, workspaceId } = useParams<{ tenantId: string; workspaceId: string }>();
   let navigate = useNavigate();
-  let { data: workspace, isLoading, error } = useWorkspace(tenantId, workspaceId!);
+  let workspace = useWorkspace(tenantId, workspaceId!);
   let updateWorkspace = useUpdateWorkspace();
 
   let [name, setName] = useState('');
   let [description, setDescription] = useState('');
+  let [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (workspace) {
-      setName(workspace.name);
-      setDescription(workspace.scope?.description ?? '');
+    if (workspace.data && !initialized) {
+      setName(workspace.data.name);
+      setDescription(workspace.data.scope?.description ?? '');
+      setInitialized(true);
     }
-  }, [workspace]);
+  }, [workspace.data, initialized]);
 
-  if (isLoading) {
-    return (
-      <LoadingWrapper>
-        <Spinner />
-      </LoadingWrapper>
-    );
-  }
+  return renderWithLoader({ workspace })(({ workspace }) => {
+    let workspaceData = workspace.data!;
 
-  if (error || !workspace) {
-    return <ErrorMessage>Error loading workspace: {String(error)}</ErrorMessage>;
-  }
-
-  let handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!tenantId) return;
-    try {
-      await updateWorkspace.mutateAsync({
+    let handleSubmit = async (e: FormEvent) => {
+      e.preventDefault();
+      if (!tenantId) return;
+      let [, error] = await updateWorkspace.mutate({
         tenantId,
         workspaceId: workspaceId!,
         name,
         description
       });
-      navigate(`/tenants/${tenantId}/workspaces`);
-    } catch (error) {
-      console.error('Failed to update workspace:', error);
-    }
-  };
+      if (!error) {
+        navigate(`/tenants/${tenantId}/workspaces`);
+      }
+    };
 
-  return (
-    <div>
-      <BackLink to={`/tenants/${tenantId}/workspaces`}>← Back to Workspaces</BackLink>
+    return (
+      <div>
+        <BackLink to={`/tenants/${tenantId}/workspaces`}>← Back to Workspaces</BackLink>
 
-      <FormCard>
-        <CardHeader>
-          <CardTitle>Edit Workspace</CardTitle>
-          <Badge>{workspace.identifier}</Badge>
-        </CardHeader>
-        <CardContent>
-          <Form onSubmit={handleSubmit}>
-            <FormGroup>
-              <Label>Name</Label>
-              <Input
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-              />
-            </FormGroup>
+        <FormCard>
+          <CardHeader>
+            <CardTitle>Edit Workspace</CardTitle>
+            <Badge>{workspaceData.identifier}</Badge>
+          </CardHeader>
+          <CardContent>
+            <Form onSubmit={handleSubmit}>
+              <FormGroup>
+                <Label>Name</Label>
+                <Input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                />
+              </FormGroup>
 
-            <FormGroup>
-              <Label>Description</Label>
-              <Textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Optional description"
-              />
-            </FormGroup>
+              <FormGroup>
+                <Label>Description</Label>
+                <Textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Optional description"
+                />
+              </FormGroup>
 
-            {updateWorkspace.error && (
-              <ErrorMessage>Error: {String(updateWorkspace.error)}</ErrorMessage>
-            )}
+              {updateWorkspace.error && (
+                <ErrorMessage>Error: {String(updateWorkspace.error)}</ErrorMessage>
+              )}
 
-            <ButtonGroup>
-              <Button type="submit" disabled={updateWorkspace.isPending}>
-                {updateWorkspace.isPending ? 'Saving...' : 'Save Changes'}
-              </Button>
-              <Button type="button" $variant="secondary" onClick={() => navigate(`/tenants/${tenantId}/workspaces`)}>
-                Cancel
-              </Button>
-            </ButtonGroup>
-          </Form>
-        </CardContent>
-      </FormCard>
-    </div>
-  );
+              <ButtonGroup>
+                <Button type="submit" disabled={updateWorkspace.isLoading}>
+                  {updateWorkspace.isLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
+                <Button type="button" $variant="secondary" onClick={() => navigate(`/tenants/${tenantId}/workspaces`)}>
+                  Cancel
+                </Button>
+              </ButtonGroup>
+            </Form>
+          </CardContent>
+        </FormCard>
+      </div>
+    );
+  });
 }
