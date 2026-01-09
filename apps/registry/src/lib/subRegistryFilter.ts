@@ -1,6 +1,14 @@
-import type { Prisma, SubRegistry, SubRegistryFilter, Tenant } from '../../prisma/generated/client';
+import type {
+  Prisma,
+  SubRegistry,
+  SubRegistryFilter,
+  Tenant
+} from '../../prisma/generated/client';
 
-export type SubRegistryWithFilters = SubRegistry & { filters: SubRegistryFilter[]; tenant: Tenant };
+export type SubRegistryWithFilters = SubRegistry & {
+  filters: SubRegistryFilter[];
+  tenant: Tenant;
+};
 
 export let buildSlateFilterClause = (
   subRegistry: SubRegistryWithFilters | null | undefined,
@@ -9,10 +17,7 @@ export let buildSlateFilterClause = (
   let baseAccessClause: Prisma.SlateWhereInput = tenantOid
     ? { OR: [{ tenantOid }, { access: 'public' }] }
     : { access: 'public' };
-
-  if (!subRegistry || subRegistry.filters.length === 0) {
-    return baseAccessClause;
-  }
+  if (!subRegistry || subRegistry.filters.length === 0) return baseAccessClause;
 
   let filterConditions: Prisma.SlateWhereInput[] = [];
 
@@ -41,17 +46,14 @@ export let buildSlateFilterClause = (
   return {
     AND: [baseAccessClause, { OR: filterConditions }]
   };
-}
+};
 
 export let buildChangeNotificationFilterClause = (
   subRegistry: SubRegistryWithFilters | null | undefined,
   tenantOid?: bigint
 ): Prisma.ChangeNotificationWhereInput => {
-  let baseClause: Prisma.ChangeNotificationWhereInput = tenantOid ? { tenantOid } : {};
-
-  if (!subRegistry || subRegistry.filters.length === 0) {
-    return baseClause;
-  }
+  let baseClause = { tenantOid };
+  if (!subRegistry || subRegistry.filters.length === 0) return baseClause;
 
   let filterConditions: Prisma.ChangeNotificationWhereInput[] = [];
 
@@ -77,11 +79,5 @@ export let buildChangeNotificationFilterClause = (
     }
   }
 
-  if (Object.keys(baseClause).length > 0) {
-    return {
-      AND: [baseClause, { OR: filterConditions }]
-    };
-  }
-
   return { OR: filterConditions };
-}
+};
