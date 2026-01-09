@@ -33,9 +33,9 @@ export let slateSpecificationPresenter = (
   authMethods: spec.slateAuthMethods.map(sam =>
     slateAuthMethodPresenter({ ...sam.authMethod, slate: spec.slate })
   ),
-  actions: spec.slateActions.map(sa =>
-    slateActionPresenter({ ...sa.action, slate: spec.slate })
-  ),
+  tools: spec.slateActions
+    .filter(sa => sa.action.type == 'tool')
+    .map(sa => slateActionPresenter({ ...sa.action, slate: spec.slate })),
 
   createdAt: spec.createdAt
 });
