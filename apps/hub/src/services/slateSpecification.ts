@@ -1,7 +1,6 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Slate } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
@@ -17,10 +16,9 @@ let include = {
 let omit = { authMethods: true, actions: true };
 
 class slateSpecificationServiceImpl {
-  async getSlateSpecificationById(d: { slate: Slate; id: string }) {
+  async getSlateSpecificationById(d: { id: string }) {
     let slateSpecification = await db.slateSpecification.findFirst({
       where: {
-        slateOid: d.slate.oid,
         id: d.id
       },
       include,
@@ -30,13 +28,19 @@ class slateSpecificationServiceImpl {
     return slateSpecification;
   }
 
-  async listSlateSpecifications(d: { slate: Slate; versionIds?: string[] }) {
+  async listSlateSpecifications(d: { slateIds?: string[]; versionIds?: string[] }) {
     let versions = d.versionIds
       ? await db.slateVersion.findMany({
           where: {
             status: 'active',
             OR: [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
           },
+          select: { oid: true }
+        })
+      : undefined;
+    let slates = d.slateIds
+      ? await db.slate.findMany({
+          where: { id: { in: d.slateIds } },
           select: { oid: true }
         })
       : undefined;
@@ -47,7 +51,8 @@ class slateSpecificationServiceImpl {
           await db.slateSpecification.findMany({
             ...opts,
             where: {
-              slateOid: d.slate.oid,
+              slateOid: slates ? { in: slates.map(s => s.oid) } : undefined,
+
               slateVersions: versions
                 ? { some: { oid: { in: versions.map(v => v.oid) } } }
                 : undefined
@@ -59,10 +64,9 @@ class slateSpecificationServiceImpl {
     );
   }
 
-  async getManySlateSpecificationsByIds(d: { ids: string[]; slate: Slate }) {
+  async getManySlateSpecificationsByIds(d: { ids: string[] }) {
     return db.slateSpecification.findMany({
       where: {
-        slateOid: d.slate.oid,
         id: { in: d.ids }
       },
       include,

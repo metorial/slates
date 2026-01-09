@@ -1,7 +1,6 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Slate } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
@@ -23,10 +22,9 @@ let include = {
 };
 
 class slateSpecificationChangeServiceImpl {
-  async getSlateSpecificationChangeById(d: { slate: Slate; id: string }) {
+  async getSlateSpecificationChangeById(d: { id: string }) {
     let slateSpecificationChange = await db.slateSpecificationChange.findFirst({
       where: {
-        slateOid: d.slate.oid,
         id: d.id
       },
       include
@@ -36,13 +34,19 @@ class slateSpecificationChangeServiceImpl {
     return slateSpecificationChange;
   }
 
-  async listSlateSpecificationChanges(d: { slate: Slate; versionIds?: string[] }) {
+  async listSlateSpecificationChanges(d: { slateIds?: string[]; versionIds?: string[] }) {
     let versions = d.versionIds
       ? await db.slateVersion.findMany({
           where: {
             status: 'active',
             OR: [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
           },
+          select: { oid: true }
+        })
+      : undefined;
+    let slates = d.slateIds
+      ? await db.slate.findMany({
+          where: { id: { in: d.slateIds } },
           select: { oid: true }
         })
       : undefined;
@@ -53,7 +57,7 @@ class slateSpecificationChangeServiceImpl {
           await db.slateSpecificationChange.findMany({
             ...opts,
             where: {
-              slateOid: d.slate.oid,
+              slateOid: slates ? { in: slates.map(s => s.oid) } : undefined,
 
               OR: versions
                 ? [
@@ -68,10 +72,9 @@ class slateSpecificationChangeServiceImpl {
     );
   }
 
-  async getManySlateSpecificationChangesByIds(d: { ids: string[]; slate: Slate }) {
+  async getManySlateSpecificationChangesByIds(d: { ids: string[] }) {
     return db.slateSpecificationChange.findMany({
       where: {
-        slateOid: d.slate.oid,
         id: { in: d.ids }
       },
       include
