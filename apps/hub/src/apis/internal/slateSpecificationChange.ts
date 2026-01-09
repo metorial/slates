@@ -3,35 +3,33 @@ import { v } from '@lowerdeck/validation';
 import { slateSpecificationChangePresenter } from '../../presenters';
 import { slateSpecificationChangeService } from '../../services';
 import { app } from './_app';
-import { slateApp } from './slate';
 
-export let slateSpecificationChangeApp = slateApp.use(async ctx => {
+export let slateSpecificationChangeApp = app.use(async ctx => {
   let slateSpecificationChangeId = ctx.body.slateSpecificationChangeId;
   if (!slateSpecificationChangeId) throw new Error('Slate SpecificationChange ID is required');
 
   let slateSpecificationChange =
     await slateSpecificationChangeService.getSlateSpecificationChangeById({
-      id: slateSpecificationChangeId,
-      slate: ctx.slate
+      id: slateSpecificationChangeId
     });
 
   return { slateSpecificationChange };
 });
 
 export let slateSpecificationChangeController = app.controller({
-  list: slateApp
+  list: app
     .handler()
     .input(
       Paginator.validate(
         v.object({
-          slateId: v.string(),
+          slateIds: v.optional(v.array(v.string())),
           versionIds: v.optional(v.array(v.string()))
         })
       )
     )
     .do(async ctx => {
       let paginator = await slateSpecificationChangeService.listSlateSpecificationChanges({
-        slate: ctx.slate,
+        slateIds: ctx.input.slateIds,
         versionIds: ctx.input.versionIds
       });
 
@@ -44,25 +42,22 @@ export let slateSpecificationChangeController = app.controller({
     .handler()
     .input(
       v.object({
-        slateId: v.string(),
         slateSpecificationChangeId: v.string()
       })
     )
     .do(async ctx => slateSpecificationChangePresenter(ctx.slateSpecificationChange)),
 
-  getMany: slateApp
+  getMany: app
     .handler()
     .input(
       v.object({
-        slateId: v.string(),
         slateSpecificationChangeIds: v.array(v.string())
       })
     )
     .do(async ctx => {
       let slateSpecificationChanges =
         await slateSpecificationChangeService.getManySlateSpecificationChangesByIds({
-          ids: ctx.input.slateSpecificationChangeIds,
-          slate: ctx.slate
+          ids: ctx.input.slateSpecificationChangeIds
         });
 
       return slateSpecificationChanges.map(slateSpecificationChangePresenter);
