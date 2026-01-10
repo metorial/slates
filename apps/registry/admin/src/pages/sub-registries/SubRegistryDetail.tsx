@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../api/hooks';
+import { BackLink } from '../../components/BackLink';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 function getFilterTypeDescription(filterType: 'scope_type' | 'prefix' | 'package'): string {
-  if (filterType === 'scope_type') return 'Filter by owner type: show only user-owned or workspace-owned slates';
+  if (filterType === 'scope_type') return 'Filter by scope: enter a scope ID or identifier to show only slates owned by that scope';
   if (filterType === 'prefix') return 'Filter by identifier prefix: e.g., "@myorg/" matches all slates starting with @myorg/';
   return 'Include a specific slate by its exact identifier';
 }
@@ -20,6 +22,7 @@ export let SubRegistryDetail = () => {
   let [showAddForm, setShowAddForm] = useState(false);
   let [filterType, setFilterType] = useState<'scope_type' | 'prefix' | 'package'>('scope_type');
   let [filterValue, setFilterValue] = useState('');
+  let [filterToRemove, setFilterToRemove] = useState<string | null>(null);
 
   let handleAddFilter = async () => {
     if (!tenantId || !subRegistryId || !filterValue.trim()) return;
@@ -30,17 +33,15 @@ export let SubRegistryDetail = () => {
     }
   };
 
-  let handleRemoveFilter = async (filterId: string) => {
-    if (!tenantId || !subRegistryId) return;
-    if (!confirm('Are you sure you want to remove this filter?')) return;
-    await removeFilter.mutate({ tenantId, subRegistryId, filterId });
+  let handleRemoveFilter = async () => {
+    if (!tenantId || !subRegistryId || !filterToRemove) return;
+    await removeFilter.mutate({ tenantId, subRegistryId, filterId: filterToRemove });
+    setFilterToRemove(null);
   };
 
   return renderWithLoader({ subRegistry })(({ subRegistry }) => (
     <Flex direction="column" gap={24}>
-      <Link to={`/tenants/${tenantId}/sub-registries`} style={{ color: '#64748b', fontSize: 14 }}>
-        ← Back to Sub-Registries
-      </Link>
+      <BackLink to={`/tenants/${tenantId}/sub-registries`}>Back to Sub-Registries</BackLink>
 
       <Group.Wrapper>
         <Group.Header
@@ -94,7 +95,7 @@ export let SubRegistryDetail = () => {
                     fontSize: 14
                   }}
                 >
-                  <option value="scope_type">Scope Type</option>
+                  <option value="scope_type">Scope</option>
                   <option value="prefix">Prefix</option>
                   <option value="package">Package</option>
                 </select>
@@ -103,32 +104,12 @@ export let SubRegistryDetail = () => {
                 </Text>
               </Flex>
 
-              {filterType === 'scope_type' ? (
-                <Flex direction="column" gap={8}>
-                  <Text size="2" weight="medium">Scope Type</Text>
-                  <select
-                    value={filterValue}
-                    onChange={e => setFilterValue(e.target.value)}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: 6,
-                      border: '1px solid #e2e8f0',
-                      fontSize: 14
-                    }}
-                  >
-                    <option value="">Select...</option>
-                    <option value="user">User</option>
-                    <option value="workspace">Workspace</option>
-                  </select>
-                </Flex>
-              ) : (
-                <Input
-                  label={filterType === 'prefix' ? 'Prefix' : 'Package Identifier'}
-                  placeholder={filterType === 'prefix' ? 'e.g., @myorg/' : 'e.g., @myorg/my-slate'}
-                  value={filterValue}
-                  onChange={e => setFilterValue(e.target.value)}
-                />
-              )}
+              <Input
+                label={filterType === 'scope_type' ? 'Scope ID or Identifier' : filterType === 'prefix' ? 'Prefix' : 'Package Identifier'}
+                placeholder={filterType === 'scope_type' ? 'e.g., scope_abc123 or myorg' : filterType === 'prefix' ? 'e.g., @myorg/' : 'e.g., @myorg/my-slate'}
+                value={filterValue}
+                onChange={e => setFilterValue(e.target.value)}
+              />
 
               {addFilter.error && (
                 <Error>{String(addFilter.error)}</Error>
@@ -178,7 +159,7 @@ export let SubRegistryDetail = () => {
                   <Button
                     variant="outline"
                     size="1"
-                    onClick={() => handleRemoveFilter(filter.id)}
+                    onClick={() => setFilterToRemove(filter.id)}
                     style={{ color: '#dc2626', borderColor: '#fecaca' }}
                   >
                     Remove
@@ -189,6 +170,17 @@ export let SubRegistryDetail = () => {
           )}
         </Group.Content>
       </Group.Wrapper>
+
+      <ConfirmDialog
+        open={filterToRemove !== null}
+        onOpenChange={open => !open && setFilterToRemove(null)}
+        title="Remove Filter"
+        description="Are you sure you want to remove this filter? This will change which slates appear in this sub-registry."
+        confirmLabel="Remove Filter"
+        onConfirm={handleRemoveFilter}
+        destructive
+        loading={removeFilter.isLoading}
+      />
     </Flex>
   ));
 }

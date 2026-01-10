@@ -1,22 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { useUpdateWorkspace, useWorkspace } from '../../api/hooks';
-
-let BackLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 24px;
-  color: #64748b;
-  font-size: 14px;
-  transition: color 0.15s;
-
-  &:hover {
-    color: #3b82f6;
-  }
-`;
+import { BackLink } from '../../components/BackLink';
 
 let FormCard = styled.div`
   background: #fff;
@@ -209,7 +196,7 @@ export let WorkspaceEdit = () => {
 
     return (
       <div>
-        <BackLink to={`/tenants/${tenantId}/workspaces`}>← Back to Workspaces</BackLink>
+        <BackLink to={`/tenants/${tenantId}/workspaces`}>Back to Workspaces</BackLink>
 
         <FormCard>
           <CardHeader>

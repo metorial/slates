@@ -1,9 +1,10 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Flex, Group, Input, Spacer, Text, Error } from '@metorial-io/ui';
 import { styled } from 'styled-components';
 import { usePublishNewSlate, useUsers, useWorkspaces } from '../../api/hooks';
+import { BackLink } from '../../components/BackLink';
 
 let Select = styled.select`
   padding: 10px 14px;
@@ -111,9 +112,7 @@ export let SlateCreate = () => {
 
     return (
       <Flex direction="column" gap={24}>
-        <Link to={`/tenants/${tenantId}/slates`} style={{ color: '#64748b', fontSize: 14 }}>
-          ← Back to Slates
-        </Link>
+        <BackLink to={`/tenants/${tenantId}/slates`}>Back to Slates</BackLink>
 
         <div style={{ maxWidth: 480 }}>
           <Group.Wrapper>

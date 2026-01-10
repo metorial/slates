@@ -135,7 +135,10 @@ export let userController = app.controller({
 
         let list = await paginator.run(ctx.input);
 
-        return Paginator.presentLight(list, userTokenPresenter);
+        return Paginator.presentLight(list, token => ({
+          ...userTokenPresenter(token),
+          secret: token.secret
+        }));
       }),
 
     get: userApp
@@ -154,7 +157,10 @@ export let userController = app.controller({
           user: ctx.user
         });
 
-        return userTokenPresenter(token);
+        return {
+          ...userTokenPresenter(token),
+          secret: token.secret
+        };
       }),
 
     delete: userApp

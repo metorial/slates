@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateTenant } from '../../api/hooks';
+import { BackLink } from '../../components/BackLink';
 
 export let TenantCreate = () => {
   let navigate = useNavigate();
@@ -20,9 +21,7 @@ export let TenantCreate = () => {
 
   return (
     <Flex direction="column" gap={24}>
-      <Link to="/tenants" style={{ color: '#64748b', fontSize: 14 }}>
-        ← Back to Tenants
-      </Link>
+      <BackLink to="/tenants">Back to Tenants</BackLink>
 
       <div style={{ maxWidth: 480 }}>
         <Group.Wrapper>

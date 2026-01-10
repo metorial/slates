@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
 import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../api/hooks';
+import { BackLink } from '../../components/BackLink';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 function getTokenBadgeColor(status: string): 'green' | 'red' | 'gray' {
   if (status === 'active') return 'green';
@@ -19,31 +21,26 @@ export let UserDetail = () => {
 
   let [showCreateForm, setShowCreateForm] = useState(false);
   let [tokenName, setTokenName] = useState('');
-  let [newTokenSecret, setNewTokenSecret] = useState<string | null>(null);
+  let [tokenToRevoke, setTokenToRevoke] = useState<string | null>(null);
 
   let handleCreateToken = async () => {
     if (!tenantId || !userId || !tokenName.trim()) return;
-    let [result, error] = await createToken.mutate({ tenantId, userId, name: tokenName.trim() });
-    if (result?.secret) {
-      setNewTokenSecret(result.secret);
-    }
+    let [, error] = await createToken.mutate({ tenantId, userId, name: tokenName.trim() });
     if (!error) {
       setTokenName('');
       setShowCreateForm(false);
     }
   };
 
-  let handleRevokeToken = async (tokenId: string) => {
-    if (!tenantId || !userId) return;
-    if (!confirm('Are you sure you want to revoke this token? This cannot be undone.')) return;
-    await revokeToken.mutate({ tenantId, userId, tokenId });
+  let handleRevokeToken = async () => {
+    if (!tenantId || !userId || !tokenToRevoke) return;
+    await revokeToken.mutate({ tenantId, userId, tokenId: tokenToRevoke });
+    setTokenToRevoke(null);
   };
 
   return renderWithLoader({ user, tokens })(({ user, tokens }) => (
     <Flex direction="column" gap={24}>
-      <Link to={`/tenants/${tenantId}/users`} style={{ color: '#64748b', fontSize: 14 }}>
-        ← Back to Users
-      </Link>
+      <BackLink to={`/tenants/${tenantId}/users`}>Back to Users</BackLink>
 
       <Group.Wrapper>
         <Group.Header
@@ -79,39 +76,10 @@ export let UserDetail = () => {
         </Group.Content>
       </Group.Wrapper>
 
-      {newTokenSecret && (
-        <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, padding: 20 }}>
-          <Flex direction="column" gap={12}>
-            <Text size="2" weight="strong" style={{ color: '#166534' }}>
-              Token Created Successfully
-            </Text>
-            <Text size="2" color="gray600">
-              Copy this token now. You won't be able to see it again.
-            </Text>
-            <Flex
-              style={{
-                background: '#fff',
-                border: '1px solid #e2e8f0',
-                borderRadius: 6,
-                padding: '12px 16px',
-                fontFamily: 'monospace',
-                fontSize: 13,
-                wordBreak: 'break-all'
-              }}
-            >
-              {newTokenSecret}
-            </Flex>
-            <Button variant="outline" onClick={() => setNewTokenSecret(null)}>
-              Dismiss
-            </Button>
-          </Flex>
-        </div>
-      )}
-
       <Group.Wrapper>
         <Group.Header
           title="API Tokens"
-          description="API tokens allow this user to authenticate with the registry API. Tokens can be revoked at any time. The secret is only shown once when created."
+          description="API tokens allow this user to authenticate with the registry API. Tokens can be revoked at any time."
         />
         <Group.Content>
           {showCreateForm ? (
@@ -156,8 +124,8 @@ export let UserDetail = () => {
                 {tokenItems.map(token => (
                   <Flex
                     key={token.id}
-                    align="center"
-                    justify="space-between"
+                    direction="column"
+                    gap={8}
                     style={{
                       padding: '14px 16px',
                       background: '#f8fafc',
@@ -165,34 +133,47 @@ export let UserDetail = () => {
                       borderRadius: 8
                     }}
                   >
-                    <Flex direction="column" gap={4}>
+                    <Flex align="center" justify="space-between">
                       <Flex align="center" gap={8}>
                         <Text size="2" weight="medium">{token.name}</Text>
                         <Badge color={getTokenBadgeColor(token.status)} size="1">
                           {token.status}
                         </Badge>
                       </Flex>
-                      <Flex gap={16}>
-                        <Text size="1" color="gray600">
-                          Created: {new Date(token.createdAt).toLocaleDateString()}
-                        </Text>
-                        {token.expiresAt && (
-                          <Text size="1" color="gray600">
-                            Expires: {new Date(token.expiresAt).toLocaleDateString()}
-                          </Text>
-                        )}
-                      </Flex>
+                      {token.status === 'active' && (
+                        <Button
+                          variant="outline"
+                          size="1"
+                          onClick={() => setTokenToRevoke(token.id)}
+                          style={{ color: '#dc2626', borderColor: '#fecaca' }}
+                        >
+                          Revoke
+                        </Button>
+                      )}
                     </Flex>
-                    {token.status === 'active' && (
-                      <Button
-                        variant="outline"
-                        size="1"
-                        onClick={() => handleRevokeToken(token.id)}
-                        style={{ color: '#dc2626', borderColor: '#fecaca' }}
-                      >
-                        Revoke
-                      </Button>
-                    )}
+                    <Flex
+                      style={{
+                        background: '#fff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 6,
+                        padding: '8px 12px',
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        wordBreak: 'break-all'
+                      }}
+                    >
+                      {token.secret}
+                    </Flex>
+                    <Flex gap={16}>
+                      <Text size="1" color="gray600">
+                        Created: {new Date(token.createdAt).toLocaleDateString()}
+                      </Text>
+                      {token.expiresAt && (
+                        <Text size="1" color="gray600">
+                          Expires: {new Date(token.expiresAt).toLocaleDateString()}
+                        </Text>
+                      )}
+                    </Flex>
                   </Flex>
                 ))}
               </Flex>
@@ -200,6 +181,17 @@ export let UserDetail = () => {
           })()}
         </Group.Content>
       </Group.Wrapper>
+
+      <ConfirmDialog
+        open={tokenToRevoke !== null}
+        onOpenChange={open => !open && setTokenToRevoke(null)}
+        title="Revoke Token"
+        description="Are you sure you want to revoke this token? This action cannot be undone and any applications using this token will lose access."
+        confirmLabel="Revoke Token"
+        onConfirm={handleRevokeToken}
+        destructive
+        loading={revokeToken.isLoading}
+      />
     </Flex>
   ));
 }

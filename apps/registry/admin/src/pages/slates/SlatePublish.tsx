@@ -1,22 +1,9 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { usePublishSlate, useSlate } from '../../api/hooks';
-
-let BackLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 24px;
-  color: #64748b;
-  font-size: 14px;
-  transition: color 0.15s;
-
-  &:hover {
-    color: #3b82f6;
-  }
-`;
+import { BackLink } from '../../components/BackLink';
 
 let FormCard = styled.div`
   background: #fff;
@@ -270,7 +257,7 @@ export let SlatePublish = () => {
 
     return (
       <div>
-        <BackLink to={`/tenants/${tenantId}/slates/${slateId}`}>← Back to Slate</BackLink>
+        <BackLink to={`/tenants/${tenantId}/slates/${slateId}`}>Back to Slate</BackLink>
 
         <FormCard>
           <CardHeader>

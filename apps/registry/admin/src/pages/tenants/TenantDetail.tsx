@@ -1,7 +1,8 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Flex, Text, Group, Badge as UiBadge } from '@metorial-io/ui';
 import { useTenant } from '../../api/hooks';
+import { BackLink } from '../../components/BackLink';
 
 export let TenantDetail = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
@@ -9,9 +10,7 @@ export let TenantDetail = () => {
 
   return renderWithLoader({ tenant })(({ tenant }) => (
     <Flex direction="column" gap={24}>
-      <Link to="/tenants" style={{ color: '#64748b', fontSize: 14 }}>
-        ← Back to Tenants
-      </Link>
+      <BackLink to="/tenants">Back to Tenants</BackLink>
 
       <Group.Wrapper>
         <Group.Header

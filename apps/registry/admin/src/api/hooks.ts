@@ -99,7 +99,7 @@ export let useWorkspace = (tenantId: string | undefined, workspaceId: string) =>
   workspaceLoader.use(tenantId && workspaceId ? { tenantId, workspaceId } : null);
 
 export let useCreateWorkspace = workspacesLoader.createExternalMutator(
-  (data: { tenantId: string; name: string; identifier: string }) =>
+  (data: { tenantId: string; name: string; identifier: string; description?: string }) =>
     adminClient.workspace.create(data)
 );
 

@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateWorkspace } from '../../api/hooks';
+import { BackLink } from '../../components/BackLink';
 
 export let WorkspaceCreate = () => {
   let navigate = useNavigate();
@@ -10,11 +11,17 @@ export let WorkspaceCreate = () => {
 
   let [name, setName] = useState('');
   let [identifier, setIdentifier] = useState('');
+  let [description, setDescription] = useState('');
 
   let handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!tenantId) return;
-    let [, error] = await createWorkspace.mutate({ tenantId, name, identifier });
+    let [, error] = await createWorkspace.mutate({
+      tenantId,
+      name,
+      identifier,
+      description: description.trim() || undefined
+    });
     if (!error) {
       navigate(`/tenants/${tenantId}/workspaces`);
     }
@@ -22,9 +29,7 @@ export let WorkspaceCreate = () => {
 
   return (
     <Flex direction="column" gap={24}>
-      <Link to={`/tenants/${tenantId}/workspaces`} style={{ color: '#64748b', fontSize: 14 }}>
-        ← Back to Workspaces
-      </Link>
+      <BackLink to={`/tenants/${tenantId}/workspaces`}>Back to Workspaces</BackLink>
 
       <div style={{ maxWidth: 480 }}>
         <Group.Wrapper>
@@ -52,6 +57,14 @@ export let WorkspaceCreate = () => {
                   placeholder="my-workspace"
                   pattern="[a-z0-9-]+"
                   required
+                />
+
+                <Input
+                  label="Description"
+                  description="Optional description for the workspace"
+                  value={description}
+                  onInput={setDescription}
+                  placeholder="A brief description of this workspace"
                 />
 
                 {createWorkspace.error && (

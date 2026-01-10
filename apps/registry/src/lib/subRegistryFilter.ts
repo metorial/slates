@@ -25,7 +25,7 @@ export let buildSlateFilterClause = (
     switch (filter.type) {
       case 'scope_type':
         filterConditions.push({
-          scope: { type: filter.value as 'user' | 'workspace' }
+          scope: { OR: [{ id: filter.value }, { identifier: filter.value }] }
         });
         break;
 
@@ -61,7 +61,7 @@ export let buildChangeNotificationFilterClause = (
     switch (filter.type) {
       case 'scope_type':
         filterConditions.push({
-          slate: { scope: { type: filter.value as 'user' | 'workspace' } }
+          slate: { scope: { OR: [{ id: filter.value }, { identifier: filter.value }] } }
         });
         break;
 

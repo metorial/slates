@@ -25,7 +25,8 @@ export let workspaceController = app.controller({
         tenantId: v.string(),
 
         name: v.string(),
-        identifier: v.string()
+        identifier: v.string(),
+        description: v.optional(v.string())
       })
     )
     .do(async ctx => {
@@ -33,7 +34,8 @@ export let workspaceController = app.controller({
         tenant: ctx.tenant,
         input: {
           name: ctx.input.name,
-          identifier: ctx.input.identifier
+          identifier: ctx.input.identifier,
+          description: ctx.input.description
         }
       });
       return workspacePresenter(workspace);

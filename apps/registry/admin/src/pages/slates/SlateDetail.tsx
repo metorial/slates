@@ -1,21 +1,8 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { useSlate, useSlateVersions } from '../../api/hooks';
-
-let BackLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 24px;
-  color: #64748b;
-  font-size: 14px;
-  transition: color 0.15s;
-
-  &:hover {
-    color: #3b82f6;
-  }
-`;
+import { BackLink } from '../../components/BackLink';
 
 let Card = styled.div`
   background: #fff;
@@ -277,7 +264,7 @@ export let SlateDetail = () => {
 
     return (
       <div>
-        <BackLink to={`/tenants/${tenantId}/slates`}>← Back to Slates</BackLink>
+        <BackLink to={`/tenants/${tenantId}/slates`}>Back to Slates</BackLink>
 
         <Card>
           <CardContent>

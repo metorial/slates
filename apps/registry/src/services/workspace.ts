@@ -15,6 +15,7 @@ class workspaceServiceImpl {
     input: {
       name: string;
       identifier: string;
+      description?: string;
     };
     tenant: Tenant;
   }) {
@@ -40,6 +41,7 @@ class workspaceServiceImpl {
 
           identifier: d.input.identifier,
           name: d.input.name,
+          description: d.input.description,
 
           tenantOid: d.tenant.oid,
 

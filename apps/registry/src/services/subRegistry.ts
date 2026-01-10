@@ -24,15 +24,7 @@ function validateFilterType(type: string): asserts type is SubRegistryFilterType
 }
 
 let validateFilterValue = (type: SubRegistryFilterType, value: string): void => {
-  if (type === 'scope_type' && !['user', 'workspace'].includes(value)) {
-    throw new ServiceError(
-      badRequestError({
-        message: 'scope_type filter value must be "user" or "workspace"'
-      })
-    );
-  }
-
-  if ((type === 'prefix' || type === 'package') && value.length === 0) {
+  if (value.length === 0) {
     throw new ServiceError(
       badRequestError({
         message: `${type} filter value cannot be empty`
