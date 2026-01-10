@@ -1,7 +1,6 @@
 import { createLoader } from '@metorial-io/data-hooks';
 import { adminClient } from './client';
 
-// Tenant loader
 export let tenantsLoader = createLoader({
   name: 'tenants',
   fetch: () => adminClient.tenant.list({}),
@@ -28,7 +27,6 @@ export let useUpdateTenant = tenantsLoader.createExternalMutator(
   (data: { tenantId: string; name?: string }) => adminClient.tenant.update(data)
 );
 
-// Sub-registry loader
 export let subRegistriesLoader = createLoader({
   name: 'subRegistries',
   fetch: (tenantId: string) => adminClient.subRegistry.list({ tenantId }),
@@ -56,7 +54,6 @@ export let useCreateSubRegistry = subRegistriesLoader.createExternalMutator(
     adminClient.subRegistry.create(data)
 );
 
-// Sub-registry filter hooks
 export let useSetSubRegistryFilters = subRegistryLoader.createExternalMutator(
   (data: {
     tenantId: string;
@@ -79,7 +76,6 @@ export let useRemoveSubRegistryFilter = subRegistryLoader.createExternalMutator(
     adminClient.subRegistry.removeFilter(data)
 );
 
-// Workspace loader
 export let workspacesLoader = createLoader({
   name: 'workspaces',
   fetch: (tenantId: string) => adminClient.workspace.list({ tenantId }),
@@ -112,7 +108,6 @@ export let useUpdateWorkspace = workspacesLoader.createExternalMutator(
     adminClient.workspace.update(data)
 );
 
-// Slate loader
 export let slatesLoader = createLoader({
   name: 'slates',
   fetch: (tenantId: string) => adminClient.slate.list({ tenantId }),
@@ -156,7 +151,6 @@ export let usePublishSlate = slateVersionsLoader.createExternalMutator(
   }) => adminClient.slate.version.create(data)
 );
 
-// User loader
 export let usersLoader = createLoader({
   name: 'users',
   fetch: (tenantId: string) => adminClient.user.list({ tenantId }),
@@ -169,4 +163,47 @@ export let useUsers = (tenantId: string | undefined) => usersLoader.use(tenantId
 export let useCreateUser = usersLoader.createExternalMutator(
   (data: { tenantId: string; name: string; identifier: string }) =>
     adminClient.user.create(data)
+);
+
+export let userLoader = createLoader({
+  name: 'user',
+  fetch: (params: { tenantId: string; userId: string }) => adminClient.user.get(params),
+  hash: params => `${params.tenantId}:${params.userId}`,
+  mutators: {},
+  parents: [usersLoader]
+});
+
+export let useUser = (tenantId: string | undefined, userId: string | undefined) =>
+  userLoader.use(tenantId && userId ? { tenantId, userId } : null);
+
+export let userTokensLoader = createLoader({
+  name: 'userTokens',
+  fetch: (params: { tenantId: string; userId: string }) =>
+    adminClient.user.token.list(params),
+  hash: params => `${params.tenantId}:${params.userId}`,
+  mutators: {},
+  parents: [userLoader]
+});
+
+export let useUserTokens = (tenantId: string | undefined, userId: string | undefined) =>
+  userTokensLoader.use(tenantId && userId ? { tenantId, userId } : null);
+
+export let useCreateUserToken = userTokensLoader.createExternalMutator(
+  (data: { tenantId: string; userId: string; name: string; expiresAt?: string }) =>
+    adminClient.user.token.create(data)
+);
+
+export let useRevokeUserToken = userTokensLoader.createExternalMutator(
+  (data: { tenantId: string; userId: string; tokenId: string }) =>
+    adminClient.user.token.delete(data)
+);
+
+export let usePublishNewSlate = slatesLoader.createExternalMutator(
+  (data: {
+    tenantId: string;
+    scopeIdentifier: string;
+    slateIdentifier: string;
+    contentBase64: string;
+    access: 'public' | 'private';
+  }) => adminClient.slate.version.create({ ...data, slateId: '' })
 );

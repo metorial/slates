@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   root: path.resolve(__dirname),
   base: '/admin/',
+  resolve: {
+    dedupe: ['react', 'react-dom', 'react-router-dom']
+  },
   build: {
     outDir: path.resolve(__dirname, '../dist/admin'),
     emptyOutDir: true

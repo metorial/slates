@@ -1,9 +1,10 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
+import { Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useSlates } from '../../api/hooks';
 
 export let SlateList = () => {
+  let navigate = useNavigate();
   let { tenantId } = useParams<{ tenantId: string }>();
   let slates = useSlates(tenantId);
 
@@ -12,11 +13,16 @@ export let SlateList = () => {
 
     return (
       <Flex direction="column" gap={32}>
-        <div>
-          <Title size="6" weight="strong">Slates</Title>
-          <Spacer size={4} />
-          <Text size="2" color="gray600">View and manage slates for this tenant</Text>
-        </div>
+        <Flex justify="space-between" align="center">
+          <div>
+            <Title size="6" weight="strong">Slates</Title>
+            <Spacer size={4} />
+            <Text size="2" color="gray600">Slates are versioned packages published to this registry. Each slate belongs to a scope (user or workspace).</Text>
+          </div>
+          <Button onClick={() => navigate(`/tenants/${tenantId}/slates/new`)}>
+            + New Slate
+          </Button>
+        </Flex>
 
         {items.length === 0 ? (
           <Flex

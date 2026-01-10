@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { SlateCreate } from './pages/slates/SlateCreate';
 import { SlateDetail } from './pages/slates/SlateDetail';
 import { SlateList } from './pages/slates/SlateList';
 import { SlatePublish } from './pages/slates/SlatePublish';
@@ -9,6 +10,9 @@ import { SubRegistryList } from './pages/sub-registries/SubRegistryList';
 import { TenantCreate } from './pages/tenants/TenantCreate';
 import { TenantDetail } from './pages/tenants/TenantDetail';
 import { TenantList } from './pages/tenants/TenantList';
+import { UserCreate } from './pages/users/UserCreate';
+import { UserDetail } from './pages/users/UserDetail';
+import { UserList } from './pages/users/UserList';
 import { WorkspaceCreate } from './pages/workspaces/WorkspaceCreate';
 import { WorkspaceEdit } from './pages/workspaces/WorkspaceEdit';
 import { WorkspaceList } from './pages/workspaces/WorkspaceList';
@@ -33,7 +37,12 @@ export let App = () => {
         <Route path="/tenants/:tenantId/workspaces/new" element={<WorkspaceCreate />} />
         <Route path="/tenants/:tenantId/workspaces/:workspaceId/edit" element={<WorkspaceEdit />} />
 
+        <Route path="/tenants/:tenantId/users" element={<UserList />} />
+        <Route path="/tenants/:tenantId/users/new" element={<UserCreate />} />
+        <Route path="/tenants/:tenantId/users/:userId" element={<UserDetail />} />
+
         <Route path="/tenants/:tenantId/slates" element={<SlateList />} />
+        <Route path="/tenants/:tenantId/slates/new" element={<SlateCreate />} />
         <Route path="/tenants/:tenantId/slates/:slateId" element={<SlateDetail />} />
         <Route path="/tenants/:tenantId/slates/:slateId/publish" element={<SlatePublish />} />
       </Route>

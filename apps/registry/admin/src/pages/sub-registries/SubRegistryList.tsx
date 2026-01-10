@@ -17,7 +17,7 @@ export let SubRegistryList = () => {
           <div>
             <Title size="6" weight="strong">Sub-Registries</Title>
             <Spacer size={4} />
-            <Text size="2" color="gray600">Manage sub-registries for this tenant</Text>
+            <Text size="2" color="gray600">Sub-registries are filtered views of slates. Use filters to control which slates are visible to different audiences.</Text>
           </div>
           <Button onClick={() => navigate(`/tenants/${tenantId}/sub-registries/new`)}>
             + Create Sub-Registry
