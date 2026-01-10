@@ -1,133 +1,128 @@
-import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
-import { Flex, Text, Spacer } from '@metorial-io/ui';
+import { ExtraHeaderLayout, LargePaneLayout, SidebarPane } from '@metorial-io/layout';
+import { Logo } from '@metorial-io/ui';
+import {
+  RiApps2Line,
+  RiBuildingLine,
+  RiDashboardLine,
+  RiFileList3Line,
+  RiStackLine
+} from '@remixicon/react';
+import { Outlet, useLocation, useParams } from 'react-router-dom';
+import styled from 'styled-components';
 import { useTenant } from '../api/hooks';
 
+let getProps = ({ pathname, to }: { pathname: string; to: string }) => ({
+  isActive: pathname === to || pathname.startsWith(to + '/')
+});
+
 export let Layout = () => {
-  let location = useLocation();
+  let { pathname } = useLocation();
   let params = useParams<{ tenantId?: string }>();
   let tenantId = params.tenantId;
 
   let { data: tenant } = useTenant(tenantId ?? '');
 
-  let isOnTenantPage = location.pathname.startsWith('/tenants') && tenantId;
+  let isOnTenantPage = pathname.startsWith('/tenants') && tenantId;
 
-  let tenantNavItems = [
-    { path: `/tenants/${tenantId}/sub-registries`, label: 'Sub-Registries' },
-    { path: `/tenants/${tenantId}/workspaces`, label: 'Workspaces' },
-    { path: `/tenants/${tenantId}/slates`, label: 'Slates' }
+  let mainItems = [
+    {
+      icon: <RiBuildingLine />,
+      label: 'Tenants',
+      to: '/tenants',
+      getProps: ({ pathname }: { pathname: string; to: string }) => ({
+        isActive: pathname === '/tenants' || pathname === '/tenants/new'
+      })
+    }
   ];
 
-  return (
-    <Flex style={{ minHeight: '100vh' }}>
-      <Flex
-        direction="column"
-        style={{
-          width: 260,
-          background: '#fafafa',
-          borderRight: '1px solid #e8e8e8',
-          flexShrink: 0
-        }}
-      >
-        <Flex
-          direction="column"
-          style={{
-            padding: '24px 20px',
-            borderBottom: '1px solid #e8e8e8'
-          }}
-        >
-          <Flex align="center" gap={12}>
-            <img
-              src="https://cdn.brandfetch.io/idgJWIg5cr/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1762738932654"
-              alt="Metorial"
-              style={{ height: 24 }}
-            />
-          </Flex>
-          <Spacer size={8} />
-          <Text size="1" color="gray600">Admin Portal</Text>
-        </Flex>
+  let tenantItems = tenantId
+    ? [
+        {
+          icon: <RiDashboardLine />,
+          label: 'Overview',
+          to: `/tenants/${tenantId}`,
+          getProps: ({ pathname }: { pathname: string; to: string }) => ({
+            isActive: pathname === `/tenants/${tenantId}`
+          })
+        },
+        {
+          icon: <RiStackLine />,
+          label: 'Sub-Registries',
+          to: `/tenants/${tenantId}/sub-registries`,
+          getProps
+        },
+        {
+          icon: <RiApps2Line />,
+          label: 'Workspaces',
+          to: `/tenants/${tenantId}/workspaces`,
+          getProps
+        },
+        {
+          icon: <RiFileList3Line />,
+          label: 'Slates',
+          to: `/tenants/${tenantId}/slates`,
+          getProps
+        }
+      ]
+    : [];
 
-        <Flex direction="column" style={{ flex: 1, padding: '20px 12px' }} gap={4}>
-          <Link
-            to="/tenants"
-            style={{
-              display: 'block',
-              padding: '10px 12px',
-              fontSize: 14,
-              fontWeight: 450,
-              color: location.pathname === '/tenants' || location.pathname === '/tenants/new' ? '#111' : '#666',
-              background: location.pathname === '/tenants' || location.pathname === '/tenants/new' ? '#e8e8e8' : 'transparent',
-              borderRadius: 8,
-              textDecoration: 'none',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Tenants
-          </Link>
-
-          {isOnTenantPage && tenant && (
-            <>
-              <Spacer size={16} />
-              <Text size="1" color="gray600" weight="medium" transform="uppercase" style={{ letterSpacing: 1, padding: '0 12px', marginBottom: 8 }}>
-                {tenant.name}
-              </Text>
-
-              <Link
-                to={`/tenants/${tenantId}`}
-                style={{
-                  display: 'block',
-                  padding: '10px 12px',
-                  fontSize: 14,
-                  fontWeight: 450,
-                  color: location.pathname === `/tenants/${tenantId}` ? '#111' : '#666',
-                  background: location.pathname === `/tenants/${tenantId}` ? '#e8e8e8' : 'transparent',
-                  borderRadius: 8,
-                  textDecoration: 'none',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Overview
-              </Link>
-
-              {tenantNavItems.map(item => {
-                let isActive = location.pathname.startsWith(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    style={{
-                      display: 'block',
-                      padding: '10px 12px',
-                      fontSize: 14,
-                      fontWeight: 450,
-                      color: isActive ? '#111' : '#666',
-                      background: isActive ? '#e8e8e8' : 'transparent',
-                      borderRadius: 8,
-                      textDecoration: 'none',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </>
-          )}
-        </Flex>
-      </Flex>
-
-      <Flex
-        direction="column"
-        style={{
-          flex: 1,
-          background: '#fff',
-          overflowY: 'auto',
-          minHeight: '100vh'
-        }}
-      >
-        <div style={{ padding: '32px 40px', maxWidth: 1200 }}>
-          <Outlet />
-        </div>
-      </Flex>
-    </Flex>
+  let allItems = [...mainItems, ...tenantItems];
+  let currentItem = allItems.find(
+    item => item.getProps({ pathname, to: item.to }).isActive
   );
-}
+
+  let groups = [{ label: 'Navigation', items: mainItems }];
+
+  if (isOnTenantPage && tenant) {
+    groups.push({
+      label: tenant.name,
+      items: tenantItems
+    });
+  }
+
+  return (
+    <LargePaneLayout Nav={AdminNav}>
+      <SidebarPane id="main" groups={groups}>
+        <ExtraHeaderLayout
+          header={
+            <div style={{ fontWeight: 'bold' }}>
+              {currentItem?.label ?? 'Metorial Admin'}
+            </div>
+          }
+        >
+          <div style={{ padding: 20 }}>
+            <Outlet />
+          </div>
+        </ExtraHeaderLayout>
+      </SidebarPane>
+    </LargePaneLayout>
+  );
+};
+
+let NavWrapper = styled.header`
+  padding: 5px 15px 5px 5px;
+`;
+
+let NavContent = styled.nav`
+  display: flex;
+  align-items: center;
+  height: 50px;
+  gap: 10px;
+  color: #222;
+
+  h1 {
+    font-size: 18px;
+    margin: 0;
+  }
+`;
+
+export let AdminNav = () => {
+  return (
+    <NavWrapper>
+      <NavContent>
+        <Logo size={30} />
+        <h1>Metorial Admin</h1>
+      </NavContent>
+    </NavWrapper>
+  );
+};

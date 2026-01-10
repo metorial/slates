@@ -46,8 +46,11 @@
     "@lowerdeck/shadow-id": "^1.0.4",
     "@lowerdeck/slugify": "^1.0.4",
     "@lowerdeck/validation": "^1.0.4",
-    "@metorial-io/data-hooks": "^1.0.0",
+    "@metorial-io/data-hooks": "^1.0.1",
+    "@metorial-io/layout": "^1.0.0",
     "@metorial-io/ui": "^1.0.0",
+    "@radix-ui/themes": "^3.0.0",
+    "@remixicon/react": "^4.0.0",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@tanstack/react-query": "^5.60.0",
@@ -65,6 +68,7 @@
     "react-router-dom": "^6.28.0",
     "semver": "^7.7.3",
     "snowflake-uuid": "^1.0.0",
+    "styled-components": "^6.0.0",
     "unzipper": "^0.12.3",
     "yaml": "^2.8.2"
   }
