@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateTenant } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
+import { FormWrapper } from '../../components/styled';
 
 export let TenantCreate = () => {
   let navigate = useNavigate();
@@ -23,7 +24,7 @@ export let TenantCreate = () => {
     <Flex direction="column" gap={24}>
       <BackLink to="/tenants">Back to Tenants</BackLink>
 
-      <div style={{ maxWidth: 480 }}>
+      <FormWrapper>
         <Group.Wrapper>
           <Group.Header
             title="Create Tenant"
@@ -69,7 +70,7 @@ export let TenantCreate = () => {
             </form>
           </Group.Content>
         </Group.Wrapper>
-      </div>
+      </FormWrapper>
     </Flex>
   );
 }

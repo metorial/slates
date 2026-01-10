@@ -103,7 +103,7 @@ export let useCreateWorkspace = workspacesLoader.createExternalMutator(
     adminClient.workspace.create(data)
 );
 
-export let useUpdateWorkspace = workspacesLoader.createExternalMutator(
+export let useUpdateWorkspace = workspaceLoader.createExternalMutator(
   (data: { tenantId: string; workspaceId: string; name?: string; description?: string }) =>
     adminClient.workspace.update(data)
 );

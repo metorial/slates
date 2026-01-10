@@ -3,6 +3,7 @@ import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Flex, Text, Group, Badge as UiBadge } from '@metorial-io/ui';
 import { useTenant } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
+import { DataRow, MonoCode } from '../../components/styled';
 
 export let TenantDetail = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
@@ -16,27 +17,25 @@ export let TenantDetail = () => {
         <Group.Header
           title={tenant.data!.name}
           description={
-            <UiBadge color="gray" size="1" style={{ fontFamily: 'monospace' }}>
-              {tenant.data!.identifier}
+            <UiBadge color="gray" size="1">
+              <code>{tenant.data!.identifier}</code>
             </UiBadge>
           }
         />
         <Group.Content>
           <Flex direction="column" gap={16}>
-            <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">ID</Text>
-              <Text size="1" style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '4px 8px', borderRadius: 4 }}>
-                {tenant.data!.id}
-              </Text>
-            </Flex>
-            <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+              <MonoCode>{tenant.data!.id}</MonoCode>
+            </DataRow>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">Identifier</Text>
               <Text size="2" weight="medium">{tenant.data!.identifier}</Text>
-            </Flex>
-            <Flex justify="space-between" align="center">
+            </DataRow>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">Created</Text>
               <Text size="2" weight="medium">{new Date(tenant.data!.createdAt).toLocaleString()}</Text>
-            </Flex>
+            </DataRow>
           </Flex>
         </Group.Content>
       </Group.Wrapper>

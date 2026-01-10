@@ -12,8 +12,9 @@ let Card = styled.div`
   margin-bottom: 24px;
 `;
 
-let CardContent = styled.div`
+let CardContent = styled.div<{ $borderTop?: boolean }>`
   padding: 24px;
+  ${p => p.$borderTop && `border-top: 1px solid #f1f5f9;`}
 `;
 
 let CardHeader = styled.div`
@@ -225,10 +226,10 @@ let EmptyText = styled.p`
   margin: 0;
 `;
 
-let LoadingWrapper = styled.div`
+let LoadingWrapper = styled.div<{ $compact?: boolean }>`
   display: flex;
   justify-content: center;
-  padding: 80px;
+  padding: ${p => p.$compact ? '24px' : '80px'};
 `;
 
 let Spinner = styled.div`
@@ -287,7 +288,7 @@ export let SlateDetail = () => {
             </SlateHeader>
           </CardContent>
 
-          <CardContent style={{ borderTop: '1px solid #f1f5f9' }}>
+          <CardContent $borderTop>
             <BadgeRow>
               <Badge $color={slateData.access === 'public' ? 'green' : 'gray'}>{slateData.access}</Badge>
               <Badge $color={slateData.status === 'active' ? 'green' : 'gray'}>{slateData.status}</Badge>
@@ -336,7 +337,7 @@ export let SlateDetail = () => {
           </CardHeader>
           <CardContent>
             {versions.isLoading ? (
-              <LoadingWrapper style={{ padding: 24 }}>
+              <LoadingWrapper $compact>
                 <SmallSpinner />
               </LoadingWrapper>
             ) : versionItems.length === 0 ? (

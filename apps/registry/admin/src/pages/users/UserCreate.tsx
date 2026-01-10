@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Flex, Group, Input, Spacer, Text, Error } from '@metorial-io/ui';
+import { Button, Flex, Group, Input, Spacer, Error } from '@metorial-io/ui';
 import { useCreateUser } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
+import { FormWrapper } from '../../components/styled';
 
 export let UserCreate = () => {
   let navigate = useNavigate();
@@ -31,7 +32,7 @@ export let UserCreate = () => {
     <Flex direction="column" gap={24}>
       <BackLink to={`/tenants/${tenantId}/users`}>Back to Users</BackLink>
 
-      <div style={{ maxWidth: 480 }}>
+      <FormWrapper>
         <Group.Wrapper>
           <Group.Header
             title="Create User"
@@ -77,7 +78,7 @@ export let UserCreate = () => {
             </form>
           </Group.Content>
         </Group.Wrapper>
-      </div>
+      </FormWrapper>
     </Flex>
   );
 }

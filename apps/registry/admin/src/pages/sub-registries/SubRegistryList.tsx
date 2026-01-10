@@ -1,7 +1,8 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Text, Title, Flex, Spacer, Badge, Group } from '@metorial-io/ui';
 import { useSubRegistries } from '../../api/hooks';
+import { EmptyState, ListItemLink, ListItemRow, Avatar, MonoText } from '../../components/styled';
 
 export let SubRegistryList = () => {
   let navigate = useNavigate();
@@ -25,17 +26,7 @@ export let SubRegistryList = () => {
         </Flex>
 
         {items.length === 0 ? (
-          <Flex
-            direction="column"
-            align="center"
-            style={{
-              padding: '80px 40px',
-              background: '#fff',
-              borderRadius: 8,
-              border: '1px solid #e8e8e8',
-              textAlign: 'center'
-            }}
-          >
+          <EmptyState direction="column" align="center">
             <Title size="4" weight="strong">No sub-registries yet</Title>
             <Spacer size={8} />
             <Text size="2" color="gray600">
@@ -45,51 +36,31 @@ export let SubRegistryList = () => {
             <Button onClick={() => navigate(`/tenants/${tenantId}/sub-registries/new`)}>
               + Create Sub-Registry
             </Button>
-          </Flex>
+          </EmptyState>
         ) : (
           <Group.Wrapper>
             {items.map(subRegistry => (
-              <Link
-                key={subRegistry.id}
-                to={`/tenants/${tenantId}/sub-registries/${subRegistry.id}`}
-                style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-              >
-                <Flex
-                  align="center"
-                  justify="space-between"
-                  style={{ padding: '14px 20px' }}
-                >
+              <ListItemLink key={subRegistry.id} to={`/tenants/${tenantId}/sub-registries/${subRegistry.id}`}>
+                <ListItemRow align="center" justify="space-between">
                   <Flex align="center" gap={14}>
-                    <Flex
-                      align="center"
-                      justify="center"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 6,
-                        background: '#f0f0f0',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: '#666'
-                      }}
-                    >
+                    <Avatar align="center" justify="center">
                       {subRegistry.name.charAt(0).toUpperCase()}
-                    </Flex>
+                    </Avatar>
                     <div>
                       <Flex align="center" gap={8}>
                         <Text size="2" weight="medium">{subRegistry.name}</Text>
                         <Badge color="blue" size="1">{subRegistry.filters?.length ?? 0} filters</Badge>
                       </Flex>
-                      <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
-                        {subRegistry.identifier}
+                      <Text size="1" color="gray600">
+                        <MonoText>{subRegistry.identifier}</MonoText>
                       </Text>
                     </div>
                   </Flex>
                   <Text size="1" color="gray500">
                     {new Date(subRegistry.createdAt).toLocaleDateString()}
                   </Text>
-                </Flex>
-              </Link>
+                </ListItemRow>
+              </ListItemLink>
             ))}
           </Group.Wrapper>
         )}

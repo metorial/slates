@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
+import { styled } from 'styled-components';
 import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { DataRow, MonoCode, MonoText, Select, Card } from '../../components/styled';
+
+let DangerButton = styled(Button)`
+  color: #dc2626;
+  border-color: #fecaca;
+`;
 
 function getFilterTypeDescription(filterType: 'scope_type' | 'prefix' | 'package'): string {
   if (filterType === 'scope_type') return 'Filter by scope: enter a scope ID or identifier to show only slates owned by that scope';
@@ -47,27 +54,25 @@ export let SubRegistryDetail = () => {
         <Group.Header
           title={subRegistry.data!.name}
           description={
-            <Badge color="gray" size="1" style={{ fontFamily: 'monospace' }}>
-              {subRegistry.data!.identifier}
+            <Badge color="gray" size="1">
+              <code>{subRegistry.data!.identifier}</code>
             </Badge>
           }
         />
         <Group.Content>
           <Flex direction="column" gap={16}>
-            <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">ID</Text>
-              <Text size="1" style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '4px 8px', borderRadius: 4 }}>
-                {subRegistry.data!.id}
-              </Text>
-            </Flex>
-            <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+              <MonoCode>{subRegistry.data!.id}</MonoCode>
+            </DataRow>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">Tenant</Text>
               <Text size="2" weight="medium">{tenant.data?.name ?? '-'}</Text>
-            </Flex>
-            <Flex justify="space-between" align="center">
+            </DataRow>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">Created</Text>
               <Text size="2" weight="medium">{new Date(subRegistry.data!.createdAt).toLocaleString()}</Text>
-            </Flex>
+            </DataRow>
           </Flex>
         </Group.Content>
       </Group.Wrapper>
@@ -82,23 +87,17 @@ export let SubRegistryDetail = () => {
             <Flex direction="column" gap={16}>
               <Flex direction="column" gap={8}>
                 <Text size="2" weight="medium">Filter Type</Text>
-                <select
+                <Select
                   value={filterType}
                   onChange={e => {
                     setFilterType(e.target.value as any);
                     setFilterValue('');
                   }}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 6,
-                    border: '1px solid #e2e8f0',
-                    fontSize: 14
-                  }}
                 >
                   <option value="scope_type">Scope</option>
                   <option value="prefix">Prefix</option>
                   <option value="package">Package</option>
-                </select>
+                </Select>
                 <Text size="1" color="gray600">
                   {getFilterTypeDescription(filterType)}
                 </Text>
@@ -141,30 +140,23 @@ export let SubRegistryDetail = () => {
           ) : (
             <Flex direction="column" gap={12}>
               {subRegistry.data!.filters.map(filter => (
-                <Flex
-                  key={filter.id}
-                  align="center"
-                  justify="space-between"
-                  style={{
-                    padding: '14px 16px',
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8
-                  }}
-                >
-                  <Flex align="center" gap={12}>
-                    <Badge color="blue" size="1">{filter.type}</Badge>
-                    <Text size="2" weight="medium" style={{ fontFamily: 'monospace' }}>{filter.value}</Text>
+                <Card key={filter.id}>
+                  <Flex align="center" justify="space-between">
+                    <Flex align="center" gap={12}>
+                      <Badge color="blue" size="1">{filter.type}</Badge>
+                      <Text size="2" weight="medium">
+                        <MonoText>{filter.value}</MonoText>
+                      </Text>
+                    </Flex>
+                    <DangerButton
+                      variant="outline"
+                      size="1"
+                      onClick={() => setFilterToRemove(filter.id)}
+                    >
+                      Remove
+                    </DangerButton>
                   </Flex>
-                  <Button
-                    variant="outline"
-                    size="1"
-                    onClick={() => setFilterToRemove(filter.id)}
-                    style={{ color: '#dc2626', borderColor: '#fecaca' }}
-                  >
-                    Remove
-                  </Button>
-                </Flex>
+                </Card>
               ))}
             </Flex>
           )}

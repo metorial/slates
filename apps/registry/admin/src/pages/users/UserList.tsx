@@ -1,7 +1,8 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useUsers } from '../../api/hooks';
+import { EmptyState, ListItemLink, ListItemRow, Avatar, MonoText } from '../../components/styled';
 
 export let UserList = () => {
   let navigate = useNavigate();
@@ -25,17 +26,7 @@ export let UserList = () => {
         </Flex>
 
         {items.length === 0 ? (
-          <Flex
-            direction="column"
-            align="center"
-            style={{
-              padding: '80px 40px',
-              background: '#fff',
-              borderRadius: 8,
-              border: '1px solid #e8e8e8',
-              textAlign: 'center'
-            }}
-          >
+          <EmptyState direction="column" align="center">
             <Title size="4" weight="strong">No users yet</Title>
             <Spacer size={8} />
             <Text size="2" color="gray600">
@@ -45,36 +36,16 @@ export let UserList = () => {
             <Button onClick={() => navigate(`/tenants/${tenantId}/users/new`)}>
               + Create User
             </Button>
-          </Flex>
+          </EmptyState>
         ) : (
           <Group.Wrapper>
             {items.map(user => (
-              <Link
-                key={user.id}
-                to={`/tenants/${tenantId}/users/${user.id}`}
-                style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-              >
-                <Flex
-                  align="center"
-                  justify="space-between"
-                  style={{ padding: '14px 20px' }}
-                >
+              <ListItemLink key={user.id} to={`/tenants/${tenantId}/users/${user.id}`}>
+                <ListItemRow align="center" justify="space-between">
                   <Flex align="center" gap={14}>
-                    <Flex
-                      align="center"
-                      justify="center"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 6,
-                        background: '#f0f0f0',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: '#666'
-                      }}
-                    >
+                    <Avatar align="center" justify="center">
                       {user.name.charAt(0).toUpperCase()}
-                    </Flex>
+                    </Avatar>
                     <div>
                       <Flex align="center" gap={8}>
                         <Text size="2" weight="medium">{user.name}</Text>
@@ -82,16 +53,16 @@ export let UserList = () => {
                           {user.status}
                         </Badge>
                       </Flex>
-                      <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
-                        {user.identifier}
+                      <Text size="1" color="gray600">
+                        <MonoText>{user.identifier}</MonoText>
                       </Text>
                     </div>
                   </Flex>
                   <Text size="1" color="gray500">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </Text>
-                </Flex>
-              </Link>
+                </ListItemRow>
+              </ListItemLink>
             ))}
           </Group.Wrapper>
         )}

@@ -1,10 +1,57 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
+import { styled } from 'styled-components';
 import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
 import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+
+let DataRow = styled(Flex)`
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+`;
+
+let MonoText = styled.code`
+  font-family: monospace;
+  font-size: 12px;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 4px;
+`;
+
+let TokenCard = styled(Flex)`
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+`;
+
+let TokenSecret = styled.div<{ $copied?: boolean }>`
+  background: ${p => (p.$copied ? '#f0fdf4' : '#fff')};
+  border: 1px solid ${p => (p.$copied ? '#86efac' : '#e2e8f0')};
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: monospace;
+  font-size: 12px;
+  word-break: break-all;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: ${p => (p.$copied ? '#86efac' : '#cbd5e1')};
+  }
+`;
+
+let DangerButton = styled(Button)`
+  color: #dc2626;
+  border-color: #fecaca;
+`;
 
 function getTokenBadgeColor(status: string): 'green' | 'red' | 'gray' {
   if (status === 'active') return 'green';
@@ -22,6 +69,13 @@ export let UserDetail = () => {
   let [showCreateForm, setShowCreateForm] = useState(false);
   let [tokenName, setTokenName] = useState('');
   let [tokenToRevoke, setTokenToRevoke] = useState<string | null>(null);
+  let [copiedTokenId, setCopiedTokenId] = useState<string | null>(null);
+
+  let copyToClipboard = async (text: string, tokenId: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedTokenId(tokenId);
+    setTimeout(() => setCopiedTokenId(null), 2000);
+  };
 
   let handleCreateToken = async () => {
     if (!tenantId || !userId || !tokenName.trim()) return;
@@ -47,8 +101,8 @@ export let UserDetail = () => {
           title={user.data!.name}
           description={
             <Flex gap={8}>
-              <Badge color="gray" size="1" style={{ fontFamily: 'monospace' }}>
-                {user.data!.identifier}
+              <Badge color="gray" size="1">
+                <code>{user.data!.identifier}</code>
               </Badge>
               <Badge color={user.data!.status === 'active' ? 'green' : 'gray'} size="1">
                 {user.data!.status}
@@ -58,20 +112,18 @@ export let UserDetail = () => {
         />
         <Group.Content>
           <Flex direction="column" gap={16}>
-            <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">ID</Text>
-              <Text size="1" style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '4px 8px', borderRadius: 4 }}>
-                {user.data!.id}
-              </Text>
-            </Flex>
-            <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+              <MonoText>{user.data!.id}</MonoText>
+            </DataRow>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">Scope</Text>
               <Text size="2" weight="medium">{user.data!.scope?.identifier ?? '-'}</Text>
-            </Flex>
-            <Flex justify="space-between" align="center">
+            </DataRow>
+            <DataRow justify="space-between" align="center">
               <Text size="2" color="gray600">Created</Text>
               <Text size="2" weight="medium">{new Date(user.data!.createdAt).toLocaleString()}</Text>
-            </Flex>
+            </DataRow>
           </Flex>
         </Group.Content>
       </Group.Wrapper>
@@ -122,17 +174,7 @@ export let UserDetail = () => {
             return (
               <Flex direction="column" gap={12}>
                 {tokenItems.map(token => (
-                  <Flex
-                    key={token.id}
-                    direction="column"
-                    gap={8}
-                    style={{
-                      padding: '14px 16px',
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 8
-                    }}
-                  >
+                  <TokenCard key={token.id} direction="column" gap={8}>
                     <Flex align="center" justify="space-between">
                       <Flex align="center" gap={8}>
                         <Text size="2" weight="medium">{token.name}</Text>
@@ -141,29 +183,22 @@ export let UserDetail = () => {
                         </Badge>
                       </Flex>
                       {token.status === 'active' && (
-                        <Button
+                        <DangerButton
                           variant="outline"
                           size="1"
                           onClick={() => setTokenToRevoke(token.id)}
-                          style={{ color: '#dc2626', borderColor: '#fecaca' }}
                         >
                           Revoke
-                        </Button>
+                        </DangerButton>
                       )}
                     </Flex>
-                    <Flex
-                      style={{
-                        background: '#fff',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: 6,
-                        padding: '8px 12px',
-                        fontFamily: 'monospace',
-                        fontSize: 12,
-                        wordBreak: 'break-all'
-                      }}
+                    <TokenSecret
+                      $copied={copiedTokenId === token.id}
+                      onClick={() => copyToClipboard(token.secret, token.id)}
+                      title="Click to copy"
                     >
-                      {token.secret}
-                    </Flex>
+                      {copiedTokenId === token.id ? 'Copied!' : token.secret}
+                    </TokenSecret>
                     <Flex gap={16}>
                       <Text size="1" color="gray600">
                         Created: {new Date(token.createdAt).toLocaleDateString()}
@@ -174,7 +209,7 @@ export let UserDetail = () => {
                         </Text>
                       )}
                     </Flex>
-                  </Flex>
+                  </TokenCard>
                 ))}
               </Flex>
             );

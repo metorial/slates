@@ -37,6 +37,10 @@ let BreadcrumbCurrent = styled.span`
   color: #1e293b;
 `;
 
+let ContentWrapper = styled.div`
+  padding: 20px;
+`;
+
 function isExactMatch(pathname: string, to: string): boolean {
   return pathname === to;
 }
@@ -136,9 +140,9 @@ export let Layout = () => {
     <LargePaneLayout Nav={AdminNav}>
       <SidebarPane id="main" groups={groups}>
         <ExtraHeaderLayout header={breadcrumbHeader}>
-          <div style={{ padding: 20 }}>
+          <ContentWrapper>
             <Outlet />
-          </div>
+          </ContentWrapper>
         </ExtraHeaderLayout>
       </SidebarPane>
     </LargePaneLayout>

@@ -2,66 +2,9 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Flex, Group, Input, Spacer, Text, Error } from '@metorial-io/ui';
-import { styled } from 'styled-components';
 import { usePublishNewSlate, useUsers, useWorkspaces } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
-
-let Select = styled.select`
-  padding: 10px 14px;
-  font-size: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
-  transition: all 0.15s;
-  cursor: pointer;
-
-  &:hover {
-    border-color: #cbd5e1;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-`;
-
-let StyledFileInput = styled.input`
-  width: 100%;
-  padding: 12px 14px;
-  font-size: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #f8fafc;
-  transition: all 0.15s;
-
-  &:hover {
-    border-color: #cbd5e1;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  &::file-selector-button {
-    padding: 6px 12px;
-    margin-right: 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    background: #fff;
-    color: #374151;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-
-    &:hover {
-      background: #f1f5f9;
-    }
-  }
-`;
+import { FormWrapper, Select, FileInput } from '../../components/styled';
 
 export let SlateCreate = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
@@ -114,7 +57,7 @@ export let SlateCreate = () => {
       <Flex direction="column" gap={24}>
         <BackLink to={`/tenants/${tenantId}/slates`}>Back to Slates</BackLink>
 
-        <div style={{ maxWidth: 480 }}>
+        <FormWrapper>
           <Group.Wrapper>
             <Group.Header
               title="Create New Slate"
@@ -162,7 +105,7 @@ export let SlateCreate = () => {
 
                   <Flex direction="column" gap={6}>
                     <Text size="2" weight="medium">Slate Package (ZIP)</Text>
-                    <StyledFileInput type="file" accept=".zip" onChange={handleFileChange} required />
+                    <FileInput type="file" accept=".zip" onChange={handleFileChange} required />
                     <Text size="1" color="gray600">
                       ZIP file with slate.json at root (not in a subfolder). Create with: cd your-slate && zip -r slate.zip .
                     </Text>
@@ -201,7 +144,7 @@ export let SlateCreate = () => {
               </form>
             </Group.Content>
           </Group.Wrapper>
-        </div>
+        </FormWrapper>
       </Flex>
     );
   });

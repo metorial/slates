@@ -1,7 +1,19 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
+import { styled } from 'styled-components';
 import { useSlates } from '../../api/hooks';
+import { EmptyState, ListItemLink, TableHeaderRow, SlateLogoImage, SlateLogoPlaceholder, ActionLink } from '../../components/styled';
+
+let SlateRow = styled(Group.Row)`
+  padding: 16px 20px;
+  cursor: pointer;
+`;
+
+let SlateColumn = styled(Flex)<{ $width?: number }>`
+  ${p => p.$width && `width: ${p.$width}px;`}
+  ${p => !p.$width && `flex: 1;`}
+`;
 
 export let SlateList = () => {
   let navigate = useNavigate();
@@ -25,101 +37,57 @@ export let SlateList = () => {
         </Flex>
 
         {items.length === 0 ? (
-          <Flex
-            direction="column"
-            align="center"
-            style={{
-              padding: '80px 40px',
-              background: '#fff',
-              borderRadius: 12,
-              border: '1px solid #e2e8f0',
-              textAlign: 'center'
-            }}
-          >
+          <EmptyState direction="column" align="center">
             <Title size="4" weight="strong">No slates found</Title>
             <Spacer size={8} />
             <Text size="2" color="gray600">This tenant doesn't have any slates yet.</Text>
-          </Flex>
+          </EmptyState>
         ) : (
           <Group.Wrapper>
             <Group.HeaderRow>
-              <Flex style={{ fontWeight: 600, fontSize: 12, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                <div style={{ flex: 1 }}>Slate</div>
-                <div style={{ width: 140 }}>Version</div>
-                <div style={{ width: 120 }}>Access</div>
-                <div style={{ width: 100 }}>Actions</div>
-              </Flex>
+              <TableHeaderRow>
+                <SlateColumn>Slate</SlateColumn>
+                <SlateColumn $width={140}>Version</SlateColumn>
+                <SlateColumn $width={120}>Access</SlateColumn>
+                <SlateColumn $width={100}>Actions</SlateColumn>
+              </TableHeaderRow>
             </Group.HeaderRow>
             {items.map(slate => (
-              <Link
-                key={slate.id}
-                to={`/tenants/${tenantId}/slates/${slate.id}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                <Group.Row style={{ padding: '16px 20px', cursor: 'pointer' }}>
+              <ListItemLink key={slate.id} to={`/tenants/${tenantId}/slates/${slate.id}`}>
+                <SlateRow>
                   <Flex align="center">
-                    <Flex align="center" gap={14} style={{ flex: 1 }}>
+                    <SlateColumn align="center" gap={14}>
                       {slate.logoUrl ? (
-                        <img
-                          src={slate.logoUrl}
-                          alt=""
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 10,
-                            objectFit: 'cover',
-                            background: '#f1f5f9'
-                          }}
-                        />
+                        <SlateLogoImage src={slate.logoUrl} alt="" />
                       ) : (
-                        <Flex
-                          align="center"
-                          justify="center"
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 10,
-                            background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)',
-                            fontSize: 16,
-                            color: '#94a3b8'
-                          }}
-                        >
+                        <SlateLogoPlaceholder align="center" justify="center">
                           S
-                        </Flex>
+                        </SlateLogoPlaceholder>
                       )}
                       <Flex direction="column">
                         <Text size="2" weight="strong">{slate.name}</Text>
                         <Text size="1" color="gray600">{slate.fullIdentifier}</Text>
                       </Flex>
-                    </Flex>
-                    <Flex align="center" style={{ width: 140 }}>
+                    </SlateColumn>
+                    <SlateColumn align="center" $width={140}>
                       <Badge color="blue">v{slate.currentVersion?.version ?? '-'}</Badge>
-                    </Flex>
-                    <Flex align="center" style={{ width: 120 }}>
+                    </SlateColumn>
+                    <SlateColumn align="center" $width={120}>
                       <Badge color={slate.access === 'public' ? 'green' : 'gray'}>
                         {slate.access}
                       </Badge>
-                    </Flex>
-                    <Flex align="center" style={{ width: 100 }}>
-                      <Link
+                    </SlateColumn>
+                    <SlateColumn align="center" $width={100}>
+                      <ActionLink
                         to={`/tenants/${tenantId}/slates/${slate.id}/publish`}
                         onClick={e => e.stopPropagation()}
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: 12,
-                          fontWeight: 500,
-                          color: '#3b82f6',
-                          background: '#eff6ff',
-                          borderRadius: 6,
-                          textDecoration: 'none'
-                        }}
                       >
                         Publish
-                      </Link>
-                    </Flex>
+                      </ActionLink>
+                    </SlateColumn>
                   </Flex>
-                </Group.Row>
-              </Link>
+                </SlateRow>
+              </ListItemLink>
             ))}
           </Group.Wrapper>
         )}

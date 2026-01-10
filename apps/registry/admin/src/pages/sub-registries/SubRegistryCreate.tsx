@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateSubRegistry } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
+import { FormWrapper } from '../../components/styled';
 
 export let SubRegistryCreate = () => {
   let navigate = useNavigate();
@@ -25,7 +26,7 @@ export let SubRegistryCreate = () => {
     <Flex direction="column" gap={24}>
       <BackLink to={`/tenants/${tenantId}/sub-registries`}>Back to Sub-Registries</BackLink>
 
-      <div style={{ maxWidth: 480 }}>
+      <FormWrapper>
         <Group.Wrapper>
           <Group.Header
             title="Create Sub-Registry"
@@ -71,7 +72,7 @@ export let SubRegistryCreate = () => {
             </form>
           </Group.Content>
         </Group.Wrapper>
-      </div>
+      </FormWrapper>
     </Flex>
   );
 }

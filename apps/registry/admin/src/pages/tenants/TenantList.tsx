@@ -1,7 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Button, Text, Title, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useTenants } from '../../api/hooks';
+import { EmptyState, ListItemLink, ListItemRow, Avatar, MonoText } from '../../components/styled';
 
 export let TenantList = () => {
   let navigate = useNavigate();
@@ -24,17 +25,7 @@ export let TenantList = () => {
         </Flex>
 
         {items.length === 0 ? (
-          <Flex
-            direction="column"
-            align="center"
-            style={{
-              padding: '80px 40px',
-              background: '#fff',
-              borderRadius: 8,
-              border: '1px solid #e8e8e8',
-              textAlign: 'center'
-            }}
-          >
+          <EmptyState direction="column" align="center">
             <Title size="4" weight="strong">No tenants yet</Title>
             <Spacer size={8} />
             <Text size="2" color="gray600">
@@ -44,48 +35,28 @@ export let TenantList = () => {
             <Button onClick={() => navigate('/tenants/new')}>
               + Create Tenant
             </Button>
-          </Flex>
+          </EmptyState>
         ) : (
           <Group.Wrapper>
             {items.map(tenant => (
-              <Link
-                key={tenant.id}
-                to={`/tenants/${tenant.id}`}
-                style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
-              >
-                <Flex
-                  align="center"
-                  justify="space-between"
-                  style={{ padding: '14px 20px' }}
-                >
+              <ListItemLink key={tenant.id} to={`/tenants/${tenant.id}`}>
+                <ListItemRow align="center" justify="space-between">
                   <Flex align="center" gap={14}>
-                    <Flex
-                      align="center"
-                      justify="center"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 6,
-                        background: '#f0f0f0',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: '#666'
-                      }}
-                    >
+                    <Avatar align="center" justify="center">
                       {tenant.name.charAt(0).toUpperCase()}
-                    </Flex>
+                    </Avatar>
                     <div>
                       <Text size="2" weight="medium">{tenant.name}</Text>
-                      <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
-                        {tenant.identifier}
+                      <Text size="1" color="gray600">
+                        <MonoText>{tenant.identifier}</MonoText>
                       </Text>
                     </div>
                   </Flex>
                   <Text size="1" color="gray500">
                     {new Date(tenant.createdAt).toLocaleDateString()}
                   </Text>
-                </Flex>
-              </Link>
+                </ListItemRow>
+              </ListItemLink>
             ))}
           </Group.Wrapper>
         )}

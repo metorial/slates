@@ -95,7 +95,7 @@ class workspaceServiceImpl {
   }
 
   async updateWorkspace(d: {
-    workspace: Workspace;
+    workspace: Workspace & { scope: { oid: bigint } };
     input: {
       name?: string;
       description?: string;
@@ -104,7 +104,7 @@ class workspaceServiceImpl {
   }) {
     return await db.$transaction(async db => {
       await db.scope.update({
-        where: { oid: d.workspace.scopeOid },
+        where: { oid: d.workspace.scope.oid },
         data: {
           name: d.input.name,
           description: d.input.description,

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateWorkspace } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
+import { FormWrapper } from '../../components/styled';
 
 export let WorkspaceCreate = () => {
   let navigate = useNavigate();
@@ -31,7 +32,7 @@ export let WorkspaceCreate = () => {
     <Flex direction="column" gap={24}>
       <BackLink to={`/tenants/${tenantId}/workspaces`}>Back to Workspaces</BackLink>
 
-      <div style={{ maxWidth: 480 }}>
+      <FormWrapper>
         <Group.Wrapper>
           <Group.Header
             title="Create Workspace"
@@ -85,7 +86,7 @@ export let WorkspaceCreate = () => {
             </form>
           </Group.Content>
         </Group.Wrapper>
-      </div>
+      </FormWrapper>
     </Flex>
   );
 }
