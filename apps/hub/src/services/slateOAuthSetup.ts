@@ -2,7 +2,7 @@ import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { getSentry } from '@lowerdeck/sentry';
 import { Service } from '@lowerdeck/service';
-import type { SlateInstance, SlateInstanceOAuthSetup } from '../../prisma/generated/browser';
+import type { SlateInstanceOAuthSetup, SlateVersion } from '../../prisma/generated/browser';
 import type { Slate, SlateOAuthCredentials, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId } from '../id';
@@ -21,19 +21,19 @@ let include = {
   oauthCredentials: true
 };
 
-class slateInstanceOAuthSetupServiceImpl {
+class slateOAuthSetupServiceImpl {
   async createSlateInstanceOAuthSetup(d: {
     tenant: Tenant;
     input: {
       oauthCredentials: SlateOAuthCredentials;
       slate: Slate;
-      slateInstance?: SlateInstance;
+      slateVersion?: SlateVersion;
       authMethodId?: string;
       redirectUrl: string;
       input: Record<string, any>;
     };
   }) {
-    if (d.input.slateInstance && d.input.slateInstance.slateOid != d.input.slate.oid) {
+    if (d.input.slateVersion && d.input.slateVersion.slateOid != d.input.slate.oid) {
       throw new ServiceError(
         badRequestError({
           message: 'Slate Instance does not belong to the provided Slate.'
@@ -43,7 +43,7 @@ class slateInstanceOAuthSetupServiceImpl {
 
     let version = await this.getVersion({
       slate: d.input.slate,
-      lockedVersionOid: d.input.slateInstance?.lockedSlateVersionOid ?? undefined
+      lockedVersionOid: d.input.slateVersion?.oid ?? undefined
     });
     let authMethods = (version.specification?.slateAuthMethods ?? []).map(a => a.authMethod);
 
@@ -95,8 +95,7 @@ class slateInstanceOAuthSetupServiceImpl {
         secretOid: secret.oid,
         oauthCredentialsOid: d.input.oauthCredentials.oid,
         authMethodOid: authMethod.oid,
-        slateVersionOid: version.oid,
-        slateInstanceOid: d.input.slateInstance?.oid
+        slateVersionOid: version.oid
       },
       include
     });
@@ -201,7 +200,7 @@ class slateInstanceOAuthSetupServiceImpl {
   }
 }
 
-export let slateInstanceOAuthSetupService = Service.create(
-  'slateInstanceOAuthSetupService',
-  () => new slateInstanceOAuthSetupServiceImpl()
+export let slateOAuthSetupService = Service.create(
+  'slateOAuthSetupService',
+  () => new slateOAuthSetupServiceImpl()
 ).build();

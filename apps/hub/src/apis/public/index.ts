@@ -2,7 +2,7 @@ import { badRequestError, ServiceError } from '@lowerdeck/error';
 import { createHono } from '@lowerdeck/hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { env } from '../../env';
-import { slateInstanceOAuthHandlerService } from '../../services/slateInstanceOAuthHandler';
+import { slateOAuthHandlerService } from '../../services/slateOAuthHandler';
 
 const SETUP_COOKIE_NAME = 'slates_hub_oauth_setup_id';
 
@@ -30,7 +30,7 @@ export let hubApp = createHono()
     if (!oauthSetupId)
       throw new ServiceError(badRequestError({ message: 'setup_id is required' }));
 
-    let res = await slateInstanceOAuthHandlerService.startOAuthFlow({
+    let res = await slateOAuthHandlerService.startOAuthFlow({
       setupId: oauthSetupId
     });
 
@@ -51,7 +51,7 @@ export let hubApp = createHono()
     let errorDescription = c.req.query('error_description');
 
     if (error || !code) {
-      let res = await slateInstanceOAuthHandlerService.reportError({
+      let res = await slateOAuthHandlerService.reportError({
         input: {
           lastOAuthSetupCookieId: setupCookie,
           state: state || undefined,
@@ -63,7 +63,7 @@ export let hubApp = createHono()
       return c.redirect(res.redirectUrl);
     }
 
-    let res = await slateInstanceOAuthHandlerService.completeOAuthFlow({
+    let res = await slateOAuthHandlerService.completeOAuthFlow({
       input: {
         code,
         lastOAuthSetupCookieId: setupCookie,
