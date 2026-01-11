@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Group, Input, Spacer, Error } from '@metorial-io/ui';
+import { Button, Flex, Group, Input, Spacer } from '@metorial-io/ui';
 import { useCreateUser } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper } from '../../components/styled';
@@ -56,6 +56,7 @@ export let UserCreate = () => {
                   onInput={v => form.setFieldValue('name', v)}
                   required
                 />
+                <form.RenderError field="name" />
 
                 <Input
                   label="Identifier"
@@ -66,10 +67,9 @@ export let UserCreate = () => {
                   pattern="[a-z0-9-]+"
                   required
                 />
+                <form.RenderError field="identifier" />
 
-                {createUser.error && (
-                  <Error>Error: {String(createUser.error)}</Error>
-                )}
+                <createUser.RenderError />
 
                 <Spacer size={8} />
 

@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Avatar, Button, Text, Title, Flex, Spacer, Badge, Group } from '@metorial-io/ui';
+import { renderWithPagination } from '@metorial-io/data-hooks';
+import { Avatar, Button, Text, Title, Flex, Spacer, Badge, Group, RenderDate } from '@metorial-io/ui';
 import { useSubRegistries } from '../../api/hooks';
 import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
@@ -9,8 +9,22 @@ export let SubRegistryList = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
   let subRegistries = useSubRegistries(tenantId);
 
-  return renderWithLoader({ subRegistries })(({ subRegistries }) => {
-    let items = subRegistries.data?.items ?? [];
+  let emptyState = (
+    <EmptyState direction="column" align="center">
+      <Title size="4" weight="strong">No sub-registries yet</Title>
+      <Spacer size={8} />
+      <Text size="2" color="gray600">
+        Create your first sub-registry to organize slate access.
+      </Text>
+      <Spacer size={24} />
+      <Button onClick={() => navigate(`/tenants/${tenantId}/sub-registries/new`)}>
+        + Create Sub-Registry
+      </Button>
+    </EmptyState>
+  );
+
+  return renderWithPagination(subRegistries, { emptyState })(({ data }) => {
+    let items = data.items;
 
     return (
       <Flex direction="column" gap={24}>
@@ -25,43 +39,29 @@ export let SubRegistryList = () => {
           </Button>
         </Flex>
 
-        {items.length === 0 ? (
-          <EmptyState direction="column" align="center">
-            <Title size="4" weight="strong">No sub-registries yet</Title>
-            <Spacer size={8} />
-            <Text size="2" color="gray600">
-              Create your first sub-registry to organize slate access.
-            </Text>
-            <Spacer size={24} />
-            <Button onClick={() => navigate(`/tenants/${tenantId}/sub-registries/new`)}>
-              + Create Sub-Registry
-            </Button>
-          </EmptyState>
-        ) : (
-          <Group.Wrapper>
-            {items.map(subRegistry => (
-              <ListItemLink key={subRegistry.id} to={`/tenants/${tenantId}/sub-registries/${subRegistry.id}`}>
-                <ListItemRow align="center" justify="space-between">
-                  <Flex align="center" gap={14}>
-                    <Avatar entity={{ name: subRegistry.name }} size={32} withInitials radius={6} />
-                    <div>
-                      <Flex align="center" gap={8}>
-                        <Text size="2" weight="medium">{subRegistry.name}</Text>
-                        <Badge color="blue" size="1">{subRegistry.filters?.length ?? 0} filters</Badge>
-                      </Flex>
-                      <Text size="1" color="gray600">
-                        <MonoText>{subRegistry.identifier}</MonoText>
-                      </Text>
-                    </div>
-                  </Flex>
-                  <Text size="1" color="gray500">
-                    {new Date(subRegistry.createdAt).toLocaleDateString()}
-                  </Text>
-                </ListItemRow>
-              </ListItemLink>
-            ))}
-          </Group.Wrapper>
-        )}
+        <Group.Wrapper>
+          {items.map(subRegistry => (
+            <ListItemLink key={subRegistry.id} to={`/tenants/${tenantId}/sub-registries/${subRegistry.id}`}>
+              <ListItemRow align="center" justify="space-between">
+                <Flex align="center" gap={14}>
+                  <Avatar entity={{ name: subRegistry.name }} size={32} withInitials radius={6} />
+                  <div>
+                    <Flex align="center" gap={8}>
+                      <Text size="2" weight="medium">{subRegistry.name}</Text>
+                      <Badge color="blue" size="1">{subRegistry.filters?.length ?? 0} filters</Badge>
+                    </Flex>
+                    <Text size="1" color="gray600">
+                      <MonoText>{subRegistry.identifier}</MonoText>
+                    </Text>
+                  </div>
+                </Flex>
+                <Text size="1" color="gray500">
+                  <RenderDate date={subRegistry.createdAt} />
+                </Text>
+              </ListItemRow>
+            </ListItemLink>
+          ))}
+        </Group.Wrapper>
       </Flex>
     );
   });

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { renderWithLoader } from '@metorial-io/data-hooks';
+import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
 import { styled } from 'styled-components';
 import { useSlates } from '../../api/hooks';
@@ -20,8 +20,16 @@ export let SlateList = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
   let slates = useSlates(tenantId);
 
-  return renderWithLoader({ slates })(({ slates }) => {
-    let items = slates.data?.items ?? [];
+  let emptyState = (
+    <EmptyState direction="column" align="center">
+      <Title size="4" weight="strong">No slates found</Title>
+      <Spacer size={8} />
+      <Text size="2" color="gray600">This tenant doesn't have any slates yet.</Text>
+    </EmptyState>
+  );
+
+  return renderWithPagination(slates, { emptyState })(({ data }) => {
+    let items = data.items;
 
     return (
       <Flex direction="column" gap={32}>
@@ -36,61 +44,53 @@ export let SlateList = () => {
           </Button>
         </Flex>
 
-        {items.length === 0 ? (
-          <EmptyState direction="column" align="center">
-            <Title size="4" weight="strong">No slates found</Title>
-            <Spacer size={8} />
-            <Text size="2" color="gray600">This tenant doesn't have any slates yet.</Text>
-          </EmptyState>
-        ) : (
-          <Group.Wrapper>
-            <Group.HeaderRow>
-              <TableHeaderRow>
-                <SlateColumn>Slate</SlateColumn>
-                <SlateColumn $width={140}>Version</SlateColumn>
-                <SlateColumn $width={120}>Access</SlateColumn>
-                <SlateColumn $width={100}>Actions</SlateColumn>
-              </TableHeaderRow>
-            </Group.HeaderRow>
-            {items.map(slate => (
-              <ListItemLink key={slate.id} to={`/tenants/${tenantId}/slates/${slate.id}`}>
-                <SlateRow>
-                  <Flex align="center">
-                    <SlateColumn align="center" gap={14}>
-                      {slate.logoUrl ? (
-                        <SlateLogoImage src={slate.logoUrl} alt="" />
-                      ) : (
-                        <SlateLogoPlaceholder align="center" justify="center">
-                          S
-                        </SlateLogoPlaceholder>
-                      )}
-                      <Flex direction="column">
-                        <Text size="2" weight="strong">{slate.name}</Text>
-                        <Text size="1" color="gray600">{slate.fullIdentifier}</Text>
-                      </Flex>
-                    </SlateColumn>
-                    <SlateColumn align="center" $width={140}>
-                      <Badge color="blue">v{slate.currentVersion?.version ?? '-'}</Badge>
-                    </SlateColumn>
-                    <SlateColumn align="center" $width={120}>
-                      <Badge color={slate.access === 'public' ? 'green' : 'gray'}>
-                        {slate.access}
-                      </Badge>
-                    </SlateColumn>
-                    <SlateColumn align="center" $width={100}>
-                      <ActionLink
-                        to={`/tenants/${tenantId}/slates/${slate.id}/publish`}
-                        onClick={e => e.stopPropagation()}
-                      >
-                        Publish
-                      </ActionLink>
-                    </SlateColumn>
-                  </Flex>
-                </SlateRow>
-              </ListItemLink>
-            ))}
-          </Group.Wrapper>
-        )}
+        <Group.Wrapper>
+          <Group.HeaderRow>
+            <TableHeaderRow>
+              <SlateColumn>Slate</SlateColumn>
+              <SlateColumn $width={140}>Version</SlateColumn>
+              <SlateColumn $width={120}>Access</SlateColumn>
+              <SlateColumn $width={100}>Actions</SlateColumn>
+            </TableHeaderRow>
+          </Group.HeaderRow>
+          {items.map(slate => (
+            <ListItemLink key={slate.id} to={`/tenants/${tenantId}/slates/${slate.id}`}>
+              <SlateRow>
+                <Flex align="center">
+                  <SlateColumn align="center" gap={14}>
+                    {slate.logoUrl ? (
+                      <SlateLogoImage src={slate.logoUrl} alt="" />
+                    ) : (
+                      <SlateLogoPlaceholder align="center" justify="center">
+                        S
+                      </SlateLogoPlaceholder>
+                    )}
+                    <Flex direction="column">
+                      <Text size="2" weight="strong">{slate.name}</Text>
+                      <Text size="1" color="gray600">{slate.fullIdentifier}</Text>
+                    </Flex>
+                  </SlateColumn>
+                  <SlateColumn align="center" $width={140}>
+                    <Badge color="blue">v{slate.currentVersion?.version ?? '-'}</Badge>
+                  </SlateColumn>
+                  <SlateColumn align="center" $width={120}>
+                    <Badge color={slate.access === 'public' ? 'green' : 'gray'}>
+                      {slate.access}
+                    </Badge>
+                  </SlateColumn>
+                  <SlateColumn align="center" $width={100}>
+                    <ActionLink
+                      to={`/tenants/${tenantId}/slates/${slate.id}/publish`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      Publish
+                    </ActionLink>
+                  </SlateColumn>
+                </Flex>
+              </SlateRow>
+            </ListItemLink>
+          ))}
+        </Group.Wrapper>
       </Flex>
     );
   });

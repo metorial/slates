@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist, Select, Callout } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Datalist, Select, Callout, RenderDate } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -67,7 +67,7 @@ export let SubRegistryDetail = () => {
             items={[
               { label: 'ID', value: <MonoCode>{subRegistry.data!.id}</MonoCode> },
               { label: 'Tenant', value: tenant.data?.name ?? '-' },
-              { label: 'Created', value: new Date(subRegistry.data!.createdAt).toLocaleString() }
+              { label: 'Created', value: <RenderDate date={subRegistry.data!.createdAt} /> }
             ]}
           />
         </Group.Content>
@@ -103,10 +103,10 @@ export let SubRegistryDetail = () => {
                   value={filterForm.values.filterValue}
                   onChange={e => filterForm.setFieldValue('filterValue', e.target.value)}
                 />
+                <filterForm.RenderError field="filterType" />
+                <filterForm.RenderError field="filterValue" />
 
-                {addFilter.error && (
-                  <Error>{String(addFilter.error)}</Error>
-                )}
+                <addFilter.RenderError />
 
                 <Flex gap={8}>
                   <Button
@@ -136,7 +136,7 @@ export let SubRegistryDetail = () => {
             <Flex direction="column" gap={12}>
               {subRegistry.data!.filters.map(filter => (
                 <Callout key={filter.id} color="gray">
-                  <Flex align="center" justify="space-between">
+                  <Flex align="center" justify="space-between" style={{ width: '100%' }}>
                     <Flex align="center" gap={12}>
                       <Badge color="blue" size="1">{filter.type}</Badge>
                       <Text size="2" weight="medium">

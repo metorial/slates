@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Group, Text, Error, Select, Callout } from '@metorial-io/ui';
+import { Button, Flex, Group, Text, Select, Callout } from '@metorial-io/ui';
 import { usePublishSlate, useSlate } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper, FileInput, MonoCode } from '../../components/styled';
@@ -80,6 +80,7 @@ export let SlatePublish = () => {
                       onChange={e => form.setFieldValue('file', e.target.files?.[0] ?? null)}
                       required
                     />
+                    <form.RenderError field="file" />
                     <Text size="1" color="gray500">Upload a ZIP file containing slate.json and other assets</Text>
                   </Flex>
 
@@ -92,10 +93,9 @@ export let SlatePublish = () => {
                       { id: 'public', label: 'Public' }
                     ]}
                   />
+                  <form.RenderError field="access" />
 
-                  {publishSlate.error && (
-                    <Error>Error: {String(publishSlate.error)}</Error>
-                  )}
+                  <publishSlate.RenderError />
 
                   <Flex gap={12} style={{ marginTop: 8 }}>
                     <Button type="submit" color="green" disabled={!form.values.file} loading={publishSlate.isLoading}>

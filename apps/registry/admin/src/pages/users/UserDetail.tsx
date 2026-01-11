@@ -1,28 +1,11 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { styled } from 'styled-components';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist, Callout } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Datalist, Callout, RenderDate, Copy } from '@metorial-io/ui';
 import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MonoCode } from '../../components/styled';
-
-let TokenSecret = styled.div<{ $copied?: boolean }>`
-  background: ${p => (p.$copied ? '#f0fdf4' : '#fff')};
-  border: 1px solid ${p => (p.$copied ? '#86efac' : '#e2e8f0')};
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-family: monospace;
-  font-size: 12px;
-  word-break: break-all;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover {
-    border-color: ${p => (p.$copied ? '#86efac' : '#cbd5e1')};
-  }
-`;
 
 let getTokenBadgeColor = (status: string): 'green' | 'red' | 'gray' => {
   if (status === 'active') return 'green';
@@ -39,7 +22,6 @@ export let UserDetail = () => {
 
   let [showCreateForm, setShowCreateForm] = useState(false);
   let [tokenToRevoke, setTokenToRevoke] = useState<string | null>(null);
-  let [copiedTokenId, setCopiedTokenId] = useState<string | null>(null);
 
   let tokenForm = useForm({
     initialValues: {
@@ -58,12 +40,6 @@ export let UserDetail = () => {
         tokenName: yup.string().required()
       })
   });
-
-  let copyToClipboard = async (text: string, tokenId: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedTokenId(tokenId);
-    setTimeout(() => setCopiedTokenId(null), 2000);
-  };
 
   let handleRevokeToken = async () => {
     if (!tenantId || !userId || !tokenToRevoke) return;
@@ -94,7 +70,7 @@ export let UserDetail = () => {
             items={[
               { label: 'ID', value: <MonoCode>{user.data!.id}</MonoCode> },
               { label: 'Scope', value: user.data!.scope?.identifier ?? '-' },
-              { label: 'Created', value: new Date(user.data!.createdAt).toLocaleString() }
+              { label: 'Created', value: <RenderDate date={user.data!.createdAt} /> }
             ]}
           />
         </Group.Content>
@@ -115,9 +91,8 @@ export let UserDetail = () => {
                   value={tokenForm.values.tokenName}
                   onChange={e => tokenForm.setFieldValue('tokenName', e.target.value)}
                 />
-                {createToken.error && (
-                  <Error>{String(createToken.error)}</Error>
-                )}
+                <tokenForm.RenderError field="tokenName" />
+                <createToken.RenderError />
                 <Flex gap={8}>
                   <Button
                     type="submit"
@@ -168,26 +143,40 @@ export let UserDetail = () => {
                           </Button>
                         )}
                       </Flex>
-                      <TokenSecret
-                        $copied={copiedTokenId === token.id}
-                        onClick={() => copyToClipboard(token.secret, token.id)}
-                        title="Click to copy"
-                      >
-                        {copiedTokenId === token.id ? 'Copied!' : token.secret}
-                      </TokenSecret>
+                      <Copy value={token.secret} />
                       <Flex gap={16}>
                         <Text size="1" color="gray600">
-                          Created: {new Date(token.createdAt).toLocaleDateString()}
+                          Created: <RenderDate date={token.createdAt} />
                         </Text>
                         {token.expiresAt && (
                           <Text size="1" color="gray600">
-                            Expires: {new Date(token.expiresAt).toLocaleDateString()}
+                            Expires: <RenderDate date={token.expiresAt} />
                           </Text>
                         )}
                       </Flex>
                     </Flex>
                   </Callout>
                 ))}
+                {(tokens.data?.pagination.hasMoreBefore || tokens.data?.pagination.hasMoreAfter) && (
+                  <Flex justify="flex-end" gap={10}>
+                    <Button
+                      variant="outline"
+                      size="2"
+                      disabled={!tokens.data?.pagination.hasMoreBefore || tokens.isLoading}
+                      onClick={() => tokens.previous()}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="2"
+                      disabled={!tokens.data?.pagination.hasMoreAfter || tokens.isLoading}
+                      onClick={() => tokens.next()}
+                    >
+                      Next
+                    </Button>
+                  </Flex>
+                )}
               </Flex>
             );
           })()}

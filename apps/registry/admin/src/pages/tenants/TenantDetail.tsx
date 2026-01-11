@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Flex, Group, Badge as UiBadge, Datalist } from '@metorial-io/ui';
+import { Flex, Group, Badge as UiBadge, Datalist, RenderDate } from '@metorial-io/ui';
 import { useTenant } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { MonoCode } from '../../components/styled';
@@ -27,7 +27,7 @@ export let TenantDetail = () => {
             items={[
               { label: 'ID', value: <MonoCode>{tenant.data!.id}</MonoCode> },
               { label: 'Identifier', value: tenant.data!.identifier },
-              { label: 'Created', value: new Date(tenant.data!.createdAt).toLocaleString() }
+              { label: 'Created', value: <RenderDate date={tenant.data!.createdAt} /> }
             ]}
           />
         </Group.Content>

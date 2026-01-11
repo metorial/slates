@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from '@metorial-io/data-hooks';
-import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
+import { Button, Input, Flex, Group, Spacer } from '@metorial-io/ui';
 import { useCreateWorkspace } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper } from '../../components/styled';
@@ -57,6 +57,7 @@ export let WorkspaceCreate = () => {
                   placeholder="My Workspace"
                   required
                 />
+                <form.RenderError field="name" />
 
                 <Input
                   label="Identifier"
@@ -67,6 +68,7 @@ export let WorkspaceCreate = () => {
                   pattern="[a-z0-9-]+"
                   required
                 />
+                <form.RenderError field="identifier" />
 
                 <Input
                   label="Description"
@@ -75,10 +77,9 @@ export let WorkspaceCreate = () => {
                   onInput={v => form.setFieldValue('description', v)}
                   placeholder="A brief description of this workspace"
                 />
+                <form.RenderError field="description" />
 
-                {createWorkspace.error && (
-                  <Error>Error: {String(createWorkspace.error)}</Error>
-                )}
+                <createWorkspace.RenderError />
 
                 <Spacer size={8} />
 

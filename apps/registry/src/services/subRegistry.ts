@@ -11,7 +11,7 @@ let include = {
   filters: true
 };
 
-let validFilterTypes = ['scope_type', 'prefix', 'package'] as const;
+let validFilterTypes = ['scope', 'prefix', 'package'] as const;
 
 let validateFilterType = (type: string): asserts type is SubRegistryFilterType => {
   if (!validFilterTypes.includes(type as SubRegistryFilterType)) {

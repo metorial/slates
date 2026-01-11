@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from '@metorial-io/data-hooks';
-import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
+import { Button, Input, Flex, Group, Spacer } from '@metorial-io/ui';
 import { useCreateSubRegistry } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper } from '../../components/styled';
@@ -50,6 +50,7 @@ export let SubRegistryCreate = () => {
                   placeholder="My Sub-Registry"
                   required
                 />
+                <form.RenderError field="name" />
 
                 <Input
                   label="Identifier"
@@ -60,10 +61,9 @@ export let SubRegistryCreate = () => {
                   pattern="[a-z0-9-]+"
                   required
                 />
+                <form.RenderError field="identifier" />
 
-                {createSubRegistry.error && (
-                  <Error>Error: {String(createSubRegistry.error)}</Error>
-                )}
+                <createSubRegistry.RenderError />
 
                 <Spacer size={8} />
 

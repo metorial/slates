@@ -74,7 +74,7 @@ export let subRegistryController = app.controller({
       v.object({
         tenantId: v.string(),
         subRegistryId: v.string(),
-        type: v.enumOf(['scope_type', 'prefix', 'package']),
+        type: v.enumOf(['scope', 'prefix', 'package']),
         value: v.string()
       })
     )
@@ -129,7 +129,7 @@ export let subRegistryController = app.controller({
         subRegistryId: v.string(),
         filters: v.array(
           v.object({
-            type: v.enumOf(['scope_type', 'prefix', 'package']),
+            type: v.enumOf(['scope', 'prefix', 'package']),
             value: v.string()
           })
         )

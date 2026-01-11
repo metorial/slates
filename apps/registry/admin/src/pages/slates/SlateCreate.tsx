@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Group, Input, Spacer, Text, Error, Select } from '@metorial-io/ui';
+import { Button, Flex, Group, Input, Spacer, Text, Select } from '@metorial-io/ui';
 import { usePublishNewSlate, useUsers, useWorkspaces } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper, FileInput } from '../../components/styled';
@@ -85,6 +85,7 @@ export let SlateCreate = () => {
                       }))
                     ]}
                   />
+                  <form.RenderError field="scopeIdentifier" />
 
                   <Input
                     label="Slate Identifier"
@@ -94,10 +95,12 @@ export let SlateCreate = () => {
                     onInput={v => form.setFieldValue('slateIdentifier', v)}
                     required
                   />
+                  <form.RenderError field="slateIdentifier" />
 
                   <Flex direction="column" gap={6}>
                     <Text size="2" weight="medium">Slate Package (ZIP)</Text>
                     <FileInput type="file" accept=".zip" onChange={e => form.setFieldValue('file', e.target.files?.[0] ?? null)} required />
+                    <form.RenderError field="file" />
                     <Text size="1" color="gray600">
                       ZIP file with slate.json at root (not in a subfolder). Create with: cd your-slate && zip -r slate.zip .
                     </Text>
@@ -113,10 +116,9 @@ export let SlateCreate = () => {
                       { id: 'public', label: 'Public' }
                     ]}
                   />
+                  <form.RenderError field="access" />
 
-                  {publishNewSlate.error && (
-                    <Error>Error: {String(publishNewSlate.error)}</Error>
-                  )}
+                  <publishNewSlate.RenderError />
 
                   <Spacer size={8} />
 

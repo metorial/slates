@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Badge, Button, Flex, Group, Text, CenteredSpinner } from '@metorial-io/ui';
+import { Badge, Button, Flex, Group, Text, CenteredSpinner, RenderDate } from '@metorial-io/ui';
 import { useSlate, useSlateVersions } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { MonoCode, SlateLogoImage, SlateLogoPlaceholder } from '../../components/styled';
@@ -85,7 +85,7 @@ export let SlateDetail = () => {
               </Flex>
               <Flex justify="space-between" align="center">
                 <Text size="2" color="gray600">Created</Text>
-                <Text size="2" weight="medium">{new Date(slateData.createdAt).toLocaleString()}</Text>
+                <Text size="2" weight="medium"><RenderDate date={slateData.createdAt} /></Text>
               </Flex>
             </Flex>
 
@@ -105,7 +105,7 @@ export let SlateDetail = () => {
         <Group.Wrapper>
           <Group.Header title="Versions" />
           <Group.Content>
-            {versions.isLoading ? (
+            {versions.isLoading && !versions.data ? (
               <CenteredSpinner />
             ) : versionItems.length === 0 ? (
               <Text size="2" color="gray600">No versions published yet.</Text>
@@ -118,11 +118,31 @@ export let SlateDetail = () => {
                       {version.isCurrent && <Badge color="green" size="1">Current</Badge>}
                     </Flex>
                     <Text size="2" color="gray600">
-                      {new Date(version.createdAt).toLocaleString()}
+                      <RenderDate date={version.createdAt} />
                       {version.createdByUser && <span> by {version.createdByUser.name}</span>}
                     </Text>
                   </VersionItem>
                 ))}
+                {(versions.data?.pagination.hasMoreBefore || versions.data?.pagination.hasMoreAfter) && (
+                  <Flex justify="flex-end" gap={10}>
+                    <Button
+                      variant="outline"
+                      size="2"
+                      disabled={!versions.data?.pagination.hasMoreBefore || versions.isLoading}
+                      onClick={() => versions.previous()}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="2"
+                      disabled={!versions.data?.pagination.hasMoreAfter || versions.isLoading}
+                      onClick={() => versions.next()}
+                    >
+                      Next
+                    </Button>
+                  </Flex>
+                )}
               </Flex>
             )}
           </Group.Content>

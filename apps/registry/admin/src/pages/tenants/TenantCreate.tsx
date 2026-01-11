@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '@metorial-io/data-hooks';
-import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
+import { Button, Input, Flex, Group, Spacer } from '@metorial-io/ui';
 import { useCreateTenant } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper } from '../../components/styled';
@@ -48,6 +48,7 @@ export let TenantCreate = () => {
                   placeholder="My Organization"
                   required
                 />
+                <form.RenderError field="name" />
 
                 <Input
                   label="Identifier"
@@ -58,10 +59,9 @@ export let TenantCreate = () => {
                   pattern="[a-z0-9-]+"
                   required
                 />
+                <form.RenderError field="identifier" />
 
-                {createTenant.error && (
-                  <Error>Error: {String(createTenant.error)}</Error>
-                )}
+                <createTenant.RenderError />
 
                 <Spacer size={8} />
 

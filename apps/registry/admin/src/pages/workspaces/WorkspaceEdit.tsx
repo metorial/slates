@@ -1,35 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Group, Input, Error } from '@metorial-io/ui';
+import { Button, Flex, Group, Input } from '@metorial-io/ui';
 import { useUpdateWorkspace, useWorkspace } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper, MonoCode } from '../../components/styled';
-import { styled } from 'styled-components';
-
-let Textarea = styled.textarea`
-  padding: 10px 14px;
-  font-size: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  transition: all 0.15s;
-  resize: vertical;
-  min-height: 100px;
-  font-family: inherit;
-
-  &:hover {
-    border-color: #cbd5e1;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  &::placeholder {
-    color: #94a3b8;
-  }
-`;
 
 export let WorkspaceEdit = () => {
   let { tenantId, workspaceId } = useParams<{ tenantId: string; workspaceId: string }>();
@@ -84,19 +58,19 @@ export let WorkspaceEdit = () => {
                     onChange={e => form.setFieldValue('name', e.target.value)}
                     required
                   />
+                  <form.RenderError field="name" />
 
-                  <Flex direction="column" gap={6}>
-                    <label style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>Description</label>
-                    <Textarea
-                      value={form.values.description}
-                      onChange={e => form.setFieldValue('description', e.target.value)}
-                      placeholder="Optional description"
-                    />
-                  </Flex>
+                  <Input
+                    as="textarea"
+                    label="Description"
+                    value={form.values.description}
+                    onChange={e => form.setFieldValue('description', e.target.value)}
+                    placeholder="Optional description"
+                    minRows={3}
+                  />
+                  <form.RenderError field="description" />
 
-                  {updateWorkspace.error && (
-                    <Error>Error: {String(updateWorkspace.error)}</Error>
-                  )}
+                  <updateWorkspace.RenderError />
 
                   <Flex gap={12} style={{ marginTop: 8 }}>
                     <Button type="submit" loading={updateWorkspace.isLoading}>
