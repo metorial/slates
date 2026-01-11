@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist, Select } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { MonoCode, MonoText, Select, Card } from '../../components/styled';
+import { MonoCode, MonoText, Card } from '../../components/styled';
 
-let getFilterTypeDescription = (filterType: 'scope_type' | 'prefix' | 'package'): string => {
-  if (filterType === 'scope_type') return 'Filter by scope: enter a scope ID or identifier to show only slates owned by that scope';
+let getFilterTypeDescription = (filterType: 'scope' | 'prefix' | 'package'): string => {
+  if (filterType === 'scope') return 'Filter by scope: enter a scope ID or identifier to show only slates owned by that scope';
   if (filterType === 'prefix') return 'Filter by identifier prefix: e.g., "@myorg/" matches all slates starting with @myorg/';
   return 'Include a specific slate by its exact identifier';
 };
@@ -25,7 +25,7 @@ export let SubRegistryDetail = () => {
 
   let filterForm = useForm({
     initialValues: {
-      filterType: 'scope_type' as 'scope_type' | 'prefix' | 'package',
+      filterType: 'scope' as 'scope' | 'prefix' | 'package',
       filterValue: ''
     },
     onSubmit: async values => {
@@ -38,7 +38,7 @@ export let SubRegistryDetail = () => {
     },
     schema: yup =>
       yup.object({
-        filterType: yup.string().oneOf(['scope_type', 'prefix', 'package']).required(),
+        filterType: yup.string().oneOf(['scope', 'prefix', 'package']).required(),
         filterValue: yup.string().required()
       })
   });
@@ -82,27 +82,24 @@ export let SubRegistryDetail = () => {
           {showAddForm ? (
             <form onSubmit={filterForm.handleSubmit}>
               <Flex direction="column" gap={16}>
-                <Flex direction="column" gap={8}>
-                  <Text size="2" weight="medium">Filter Type</Text>
-                  <Select
-                    value={filterForm.values.filterType}
-                    onChange={e => {
-                      filterForm.setFieldValue('filterType', e.target.value as 'scope_type' | 'prefix' | 'package');
-                      filterForm.setFieldValue('filterValue', '');
-                    }}
-                  >
-                    <option value="scope_type">Scope</option>
-                    <option value="prefix">Prefix</option>
-                    <option value="package">Package</option>
-                  </Select>
-                  <Text size="1" color="gray600">
-                    {getFilterTypeDescription(filterForm.values.filterType)}
-                  </Text>
-                </Flex>
+                <Select
+                  label="Filter Type"
+                  description={getFilterTypeDescription(filterForm.values.filterType)}
+                  value={filterForm.values.filterType}
+                  onChange={value => {
+                    filterForm.setFieldValue('filterType', value as 'scope' | 'prefix' | 'package');
+                    filterForm.setFieldValue('filterValue', '');
+                  }}
+                  items={[
+                    { id: 'scope', label: 'Scope' },
+                    { id: 'prefix', label: 'Prefix' },
+                    { id: 'package', label: 'Package' }
+                  ]}
+                />
 
                 <Input
-                  label={filterForm.values.filterType === 'scope_type' ? 'Scope ID or Identifier' : filterForm.values.filterType === 'prefix' ? 'Prefix' : 'Package Identifier'}
-                  placeholder={filterForm.values.filterType === 'scope_type' ? 'e.g., scope_abc123 or myorg' : filterForm.values.filterType === 'prefix' ? 'e.g., @myorg/' : 'e.g., @myorg/my-slate'}
+                  label={filterForm.values.filterType === 'scope' ? 'Scope ID or Identifier' : filterForm.values.filterType === 'prefix' ? 'Prefix' : 'Package Identifier'}
+                  placeholder={filterForm.values.filterType === 'scope' ? 'e.g., scope_abc123 or myorg' : filterForm.values.filterType === 'prefix' ? 'e.g., @myorg/' : 'e.g., @myorg/my-slate'}
                   value={filterForm.values.filterValue}
                   onChange={e => filterForm.setFieldValue('filterValue', e.target.value)}
                 />

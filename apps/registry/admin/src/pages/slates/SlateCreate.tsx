@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Group, Input, Spacer, Text, Error } from '@metorial-io/ui';
+import { Button, Flex, Group, Input, Spacer, Text, Error, Select } from '@metorial-io/ui';
 import { usePublishNewSlate, useUsers, useWorkspaces } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
-import { FormWrapper, Select, FileInput } from '../../components/styled';
+import { FormWrapper, FileInput } from '../../components/styled';
 
 export let SlateCreate = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
@@ -67,33 +67,24 @@ export let SlateCreate = () => {
             <Group.Content>
               <form onSubmit={form.handleSubmit}>
                 <Flex direction="column" gap={20}>
-                  <Flex direction="column" gap={6}>
-                    <Text size="2" weight="medium">Scope</Text>
-                    <Select value={form.values.scopeIdentifier} onChange={e => form.setFieldValue('scopeIdentifier', e.target.value)} required>
-                      <option value="">Select a scope...</option>
-                      {userItems.length > 0 && (
-                        <optgroup label="Users">
-                          {userItems.map(user => (
-                            <option key={user.id} value={user.scope?.identifier ?? user.identifier}>
-                              @{user.scope?.identifier ?? user.identifier} (User: {user.name})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      {workspaceItems.length > 0 && (
-                        <optgroup label="Workspaces">
-                          {workspaceItems.map(workspace => (
-                            <option key={workspace.id} value={workspace.scope?.identifier ?? workspace.identifier}>
-                              @{workspace.scope?.identifier ?? workspace.identifier} (Workspace: {workspace.name})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                    </Select>
-                    <Text size="1" color="gray600">
-                      The user or workspace that will own this slate. Must match the scope in your slate.json name field.
-                    </Text>
-                  </Flex>
+                  <Select
+                    label="Scope"
+                    description="The user or workspace that will own this slate. Must match the scope in your slate.json name field."
+                    placeholder="Select a scope..."
+                    value={form.values.scopeIdentifier}
+                    onChange={value => form.setFieldValue('scopeIdentifier', value)}
+                    items={[
+                      ...userItems.map(user => ({
+                        id: user.scope?.identifier ?? user.identifier,
+                        label: `@${user.scope?.identifier ?? user.identifier} (User: ${user.name})`
+                      })),
+                      ...(userItems.length > 0 && workspaceItems.length > 0 ? [{ type: 'separator' as const }] : []),
+                      ...workspaceItems.map(workspace => ({
+                        id: workspace.scope?.identifier ?? workspace.identifier,
+                        label: `@${workspace.scope?.identifier ?? workspace.identifier} (Workspace: ${workspace.name})`
+                      }))
+                    ]}
+                  />
 
                   <Input
                     label="Slate Identifier"
@@ -112,16 +103,16 @@ export let SlateCreate = () => {
                     </Text>
                   </Flex>
 
-                  <Flex direction="column" gap={6}>
-                    <Text size="2" weight="medium">Access Level</Text>
-                    <Select value={form.values.access} onChange={e => form.setFieldValue('access', e.target.value as 'public' | 'private')}>
-                      <option value="private">Private</option>
-                      <option value="public">Public</option>
-                    </Select>
-                    <Text size="1" color="gray600">
-                      Private slates are only visible to authenticated users. Public slates are discoverable by anyone.
-                    </Text>
-                  </Flex>
+                  <Select
+                    label="Access Level"
+                    description="Private slates are only visible to authenticated users. Public slates are discoverable by anyone."
+                    value={form.values.access}
+                    onChange={value => form.setFieldValue('access', value as 'public' | 'private')}
+                    items={[
+                      { id: 'private', label: 'Private' },
+                      { id: 'public', label: 'Public' }
+                    ]}
+                  />
 
                   {publishNewSlate.error && (
                     <Error>Error: {String(publishNewSlate.error)}</Error>

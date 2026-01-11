@@ -42,27 +42,6 @@ export let FormWrapper = styled.div`
   max-width: 480px;
 `;
 
-// Select dropdown styling
-export let Select = styled.select`
-  padding: 10px 14px;
-  font-size: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
-  transition: all 0.15s;
-  cursor: pointer;
-
-  &:hover {
-    border-color: #cbd5e1;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-`;
-
 // Card container for list items
 export let Card = styled.div`
   padding: 14px 16px;

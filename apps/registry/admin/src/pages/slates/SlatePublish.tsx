@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Group, Text, Error } from '@metorial-io/ui';
+import { Button, Flex, Group, Text, Error, Select } from '@metorial-io/ui';
 import { usePublishSlate, useSlate } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
-import { FormWrapper, Select, FileInput, MonoCode, Card } from '../../components/styled';
+import { FormWrapper, FileInput, MonoCode, Card } from '../../components/styled';
 
 export let SlatePublish = () => {
   let { tenantId, slateId } = useParams<{ tenantId: string; slateId: string }>();
@@ -83,16 +83,15 @@ export let SlatePublish = () => {
                     <Text size="1" color="gray500">Upload a ZIP file containing slate.json and other assets</Text>
                   </Flex>
 
-                  <Flex direction="column" gap={6}>
-                    <Text size="2" weight="medium">Access Level</Text>
-                    <Select
-                      value={form.values.access}
-                      onChange={e => form.setFieldValue('access', e.target.value as 'public' | 'private')}
-                    >
-                      <option value="private">Private</option>
-                      <option value="public">Public</option>
-                    </Select>
-                  </Flex>
+                  <Select
+                    label="Access Level"
+                    value={form.values.access}
+                    onChange={value => form.setFieldValue('access', value as 'public' | 'private')}
+                    items={[
+                      { id: 'private', label: 'Private' },
+                      { id: 'public', label: 'Public' }
+                    ]}
+                  />
 
                   {publishSlate.error && (
                     <Error>Error: {String(publishSlate.error)}</Error>
