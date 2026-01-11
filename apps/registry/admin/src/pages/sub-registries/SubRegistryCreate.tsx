@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from '@metorial-io/data-hooks';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateSubRegistry } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
@@ -10,17 +10,24 @@ export let SubRegistryCreate = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
   let createSubRegistry = useCreateSubRegistry();
 
-  let [name, setName] = useState('');
-  let [identifier, setIdentifier] = useState('');
-
-  let handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!tenantId) return;
-    let [, error] = await createSubRegistry.mutate({ tenantId, name, identifier });
-    if (!error) {
-      navigate(`/tenants/${tenantId}/sub-registries`);
-    }
-  };
+  let form = useForm({
+    initialValues: {
+      name: '',
+      identifier: ''
+    },
+    onSubmit: async values => {
+      if (!tenantId) return;
+      let [, error] = await createSubRegistry.mutate({ tenantId, name: values.name, identifier: values.identifier });
+      if (!error) {
+        navigate(`/tenants/${tenantId}/sub-registries`);
+      }
+    },
+    schema: yup =>
+      yup.object({
+        name: yup.string().required(),
+        identifier: yup.string().required()
+      })
+  });
 
   return (
     <Flex direction="column" gap={24}>
@@ -33,13 +40,13 @@ export let SubRegistryCreate = () => {
             description="Create a new sub-registry for this tenant"
           />
           <Group.Content>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={form.handleSubmit}>
               <Flex direction="column" gap={20}>
                 <Input
                   label="Name"
                   description="A display name for the sub-registry"
-                  value={name}
-                  onInput={setName}
+                  value={form.values.name}
+                  onInput={v => form.setFieldValue('name', v)}
                   placeholder="My Sub-Registry"
                   required
                 />
@@ -47,8 +54,8 @@ export let SubRegistryCreate = () => {
                 <Input
                   label="Identifier"
                   description="Lowercase letters, numbers, and hyphens only"
-                  value={identifier}
-                  onInput={setIdentifier}
+                  value={form.values.identifier}
+                  onInput={v => form.setFieldValue('identifier', v)}
                   placeholder="my-sub-registry"
                   pattern="[a-z0-9-]+"
                   required

@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from '@metorial-io/data-hooks';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateWorkspace } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
@@ -10,23 +10,31 @@ export let WorkspaceCreate = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
   let createWorkspace = useCreateWorkspace();
 
-  let [name, setName] = useState('');
-  let [identifier, setIdentifier] = useState('');
-  let [description, setDescription] = useState('');
-
-  let handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!tenantId) return;
-    let [, error] = await createWorkspace.mutate({
-      tenantId,
-      name,
-      identifier,
-      description: description.trim() || undefined
-    });
-    if (!error) {
-      navigate(`/tenants/${tenantId}/workspaces`);
-    }
-  };
+  let form = useForm({
+    initialValues: {
+      name: '',
+      identifier: '',
+      description: ''
+    },
+    onSubmit: async values => {
+      if (!tenantId) return;
+      let [, error] = await createWorkspace.mutate({
+        tenantId,
+        name: values.name,
+        identifier: values.identifier,
+        description: values.description.trim() || undefined
+      });
+      if (!error) {
+        navigate(`/tenants/${tenantId}/workspaces`);
+      }
+    },
+    schema: yup =>
+      yup.object({
+        name: yup.string().required(),
+        identifier: yup.string().required(),
+        description: yup.string()
+      })
+  });
 
   return (
     <Flex direction="column" gap={24}>
@@ -39,13 +47,13 @@ export let WorkspaceCreate = () => {
             description="Create a new workspace for this tenant"
           />
           <Group.Content>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={form.handleSubmit}>
               <Flex direction="column" gap={20}>
                 <Input
                   label="Name"
                   description="A display name for the workspace"
-                  value={name}
-                  onInput={setName}
+                  value={form.values.name}
+                  onInput={v => form.setFieldValue('name', v)}
                   placeholder="My Workspace"
                   required
                 />
@@ -53,8 +61,8 @@ export let WorkspaceCreate = () => {
                 <Input
                   label="Identifier"
                   description="Lowercase letters, numbers, and hyphens only"
-                  value={identifier}
-                  onInput={setIdentifier}
+                  value={form.values.identifier}
+                  onInput={v => form.setFieldValue('identifier', v)}
                   placeholder="my-workspace"
                   pattern="[a-z0-9-]+"
                   required
@@ -63,8 +71,8 @@ export let WorkspaceCreate = () => {
                 <Input
                   label="Description"
                   description="Optional description for the workspace"
-                  value={description}
-                  onInput={setDescription}
+                  value={form.values.description}
+                  onInput={v => form.setFieldValue('description', v)}
                   placeholder="A brief description of this workspace"
                 />
 

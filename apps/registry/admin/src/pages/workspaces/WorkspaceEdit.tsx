@@ -1,6 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { renderWithLoader } from '@metorial-io/data-hooks';
+import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { useUpdateWorkspace, useWorkspace } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
@@ -165,34 +164,33 @@ export let WorkspaceEdit = () => {
   let workspace = useWorkspace(tenantId, workspaceId!);
   let updateWorkspace = useUpdateWorkspace();
 
-  let [name, setName] = useState('');
-  let [description, setDescription] = useState('');
-  let [initialized, setInitialized] = useState(false);
-
-  useEffect(() => {
-    if (workspace.data && !initialized) {
-      setName(workspace.data.name);
-      setDescription(workspace.data.scope?.description ?? '');
-      setInitialized(true);
-    }
-  }, [workspace.data, initialized]);
-
-  return renderWithLoader({ workspace })(({ workspace }) => {
-    let workspaceData = workspace.data!;
-
-    let handleSubmit = async (e: FormEvent) => {
-      e.preventDefault();
+  let form = useForm({
+    initialValues: {
+      name: workspace.data?.name ?? '',
+      description: workspace.data?.scope?.description ?? ''
+    },
+    updateInitialValues: true,
+    onSubmit: async values => {
       if (!tenantId) return;
       let [, error] = await updateWorkspace.mutate({
         tenantId,
         workspaceId: workspaceId!,
-        name,
-        description
+        name: values.name,
+        description: values.description
       });
       if (!error) {
         navigate(`/tenants/${tenantId}/workspaces`);
       }
-    };
+    },
+    schema: yup =>
+      yup.object({
+        name: yup.string().required(),
+        description: yup.string()
+      })
+  });
+
+  return renderWithLoader({ workspace })(({ workspace }) => {
+    let workspaceData = workspace.data!;
 
     return (
       <div>
@@ -204,13 +202,13 @@ export let WorkspaceEdit = () => {
             <Badge>{workspaceData.identifier}</Badge>
           </CardHeader>
           <CardContent>
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit={form.handleSubmit}>
               <FormGroup>
                 <Label>Name</Label>
                 <Input
                   type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
+                  value={form.values.name}
+                  onChange={e => form.setFieldValue('name', e.target.value)}
                   required
                 />
               </FormGroup>
@@ -218,8 +216,8 @@ export let WorkspaceEdit = () => {
               <FormGroup>
                 <Label>Description</Label>
                 <Textarea
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
+                  value={form.values.description}
+                  onChange={e => form.setFieldValue('description', e.target.value)}
                   placeholder="Optional description"
                 />
               </FormGroup>

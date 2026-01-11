@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from '@metorial-io/data-hooks';
 import { Button, Input, Flex, Group, Spacer, Error } from '@metorial-io/ui';
 import { useCreateTenant } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
@@ -9,16 +9,23 @@ export let TenantCreate = () => {
   let navigate = useNavigate();
   let createTenant = useCreateTenant();
 
-  let [name, setName] = useState('');
-  let [identifier, setIdentifier] = useState('');
-
-  let handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    let [, error] = await createTenant.mutate({ name, identifier });
-    if (!error) {
-      navigate('/tenants');
-    }
-  };
+  let form = useForm({
+    initialValues: {
+      name: '',
+      identifier: ''
+    },
+    onSubmit: async values => {
+      let [, error] = await createTenant.mutate({ name: values.name, identifier: values.identifier });
+      if (!error) {
+        navigate('/tenants');
+      }
+    },
+    schema: yup =>
+      yup.object({
+        name: yup.string().required(),
+        identifier: yup.string().required()
+      })
+  });
 
   return (
     <Flex direction="column" gap={24}>
@@ -31,13 +38,13 @@ export let TenantCreate = () => {
             description="Add a new tenant to manage slates and resources"
           />
           <Group.Content>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={form.handleSubmit}>
               <Flex direction="column" gap={20}>
                 <Input
                   label="Name"
                   description="A display name for the tenant"
-                  value={name}
-                  onInput={setName}
+                  value={form.values.name}
+                  onInput={v => form.setFieldValue('name', v)}
                   placeholder="My Organization"
                   required
                 />
@@ -45,8 +52,8 @@ export let TenantCreate = () => {
                 <Input
                   label="Identifier"
                   description="Lowercase letters, numbers, and hyphens only"
-                  value={identifier}
-                  onInput={setIdentifier}
+                  value={form.values.identifier}
+                  onInput={v => form.setFieldValue('identifier', v)}
                   placeholder="my-org"
                   pattern="[a-z0-9-]+"
                   required

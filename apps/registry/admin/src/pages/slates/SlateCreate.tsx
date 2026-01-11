@@ -1,6 +1,5 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { renderWithLoader } from '@metorial-io/data-hooks';
+import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { Button, Flex, Group, Input, Spacer, Text, Error } from '@metorial-io/ui';
 import { usePublishNewSlate, useUsers, useWorkspaces } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
@@ -13,37 +12,27 @@ export let SlateCreate = () => {
   let workspaces = useWorkspaces(tenantId);
   let publishNewSlate = usePublishNewSlate();
 
-  let [scopeIdentifier, setScopeIdentifier] = useState('');
-  let [slateIdentifier, setSlateIdentifier] = useState('');
-  let [file, setFile] = useState<File | null>(null);
-  let [access, setAccess] = useState<'public' | 'private'>('private');
+  let form = useForm({
+    initialValues: {
+      scopeIdentifier: '',
+      slateIdentifier: '',
+      file: null as File | null,
+      access: 'private' as 'public' | 'private'
+    },
+    onSubmit: async values => {
+      if (!values.file || !tenantId || !values.scopeIdentifier || !values.slateIdentifier) return;
 
-  let handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
-  };
-
-  return renderWithLoader({ users, workspaces })(({ users, workspaces }) => {
-    let userItems = users.data?.items ?? [];
-    let workspaceItems = workspaces.data?.items ?? [];
-
-    let handleSubmit = async (e: FormEvent) => {
-      e.preventDefault();
-      if (!file || !tenantId || !scopeIdentifier || !slateIdentifier) return;
-
-      let buffer = await file.arrayBuffer();
+      let buffer = await values.file.arrayBuffer();
       let base64 = btoa(
         new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
       );
 
       let [result, error] = await publishNewSlate.mutate({
         tenantId,
-        scopeIdentifier,
-        slateIdentifier,
+        scopeIdentifier: values.scopeIdentifier,
+        slateIdentifier: values.slateIdentifier,
         contentBase64: base64,
-        access
+        access: values.access
       });
 
       if (!error && result?.slateId) {
@@ -51,7 +40,19 @@ export let SlateCreate = () => {
       } else if (!error) {
         navigate(`/tenants/${tenantId}/slates`);
       }
-    };
+    },
+    schema: yup =>
+      yup.object({
+        scopeIdentifier: yup.string().required(),
+        slateIdentifier: yup.string().required(),
+        file: yup.mixed<File>().nullable().defined(),
+        access: yup.string().oneOf(['public', 'private']).required()
+      })
+  });
+
+  return renderWithLoader({ users, workspaces })(({ users, workspaces }) => {
+    let userItems = users.data?.items ?? [];
+    let workspaceItems = workspaces.data?.items ?? [];
 
     return (
       <Flex direction="column" gap={24}>
@@ -64,11 +65,11 @@ export let SlateCreate = () => {
               description="Publish a new slate to the registry. The ZIP must contain a slate.json at the root with a name field matching @scope/identifier."
             />
             <Group.Content>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={form.handleSubmit}>
                 <Flex direction="column" gap={20}>
                   <Flex direction="column" gap={6}>
                     <Text size="2" weight="medium">Scope</Text>
-                    <Select value={scopeIdentifier} onChange={e => setScopeIdentifier(e.target.value)} required>
+                    <Select value={form.values.scopeIdentifier} onChange={e => form.setFieldValue('scopeIdentifier', e.target.value)} required>
                       <option value="">Select a scope...</option>
                       {userItems.length > 0 && (
                         <optgroup label="Users">
@@ -96,16 +97,16 @@ export let SlateCreate = () => {
 
                   <Input
                     label="Slate Identifier"
-                    description={`The slate name (after the /). Full identifier: @${scopeIdentifier || 'scope'}/${slateIdentifier || 'slate-name'}`}
+                    description={`The slate name (after the /). Full identifier: @${form.values.scopeIdentifier || 'scope'}/${form.values.slateIdentifier || 'slate-name'}`}
                     placeholder="my-slate"
-                    value={slateIdentifier}
-                    onInput={setSlateIdentifier}
+                    value={form.values.slateIdentifier}
+                    onInput={v => form.setFieldValue('slateIdentifier', v)}
                     required
                   />
 
                   <Flex direction="column" gap={6}>
                     <Text size="2" weight="medium">Slate Package (ZIP)</Text>
-                    <FileInput type="file" accept=".zip" onChange={handleFileChange} required />
+                    <FileInput type="file" accept=".zip" onChange={e => form.setFieldValue('file', e.target.files?.[0] ?? null)} required />
                     <Text size="1" color="gray600">
                       ZIP file with slate.json at root (not in a subfolder). Create with: cd your-slate && zip -r slate.zip .
                     </Text>
@@ -113,7 +114,7 @@ export let SlateCreate = () => {
 
                   <Flex direction="column" gap={6}>
                     <Text size="2" weight="medium">Access Level</Text>
-                    <Select value={access} onChange={e => setAccess(e.target.value as 'public' | 'private')}>
+                    <Select value={form.values.access} onChange={e => form.setFieldValue('access', e.target.value as 'public' | 'private')}>
                       <option value="private">Private</option>
                       <option value="public">Public</option>
                     </Select>
@@ -132,7 +133,7 @@ export let SlateCreate = () => {
                     <Button
                       type="submit"
                       loading={publishNewSlate.isLoading}
-                      disabled={!file || !scopeIdentifier || !slateIdentifier}
+                      disabled={!form.values.file || !form.values.scopeIdentifier || !form.values.slateIdentifier}
                     >
                       Create Slate
                     </Button>

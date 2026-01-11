@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { renderWithLoader } from '@metorial-io/data-hooks';
+import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../api/hooks';
@@ -27,18 +27,27 @@ export let SubRegistryDetail = () => {
   let removeFilter = useRemoveSubRegistryFilter();
 
   let [showAddForm, setShowAddForm] = useState(false);
-  let [filterType, setFilterType] = useState<'scope_type' | 'prefix' | 'package'>('scope_type');
-  let [filterValue, setFilterValue] = useState('');
   let [filterToRemove, setFilterToRemove] = useState<string | null>(null);
 
-  let handleAddFilter = async () => {
-    if (!tenantId || !subRegistryId || !filterValue.trim()) return;
-    let [, error] = await addFilter.mutate({ tenantId, subRegistryId, type: filterType, value: filterValue.trim() });
-    if (!error) {
-      setFilterValue('');
-      setShowAddForm(false);
-    }
-  };
+  let filterForm = useForm({
+    initialValues: {
+      filterType: 'scope_type' as 'scope_type' | 'prefix' | 'package',
+      filterValue: ''
+    },
+    onSubmit: async values => {
+      if (!tenantId || !subRegistryId || !values.filterValue.trim()) return;
+      let [, error] = await addFilter.mutate({ tenantId, subRegistryId, type: values.filterType, value: values.filterValue.trim() });
+      if (!error) {
+        filterForm.setFieldValue('filterValue', '');
+        setShowAddForm(false);
+      }
+    },
+    schema: yup =>
+      yup.object({
+        filterType: yup.string().oneOf(['scope_type', 'prefix', 'package']).required(),
+        filterValue: yup.string().required()
+      })
+  });
 
   let handleRemoveFilter = async () => {
     if (!tenantId || !subRegistryId || !filterToRemove) return;
@@ -84,49 +93,51 @@ export let SubRegistryDetail = () => {
         />
         <Group.Content>
           {showAddForm ? (
-            <Flex direction="column" gap={16}>
-              <Flex direction="column" gap={8}>
-                <Text size="2" weight="medium">Filter Type</Text>
-                <Select
-                  value={filterType}
-                  onChange={e => {
-                    setFilterType(e.target.value as any);
-                    setFilterValue('');
-                  }}
-                >
-                  <option value="scope_type">Scope</option>
-                  <option value="prefix">Prefix</option>
-                  <option value="package">Package</option>
-                </Select>
-                <Text size="1" color="gray600">
-                  {getFilterTypeDescription(filterType)}
-                </Text>
+            <form onSubmit={filterForm.handleSubmit}>
+              <Flex direction="column" gap={16}>
+                <Flex direction="column" gap={8}>
+                  <Text size="2" weight="medium">Filter Type</Text>
+                  <Select
+                    value={filterForm.values.filterType}
+                    onChange={e => {
+                      filterForm.setFieldValue('filterType', e.target.value as 'scope_type' | 'prefix' | 'package');
+                      filterForm.setFieldValue('filterValue', '');
+                    }}
+                  >
+                    <option value="scope_type">Scope</option>
+                    <option value="prefix">Prefix</option>
+                    <option value="package">Package</option>
+                  </Select>
+                  <Text size="1" color="gray600">
+                    {getFilterTypeDescription(filterForm.values.filterType)}
+                  </Text>
+                </Flex>
+
+                <Input
+                  label={filterForm.values.filterType === 'scope_type' ? 'Scope ID or Identifier' : filterForm.values.filterType === 'prefix' ? 'Prefix' : 'Package Identifier'}
+                  placeholder={filterForm.values.filterType === 'scope_type' ? 'e.g., scope_abc123 or myorg' : filterForm.values.filterType === 'prefix' ? 'e.g., @myorg/' : 'e.g., @myorg/my-slate'}
+                  value={filterForm.values.filterValue}
+                  onChange={e => filterForm.setFieldValue('filterValue', e.target.value)}
+                />
+
+                {addFilter.error && (
+                  <Error>{String(addFilter.error)}</Error>
+                )}
+
+                <Flex gap={8}>
+                  <Button
+                    type="submit"
+                    loading={addFilter.isLoading}
+                    disabled={!filterForm.values.filterValue.trim()}
+                  >
+                    Add Filter
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                    Cancel
+                  </Button>
+                </Flex>
               </Flex>
-
-              <Input
-                label={filterType === 'scope_type' ? 'Scope ID or Identifier' : filterType === 'prefix' ? 'Prefix' : 'Package Identifier'}
-                placeholder={filterType === 'scope_type' ? 'e.g., scope_abc123 or myorg' : filterType === 'prefix' ? 'e.g., @myorg/' : 'e.g., @myorg/my-slate'}
-                value={filterValue}
-                onChange={e => setFilterValue(e.target.value)}
-              />
-
-              {addFilter.error && (
-                <Error>{String(addFilter.error)}</Error>
-              )}
-
-              <Flex gap={8}>
-                <Button
-                  onClick={handleAddFilter}
-                  loading={addFilter.isLoading}
-                  disabled={!filterValue.trim()}
-                >
-                  Add Filter
-                </Button>
-                <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                  Cancel
-                </Button>
-              </Flex>
-            </Flex>
+            </form>
           ) : (
             <Button variant="outline" onClick={() => setShowAddForm(true)}>
               + Add Filter

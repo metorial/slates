@@ -1,6 +1,5 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { renderWithLoader } from '@metorial-io/data-hooks';
+import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { usePublishSlate, useSlate } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
@@ -215,29 +214,20 @@ export let SlatePublish = () => {
   let slate = useSlate(tenantId, slateId!);
   let publishSlate = usePublishSlate();
 
-  let [file, setFile] = useState<File | null>(null);
-  let [access, setAccess] = useState<string>('private');
+  let form = useForm({
+    initialValues: {
+      file: null as File | null,
+      access: 'private' as 'public' | 'private'
+    },
+    onSubmit: async values => {
+      if (!values.file || !tenantId || !slate.data) return;
 
-  let handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
-  };
-
-  return renderWithLoader({ slate })(({ slate }) => {
-    let slateData = slate.data!;
-
-    let handleSubmit = async (e: FormEvent) => {
-      e.preventDefault();
-      if (!file || !tenantId) return;
-
-      let buffer = await file.arrayBuffer();
+      let buffer = await values.file.arrayBuffer();
       let base64 = btoa(
         new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
       );
 
-      let parts = slateData.fullIdentifier.split('/');
+      let parts = slate.data.fullIdentifier.split('/');
       let scopeIdentifier = parts[0]!;
       let slateIdentifier = parts[1]!;
 
@@ -247,13 +237,22 @@ export let SlatePublish = () => {
         scopeIdentifier,
         slateIdentifier,
         contentBase64: base64,
-        access: access as 'public' | 'private'
+        access: values.access
       });
 
       if (!error) {
         navigate(`/tenants/${tenantId}/slates/${slateId}`);
       }
-    };
+    },
+    schema: yup =>
+      yup.object({
+        file: yup.mixed<File>().nullable().defined(),
+        access: yup.string().oneOf(['public', 'private']).required()
+      })
+  });
+
+  return renderWithLoader({ slate })(({ slate }) => {
+    let slateData = slate.data!;
 
     return (
       <div>
@@ -271,18 +270,26 @@ export let SlatePublish = () => {
               </CurrentVersionInfo>
             )}
 
-            <Form onSubmit={handleSubmit}>
+            <Form onSubmit={form.handleSubmit}>
               <FormGroup>
                 <Label>Slate Package (ZIP)</Label>
                 <FileInputWrapper>
-                  <StyledFileInput type="file" accept=".zip" onChange={handleFileChange} required />
+                  <StyledFileInput
+                    type="file"
+                    accept=".zip"
+                    onChange={e => form.setFieldValue('file', e.target.files?.[0] ?? null)}
+                    required
+                  />
                 </FileInputWrapper>
                 <HelpText>Upload a ZIP file containing slate.json and other assets</HelpText>
               </FormGroup>
 
               <FormGroup>
                 <Label>Access Level</Label>
-                <Select value={access} onChange={e => setAccess(e.target.value)}>
+                <Select
+                  value={form.values.access}
+                  onChange={e => form.setFieldValue('access', e.target.value as 'public' | 'private')}
+                >
                   <option value="private">Private</option>
                   <option value="public">Public</option>
                 </Select>
@@ -293,7 +300,7 @@ export let SlatePublish = () => {
               )}
 
               <ButtonGroup>
-                <Button type="submit" $color="green" disabled={!file || publishSlate.isLoading}>
+                <Button type="submit" $color="green" disabled={!form.values.file || publishSlate.isLoading}>
                   {publishSlate.isLoading ? 'Publishing...' : 'Publish Version'}
                 </Button>
                 <Button

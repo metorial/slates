@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from '@metorial-io/data-hooks';
 import { Button, Flex, Group, Input, Spacer, Error } from '@metorial-io/ui';
 import { useCreateUser } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
@@ -10,23 +10,30 @@ export let UserCreate = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
   let createUser = useCreateUser();
 
-  let [name, setName] = useState('');
-  let [identifier, setIdentifier] = useState('');
+  let form = useForm({
+    initialValues: {
+      name: '',
+      identifier: ''
+    },
+    onSubmit: async values => {
+      if (!tenantId) return;
 
-  let handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!tenantId) return;
+      let [, error] = await createUser.mutate({
+        tenantId,
+        name: values.name.trim(),
+        identifier: values.identifier.trim()
+      });
 
-    let [, error] = await createUser.mutate({
-      tenantId,
-      name: name.trim(),
-      identifier: identifier.trim()
-    });
-
-    if (!error) {
-      navigate(`/tenants/${tenantId}/users`);
-    }
-  };
+      if (!error) {
+        navigate(`/tenants/${tenantId}/users`);
+      }
+    },
+    schema: yup =>
+      yup.object({
+        name: yup.string().required(),
+        identifier: yup.string().required()
+      })
+  });
 
   return (
     <Flex direction="column" gap={24}>
@@ -39,23 +46,23 @@ export let UserCreate = () => {
             description="Create a new user who can publish slates and access the registry API. The identifier becomes their scope (@identifier)."
           />
           <Group.Content>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={form.handleSubmit}>
               <Flex direction="column" gap={20}>
                 <Input
                   label="Name"
                   description="A display name for the user"
                   placeholder="John Doe"
-                  value={name}
-                  onInput={setName}
+                  value={form.values.name}
+                  onInput={v => form.setFieldValue('name', v)}
                   required
                 />
 
                 <Input
                   label="Identifier"
-                  description={`Lowercase letters, numbers, and hyphens only. This becomes the user's scope: @${identifier || 'identifier'}`}
+                  description={`Lowercase letters, numbers, and hyphens only. This becomes the user's scope: @${form.values.identifier || 'identifier'}`}
                   placeholder="johndoe"
-                  value={identifier}
-                  onInput={v => setIdentifier(v.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  value={form.values.identifier}
+                  onInput={v => form.setFieldValue('identifier', v.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                   pattern="[a-z0-9-]+"
                   required
                 />

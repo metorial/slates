@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { renderWithLoader } from '@metorial-io/data-hooks';
+import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
 import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
 import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../api/hooks';
@@ -67,23 +67,31 @@ export let UserDetail = () => {
   let revokeToken = useRevokeUserToken();
 
   let [showCreateForm, setShowCreateForm] = useState(false);
-  let [tokenName, setTokenName] = useState('');
   let [tokenToRevoke, setTokenToRevoke] = useState<string | null>(null);
   let [copiedTokenId, setCopiedTokenId] = useState<string | null>(null);
+
+  let tokenForm = useForm({
+    initialValues: {
+      tokenName: ''
+    },
+    onSubmit: async values => {
+      if (!tenantId || !userId || !values.tokenName.trim()) return;
+      let [, error] = await createToken.mutate({ tenantId, userId, name: values.tokenName.trim() });
+      if (!error) {
+        tokenForm.setFieldValue('tokenName', '');
+        setShowCreateForm(false);
+      }
+    },
+    schema: yup =>
+      yup.object({
+        tokenName: yup.string().required()
+      })
+  });
 
   let copyToClipboard = async (text: string, tokenId: string) => {
     await navigator.clipboard.writeText(text);
     setCopiedTokenId(tokenId);
     setTimeout(() => setCopiedTokenId(null), 2000);
-  };
-
-  let handleCreateToken = async () => {
-    if (!tenantId || !userId || !tokenName.trim()) return;
-    let [, error] = await createToken.mutate({ tenantId, userId, name: tokenName.trim() });
-    if (!error) {
-      setTokenName('');
-      setShowCreateForm(false);
-    }
   };
 
   let handleRevokeToken = async () => {
@@ -135,29 +143,31 @@ export let UserDetail = () => {
         />
         <Group.Content>
           {showCreateForm ? (
-            <Flex direction="column" gap={16}>
-              <Input
-                label="Token Name"
-                placeholder="e.g., Production API Key"
-                value={tokenName}
-                onChange={e => setTokenName(e.target.value)}
-              />
-              {createToken.error && (
-                <Error>{String(createToken.error)}</Error>
-              )}
-              <Flex gap={8}>
-                <Button
-                  onClick={handleCreateToken}
-                  loading={createToken.isLoading}
-                  disabled={!tokenName.trim()}
-                >
-                  Create Token
-                </Button>
-                <Button variant="outline" onClick={() => setShowCreateForm(false)}>
-                  Cancel
-                </Button>
+            <form onSubmit={tokenForm.handleSubmit}>
+              <Flex direction="column" gap={16}>
+                <Input
+                  label="Token Name"
+                  placeholder="e.g., Production API Key"
+                  value={tokenForm.values.tokenName}
+                  onChange={e => tokenForm.setFieldValue('tokenName', e.target.value)}
+                />
+                {createToken.error && (
+                  <Error>{String(createToken.error)}</Error>
+                )}
+                <Flex gap={8}>
+                  <Button
+                    type="submit"
+                    loading={createToken.isLoading}
+                    disabled={!tokenForm.values.tokenName.trim()}
+                  >
+                    Create Token
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                    Cancel
+                  </Button>
+                </Flex>
               </Flex>
-            </Flex>
+            </form>
           ) : (
             <Button variant="outline" onClick={() => setShowCreateForm(true)}>
               + Create Token
