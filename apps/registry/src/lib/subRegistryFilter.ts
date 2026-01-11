@@ -23,7 +23,7 @@ export let buildSlateFilterClause = (
 
   for (let filter of subRegistry.filters) {
     switch (filter.type) {
-      case 'scope_type':
+      case 'scope':
         filterConditions.push({
           scope: { OR: [{ id: filter.value }, { identifier: filter.value }] }
         });
@@ -59,7 +59,7 @@ export let buildChangeNotificationFilterClause = (
 
   for (let filter of subRegistry.filters) {
     switch (filter.type) {
-      case 'scope_type':
+      case 'scope':
         filterConditions.push({
           slate: { scope: { OR: [{ id: filter.value }, { identifier: filter.value }] } }
         });

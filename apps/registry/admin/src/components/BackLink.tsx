@@ -10,7 +10,7 @@ type BackLinkProps = {
 export let BackLink = ({ to, children }: BackLinkProps) => {
   return (
     <Link to={to} style={{ textDecoration: 'none' }}>
-      <Button variant="ghost" size="2" iconLeft={<RiArrowLeftLine size={16} />}>
+      <Button as="span" variant="ghost" size="2" iconLeft={<RiArrowLeftLine size={16} />}>
         {children}
       </Button>
     </Link>

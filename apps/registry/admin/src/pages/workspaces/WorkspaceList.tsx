@@ -1,8 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
+import { Avatar, Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useWorkspaces } from '../../api/hooks';
-import { EmptyState, ListItemLink, ListItemRow, Avatar, MonoText } from '../../components/styled';
+import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
 export let WorkspaceList = () => {
   let navigate = useNavigate();
@@ -43,9 +43,7 @@ export let WorkspaceList = () => {
               <ListItemLink key={workspace.id} to={`/tenants/${tenantId}/workspaces/${workspace.id}/edit`}>
                 <ListItemRow align="center" justify="space-between">
                   <Flex align="center" gap={14}>
-                    <Avatar align="center" justify="center">
-                      {workspace.name.charAt(0).toUpperCase()}
-                    </Avatar>
+                    <Avatar entity={{ name: workspace.name }} size={32} withInitials radius={6} />
                     <div>
                       <Flex align="center" gap={8}>
                         <Text size="2" weight="medium">{workspace.name}</Text>

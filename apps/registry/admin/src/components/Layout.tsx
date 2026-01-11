@@ -135,7 +135,7 @@ export let AdminNav = () => {
     <NavWrapper>
       <NavContent>
         <Logo size={30} />
-        <h1>Metorial Admin</h1>
+        <h1>Slates Registry Admin</h1>
       </NavContent>
     </NavWrapper>
   );

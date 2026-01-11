@@ -23,17 +23,6 @@ export let ListItemRow = styled(Flex)`
   padding: 14px 20px;
 `;
 
-// Avatar circle with initial
-export let Avatar = styled(Flex)`
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #f0f0f0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
-`;
-
 // Monospace text for identifiers
 export let MonoText = styled.span`
   font-family: monospace;

@@ -1,8 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Button, Text, Title, Flex, Spacer, Badge, Group } from '@metorial-io/ui';
+import { Avatar, Button, Text, Title, Flex, Spacer, Badge, Group } from '@metorial-io/ui';
 import { useSubRegistries } from '../../api/hooks';
-import { EmptyState, ListItemLink, ListItemRow, Avatar, MonoText } from '../../components/styled';
+import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
 export let SubRegistryList = () => {
   let navigate = useNavigate();
@@ -43,9 +43,7 @@ export let SubRegistryList = () => {
               <ListItemLink key={subRegistry.id} to={`/tenants/${tenantId}/sub-registries/${subRegistry.id}`}>
                 <ListItemRow align="center" justify="space-between">
                   <Flex align="center" gap={14}>
-                    <Avatar align="center" justify="center">
-                      {subRegistry.name.charAt(0).toUpperCase()}
-                    </Avatar>
+                    <Avatar entity={{ name: subRegistry.name }} size={32} withInitials radius={6} />
                     <div>
                       <Flex align="center" gap={8}>
                         <Text size="2" weight="medium">{subRegistry.name}</Text>

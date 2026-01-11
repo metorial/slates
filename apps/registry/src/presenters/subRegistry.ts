@@ -2,7 +2,7 @@ import type { SubRegistry, SubRegistryFilter, Tenant } from '../../prisma/genera
 import { subRegistryFilterPresenter } from './subRegistryFilter';
 
 export let subRegistryPresenter = (
-  subRegistry: SubRegistry & { tenant: Tenant; filters?: SubRegistryFilter[] }
+  subRegistry: SubRegistry & { tenant: Tenant; filters: SubRegistryFilter[] }
 ) => ({
   object: 'tenant.sub_registry' as const,
 
@@ -13,7 +13,7 @@ export let subRegistryPresenter = (
 
   tenantId: subRegistry.tenant.id,
 
-  filters: subRegistry.filters?.map(subRegistryFilterPresenter) ?? [],
+  filters: subRegistry.filters.map(subRegistryFilterPresenter),
 
   createdAt: subRegistry.createdAt
 });

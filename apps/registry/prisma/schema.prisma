@@ -51,7 +51,7 @@ model SubRegistry {
 }
 
 enum SubRegistryFilterType {
-  scope_type
+  scope
   prefix
   package
 }
@@ -371,6 +371,4 @@ model ChangeNotification {
   createdAt DateTime @default(now())
 
   @@index([type])
-  @@index([slateFullIdentifier])
-  @@index([tenantOid])
 }

@@ -1,8 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
+import { Avatar, Button, Text, Title, Badge, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useUsers } from '../../api/hooks';
-import { EmptyState, ListItemLink, ListItemRow, Avatar, MonoText } from '../../components/styled';
+import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
 export let UserList = () => {
   let navigate = useNavigate();
@@ -43,9 +43,7 @@ export let UserList = () => {
               <ListItemLink key={user.id} to={`/tenants/${tenantId}/users/${user.id}`}>
                 <ListItemRow align="center" justify="space-between">
                   <Flex align="center" gap={14}>
-                    <Avatar align="center" justify="center">
-                      {user.name.charAt(0).toUpperCase()}
-                    </Avatar>
+                    <Avatar entity={{ name: user.name }} size={32} withInitials radius={6} />
                     <div>
                       <Flex align="center" gap={8}>
                         <Text size="2" weight="medium">{user.name}</Text>

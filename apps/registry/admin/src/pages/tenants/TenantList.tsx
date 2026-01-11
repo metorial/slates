@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Button, Text, Title, Flex, Spacer, Group } from '@metorial-io/ui';
+import { Avatar, Button, Text, Title, Flex, Spacer, Group } from '@metorial-io/ui';
 import { useTenants } from '../../api/hooks';
-import { EmptyState, ListItemLink, ListItemRow, Avatar, MonoText } from '../../components/styled';
+import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
 export let TenantList = () => {
   let navigate = useNavigate();
@@ -42,9 +42,7 @@ export let TenantList = () => {
               <ListItemLink key={tenant.id} to={`/tenants/${tenant.id}`}>
                 <ListItemRow align="center" justify="space-between">
                   <Flex align="center" gap={14}>
-                    <Avatar align="center" justify="center">
-                      {tenant.name.charAt(0).toUpperCase()}
-                    </Avatar>
+                    <Avatar entity={{ name: tenant.name }} size={32} withInitials radius={6} />
                     <div>
                       <Text size="2" weight="medium">{tenant.name}</Text>
                       <Text size="1" color="gray600">

@@ -1,7 +1,7 @@
 import { conflictError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Tenant, Workspace } from '../../prisma/generated/client';
+import type { Scope, Tenant, Workspace } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId } from '../id';
 
@@ -95,7 +95,7 @@ class workspaceServiceImpl {
   }
 
   async updateWorkspace(d: {
-    workspace: Workspace & { scope: { oid: bigint } };
+    workspace: Workspace & { scope: Scope };
     input: {
       name?: string;
       description?: string;
