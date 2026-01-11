@@ -53,11 +53,11 @@ let DangerButton = styled(Button)`
   border-color: #fecaca;
 `;
 
-function getTokenBadgeColor(status: string): 'green' | 'red' | 'gray' {
+let getTokenBadgeColor = (status: string): 'green' | 'red' | 'gray' => {
   if (status === 'active') return 'green';
   if (status === 'revoked') return 'red';
   return 'gray';
-}
+};
 
 export let UserDetail = () => {
   let { tenantId, userId } = useParams<{ tenantId: string; userId: string }>();

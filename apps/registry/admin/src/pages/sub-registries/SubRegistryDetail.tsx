@@ -13,11 +13,11 @@ let DangerButton = styled(Button)`
   border-color: #fecaca;
 `;
 
-function getFilterTypeDescription(filterType: 'scope_type' | 'prefix' | 'package'): string {
+let getFilterTypeDescription = (filterType: 'scope_type' | 'prefix' | 'package'): string => {
   if (filterType === 'scope_type') return 'Filter by scope: enter a scope ID or identifier to show only slates owned by that scope';
   if (filterType === 'prefix') return 'Filter by identifier prefix: e.g., "@myorg/" matches all slates starting with @myorg/';
   return 'Include a specific slate by its exact identifier';
-}
+};
 
 export let SubRegistryDetail = () => {
   let { tenantId, subRegistryId } = useParams<{ tenantId: string; subRegistryId: string }>();

@@ -41,13 +41,13 @@ let ContentWrapper = styled.div`
   padding: 20px;
 `;
 
-function isExactMatch(pathname: string, to: string): boolean {
+let isExactMatch = (pathname: string, to: string): boolean => {
   return pathname === to;
-}
+};
 
-function isPrefixMatch(pathname: string, to: string): boolean {
+let isPrefixMatch = (pathname: string, to: string): boolean => {
   return pathname === to || pathname.startsWith(to + '/');
-}
+};
 
 export let Layout = () => {
   let { pathname } = useLocation();

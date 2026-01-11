@@ -13,7 +13,7 @@ let include = {
 
 let validFilterTypes = ['scope_type', 'prefix', 'package'] as const;
 
-function validateFilterType(type: string): asserts type is SubRegistryFilterType {
+let validateFilterType = (type: string): asserts type is SubRegistryFilterType => {
   if (!validFilterTypes.includes(type as SubRegistryFilterType)) {
     throw new ServiceError(
       badRequestError({
@@ -21,7 +21,7 @@ function validateFilterType(type: string): asserts type is SubRegistryFilterType
       })
     );
   }
-}
+};
 
 let validateFilterValue = (type: SubRegistryFilterType, value: string): void => {
   if (value.length === 0) {
