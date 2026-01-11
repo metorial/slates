@@ -14,5 +14,5 @@ COPY . .
 # Expose port
 EXPOSE 51001
 
-# Run in dev mode with hot reloading
+# Run server with hot reloading (admin is built on host and mounted)
 CMD ["sh", "-c", "bun prisma db push && bun --watch src/server.ts"]

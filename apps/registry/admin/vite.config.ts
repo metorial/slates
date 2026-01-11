@@ -1,10 +1,13 @@
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
-  root: path.resolve(__dirname),
+  root: __dirname,
   base: '/admin/',
   resolve: {
     dedupe: ['react', 'react-dom', 'react-router-dom']
@@ -15,6 +18,7 @@ export default defineConfig({
   },
   server: {
     port: 52043,
+    host: '0.0.0.0',
     proxy: {
       '/slates-registry-admin': 'http://localhost:52042'
     }
