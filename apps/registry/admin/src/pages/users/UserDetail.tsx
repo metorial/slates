@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist, Callout } from '@metorial-io/ui';
 import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { MonoCode, Card } from '../../components/styled';
+import { MonoCode } from '../../components/styled';
 
 let TokenSecret = styled.div<{ $copied?: boolean }>`
   background: ${p => (p.$copied ? '#f0fdf4' : '#fff')};
@@ -148,7 +148,7 @@ export let UserDetail = () => {
             return (
               <Flex direction="column" gap={12}>
                 {tokenItems.map(token => (
-                  <Card key={token.id}>
+                  <Callout key={token.id} color="gray">
                     <Flex direction="column" gap={8}>
                       <Flex align="center" justify="space-between">
                         <Flex align="center" gap={8}>
@@ -186,7 +186,7 @@ export let UserDetail = () => {
                         )}
                       </Flex>
                     </Flex>
-                  </Card>
+                  </Callout>
                 ))}
               </Flex>
             );

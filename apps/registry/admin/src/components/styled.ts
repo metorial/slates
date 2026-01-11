@@ -42,20 +42,6 @@ export let FormWrapper = styled.div`
   max-width: 480px;
 `;
 
-// Card container for list items
-export let Card = styled.div`
-  padding: 14px 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-`;
-
-// Danger button styling
-export let DangerButton = styled.button`
-  color: #dc2626;
-  border-color: #fecaca;
-`;
-
 // File input styling
 export let FileInput = styled.input`
   width: 100%;
@@ -135,10 +121,4 @@ export let ActionLink = styled(Link)`
   &:hover {
     background: #dbeafe;
   }
-`;
-
-// Table column widths
-export let TableColumn = styled.div<{ $width?: number; $flex?: number }>`
-  ${p => p.$width && `width: ${p.$width}px;`}
-  ${p => p.$flex && `flex: ${p.$flex};`}
 `;

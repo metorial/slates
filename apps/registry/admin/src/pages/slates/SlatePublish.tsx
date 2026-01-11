@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Group, Text, Error, Select } from '@metorial-io/ui';
+import { Button, Flex, Group, Text, Error, Select, Callout } from '@metorial-io/ui';
 import { usePublishSlate, useSlate } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
-import { FormWrapper, FileInput, MonoCode, Card } from '../../components/styled';
+import { FormWrapper, FileInput, MonoCode } from '../../components/styled';
 
 export let SlatePublish = () => {
   let { tenantId, slateId } = useParams<{ tenantId: string; slateId: string }>();
@@ -63,11 +63,11 @@ export let SlatePublish = () => {
             />
             <Group.Content>
               {slateData.currentVersion && (
-                <Card style={{ marginBottom: 20 }}>
+                <Callout color="gray" style={{ marginBottom: 20 }}>
                   <Text size="2" color="gray600">
                     Current version: <Text as="span" weight="medium" color="gray900">v{slateData.currentVersion.version}</Text>
                   </Text>
-                </Card>
+                </Callout>
               )}
 
               <form onSubmit={form.handleSubmit}>

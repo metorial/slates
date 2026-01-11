@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist, Select } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist, Select, Callout } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { MonoCode, MonoText, Card } from '../../components/styled';
+import { MonoCode, MonoText } from '../../components/styled';
 
 let getFilterTypeDescription = (filterType: 'scope' | 'prefix' | 'package'): string => {
   if (filterType === 'scope') return 'Filter by scope: enter a scope ID or identifier to show only slates owned by that scope';
@@ -135,7 +135,7 @@ export let SubRegistryDetail = () => {
           ) : (
             <Flex direction="column" gap={12}>
               {subRegistry.data!.filters.map(filter => (
-                <Card key={filter.id}>
+                <Callout key={filter.id} color="gray">
                   <Flex align="center" justify="space-between">
                     <Flex align="center" gap={12}>
                       <Badge color="blue" size="1">{filter.type}</Badge>
@@ -152,7 +152,7 @@ export let SubRegistryDetail = () => {
                       Remove
                     </Button>
                   </Flex>
-                </Card>
+                </Callout>
               ))}
             </Flex>
           )}
