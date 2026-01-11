@@ -1,9 +1,9 @@
 import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Flex, Text, Group, Badge as UiBadge } from '@metorial-io/ui';
+import { Flex, Group, Badge as UiBadge, Datalist } from '@metorial-io/ui';
 import { useTenant } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
-import { DataRow, MonoCode } from '../../components/styled';
+import { MonoCode } from '../../components/styled';
 
 export let TenantDetail = () => {
   let { tenantId } = useParams<{ tenantId: string }>();
@@ -23,20 +23,13 @@ export let TenantDetail = () => {
           }
         />
         <Group.Content>
-          <Flex direction="column" gap={16}>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">ID</Text>
-              <MonoCode>{tenant.data!.id}</MonoCode>
-            </DataRow>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">Identifier</Text>
-              <Text size="2" weight="medium">{tenant.data!.identifier}</Text>
-            </DataRow>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">Created</Text>
-              <Text size="2" weight="medium">{new Date(tenant.data!.createdAt).toLocaleString()}</Text>
-            </DataRow>
-          </Flex>
+          <Datalist
+            items={[
+              { label: 'ID', value: <MonoCode>{tenant.data!.id}</MonoCode> },
+              { label: 'Identifier', value: tenant.data!.identifier },
+              { label: 'Created', value: new Date(tenant.data!.createdAt).toLocaleString() }
+            ]}
+          />
         </Group.Content>
       </Group.Wrapper>
     </Flex>

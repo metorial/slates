@@ -1,256 +1,29 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { styled } from 'styled-components';
+import { Badge, Button, Flex, Group, Text, CenteredSpinner } from '@metorial-io/ui';
 import { useSlate, useSlateVersions } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
+import { MonoCode, SlateLogoImage, SlateLogoPlaceholder } from '../../components/styled';
+import { styled } from 'styled-components';
 
-let Card = styled.div`
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  margin-bottom: 24px;
-`;
-
-let CardContent = styled.div<{ $borderTop?: boolean }>`
-  padding: 24px;
-  ${p => p.$borderTop && `border-top: 1px solid #f1f5f9;`}
-`;
-
-let CardHeader = styled.div`
-  padding: 24px;
-  border-bottom: 1px solid #f1f5f9;
-`;
-
-let CardTitle = styled.h2`
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a2e;
-  margin: 0;
-`;
-
-let SlateHeader = styled.div`
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-`;
-
-let SlateLogo = styled.img`
+let LargeLogo = styled(SlateLogoImage)`
   width: 72px;
   height: 72px;
   border-radius: 12px;
-  object-fit: cover;
-  background: #f1f5f9;
 `;
 
-let SlateLogoPlaceholder = styled.div`
+let LargeLogoPlaceholder = styled(SlateLogoPlaceholder)`
   width: 72px;
   height: 72px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 24px;
-  color: #94a3b8;
-  font-weight: 600;
 `;
 
-let SlateInfo = styled.div`
-  flex: 1;
-`;
-
-let SlateHeaderTop = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-`;
-
-let SlateName = styled.h1`
-  font-size: 24px;
-  font-weight: 600;
-  color: #1a1a2e;
-  margin: 0;
-`;
-
-let PublishButton = styled.button`
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(34, 197, 94, 0.4);
-  }
-`;
-
-let SlateIdentifier = styled.code`
-  display: inline-block;
-  font-size: 13px;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 4px 10px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-`;
-
-let SlateDescription = styled.p`
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.5;
-`;
-
-let BadgeRow = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-`;
-
-let Badge = styled.span<{ $color?: 'gray' | 'green' | 'blue' | 'purple' }>`
-  display: inline-flex;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 6px;
-  ${p => {
-    switch (p.$color) {
-      case 'green':
-        return 'background: #dcfce7; color: #166534;';
-      case 'blue':
-        return 'background: #dbeafe; color: #1e40af;';
-      case 'purple':
-        return 'background: #f3e8ff; color: #7c3aed;';
-      default:
-        return 'background: #f1f5f9; color: #475569;';
-    }
-  }}
-`;
-
-let DataList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`;
-
-let DataItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-`;
-
-let DataLabel = styled.span`
-  font-size: 14px;
-  color: #64748b;
-`;
-
-let DataValue = styled.span`
-  font-size: 14px;
-  font-weight: 500;
-  color: #1a1a2e;
-`;
-
-let MonoValue = styled.code`
-  font-size: 12px;
-  color: #475569;
-  background: #f1f5f9;
-  padding: 4px 8px;
-  border-radius: 4px;
-`;
-
-let SkillsSection = styled.div`
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
-`;
-
-let SkillsLabel = styled.div`
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 10px;
-`;
-
-let VersionList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-let VersionItem = styled.div<{ $current?: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+let VersionItem = styled(Flex)<{ $current?: boolean }>`
   padding: 16px;
   background: ${p => (p.$current ? '#f0fdf4' : '#f8fafc')};
   border: 1px solid ${p => (p.$current ? '#bbf7d0' : '#e2e8f0')};
   border-radius: 8px;
-`;
-
-let VersionInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-let VersionNumber = styled.span`
-  font-family: monospace;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a2e;
-`;
-
-let VersionMeta = styled.span`
-  font-size: 13px;
-  color: #64748b;
-`;
-
-let EmptyText = styled.p`
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-`;
-
-let LoadingWrapper = styled.div<{ $compact?: boolean }>`
-  display: flex;
-  justify-content: center;
-  padding: ${p => p.$compact ? '24px' : '80px'};
-`;
-
-let Spinner = styled.div`
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-let SmallSpinner = styled(Spinner)`
-  width: 20px;
-  height: 20px;
-  border-width: 2px;
 `;
 
 export let SlateDetail = () => {
@@ -264,103 +37,97 @@ export let SlateDetail = () => {
     let versionItems = versions.data?.items ?? [];
 
     return (
-      <div>
+      <Flex direction="column" gap={24}>
         <BackLink to={`/tenants/${tenantId}/slates`}>Back to Slates</BackLink>
 
-        <Card>
-          <CardContent>
-            <SlateHeader>
+        <Group.Wrapper>
+          <Group.Content>
+            <Flex gap={20} align="start">
               {slateData.logoUrl ? (
-                <SlateLogo src={slateData.logoUrl} alt="" />
+                <LargeLogo src={slateData.logoUrl} alt="" />
               ) : (
-                <SlateLogoPlaceholder>S</SlateLogoPlaceholder>
+                <LargeLogoPlaceholder align="center" justify="center">S</LargeLogoPlaceholder>
               )}
-              <SlateInfo>
-                <SlateHeaderTop>
-                  <SlateName>{slateData.name}</SlateName>
-                  <PublishButton onClick={() => navigate(`/tenants/${tenantId}/slates/${slateData.id}/publish`)}>
+              <Flex direction="column" style={{ flex: 1 }}>
+                <Flex justify="space-between" align="start" style={{ marginBottom: 8 }}>
+                  <Text size="5" weight="bold">{slateData.name}</Text>
+                  <Button color="green" onClick={() => navigate(`/tenants/${tenantId}/slates/${slateData.id}/publish`)}>
                     Publish New Version
-                  </PublishButton>
-                </SlateHeaderTop>
-                <SlateIdentifier>{slateData.fullIdentifier}</SlateIdentifier>
-                {slateData.description && <SlateDescription>{slateData.description}</SlateDescription>}
-              </SlateInfo>
-            </SlateHeader>
-          </CardContent>
+                  </Button>
+                </Flex>
+                <MonoCode style={{ marginBottom: 12 }}>{slateData.fullIdentifier}</MonoCode>
+                {slateData.description && <Text size="2" color="gray600">{slateData.description}</Text>}
+              </Flex>
+            </Flex>
+          </Group.Content>
 
-          <CardContent $borderTop>
-            <BadgeRow>
-              <Badge $color={slateData.access === 'public' ? 'green' : 'gray'}>{slateData.access}</Badge>
-              <Badge $color={slateData.status === 'active' ? 'green' : 'gray'}>{slateData.status}</Badge>
-              <Badge $color={slateData.scope?.type === 'workspace' ? 'purple' : 'blue'}>
+          <Group.Content>
+            <Flex gap={8} wrap="wrap" style={{ marginBottom: 20 }}>
+              <Badge color={slateData.access === 'public' ? 'green' : 'gray'} size="1">{slateData.access}</Badge>
+              <Badge color={slateData.status === 'active' ? 'green' : 'gray'} size="1">{slateData.status}</Badge>
+              <Badge color={slateData.scope?.type === 'workspace' ? 'purple' : 'blue'} size="1">
                 {slateData.scope?.type}: {slateData.scope?.name}
               </Badge>
-            </BadgeRow>
+            </Flex>
 
-            <DataList>
-              <DataItem>
-                <DataLabel>ID</DataLabel>
-                <MonoValue>{slateData.id}</MonoValue>
-              </DataItem>
-              <DataItem>
-                <DataLabel>Current Version</DataLabel>
-                <DataValue>{slateData.currentVersion?.version ?? 'No version'}</DataValue>
-              </DataItem>
-              <DataItem>
-                <DataLabel>Created By</DataLabel>
-                <DataValue>{slateData.createdByUser?.name ?? 'Unknown'}</DataValue>
-              </DataItem>
-              <DataItem>
-                <DataLabel>Created</DataLabel>
-                <DataValue>{new Date(slateData.createdAt).toLocaleString()}</DataValue>
-              </DataItem>
-            </DataList>
+            <Flex direction="column" gap={16}>
+              <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+                <Text size="2" color="gray600">ID</Text>
+                <MonoCode>{slateData.id}</MonoCode>
+              </Flex>
+              <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+                <Text size="2" color="gray600">Current Version</Text>
+                <Text size="2" weight="medium">{slateData.currentVersion?.version ?? 'No version'}</Text>
+              </Flex>
+              <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+                <Text size="2" color="gray600">Created By</Text>
+                <Text size="2" weight="medium">{slateData.createdByUser?.name ?? 'Unknown'}</Text>
+              </Flex>
+              <Flex justify="space-between" align="center">
+                <Text size="2" color="gray600">Created</Text>
+                <Text size="2" weight="medium">{new Date(slateData.createdAt).toLocaleString()}</Text>
+              </Flex>
+            </Flex>
 
             {slateData.skills && slateData.skills.length > 0 && (
-              <SkillsSection>
-                <SkillsLabel>Skills</SkillsLabel>
-                <BadgeRow>
+              <Flex direction="column" gap={10} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
+                <Text size="2" color="gray600">Skills</Text>
+                <Flex gap={8} wrap="wrap">
                   {slateData.skills.map(skill => (
-                    <Badge key={skill} $color="blue">
-                      {skill}
-                    </Badge>
+                    <Badge key={skill} color="blue" size="1">{skill}</Badge>
                   ))}
-                </BadgeRow>
-              </SkillsSection>
+                </Flex>
+              </Flex>
             )}
-          </CardContent>
-        </Card>
+          </Group.Content>
+        </Group.Wrapper>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Versions</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Group.Wrapper>
+          <Group.Header title="Versions" />
+          <Group.Content>
             {versions.isLoading ? (
-              <LoadingWrapper $compact>
-                <SmallSpinner />
-              </LoadingWrapper>
+              <CenteredSpinner />
             ) : versionItems.length === 0 ? (
-              <EmptyText>No versions published yet.</EmptyText>
+              <Text size="2" color="gray600">No versions published yet.</Text>
             ) : (
-              <VersionList>
+              <Flex direction="column" gap={12}>
                 {versionItems.map(version => (
-                  <VersionItem key={version.id} $current={version.isCurrent}>
-                    <VersionInfo>
-                      <VersionNumber>v{version.version}</VersionNumber>
-                      {version.isCurrent && <Badge $color="green">Current</Badge>}
-                    </VersionInfo>
-                    <VersionMeta>
+                  <VersionItem key={version.id} $current={version.isCurrent} align="center" justify="space-between">
+                    <Flex align="center" gap={12}>
+                      <Text size="3" weight="bold" style={{ fontFamily: 'monospace' }}>v{version.version}</Text>
+                      {version.isCurrent && <Badge color="green" size="1">Current</Badge>}
+                    </Flex>
+                    <Text size="2" color="gray600">
                       {new Date(version.createdAt).toLocaleString()}
                       {version.createdByUser && <span> by {version.createdByUser.name}</span>}
-                    </VersionMeta>
+                    </Text>
                   </VersionItem>
                 ))}
-              </VersionList>
+              </Flex>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </Group.Content>
+        </Group.Wrapper>
+      </Flex>
     );
   });
 }

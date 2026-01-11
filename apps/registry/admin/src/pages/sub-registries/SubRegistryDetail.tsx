@@ -1,17 +1,11 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { styled } from 'styled-components';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { DataRow, MonoCode, MonoText, Select, Card } from '../../components/styled';
-
-let DangerButton = styled(Button)`
-  color: #dc2626;
-  border-color: #fecaca;
-`;
+import { MonoCode, MonoText, Select, Card } from '../../components/styled';
 
 let getFilterTypeDescription = (filterType: 'scope_type' | 'prefix' | 'package'): string => {
   if (filterType === 'scope_type') return 'Filter by scope: enter a scope ID or identifier to show only slates owned by that scope';
@@ -69,20 +63,13 @@ export let SubRegistryDetail = () => {
           }
         />
         <Group.Content>
-          <Flex direction="column" gap={16}>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">ID</Text>
-              <MonoCode>{subRegistry.data!.id}</MonoCode>
-            </DataRow>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">Tenant</Text>
-              <Text size="2" weight="medium">{tenant.data?.name ?? '-'}</Text>
-            </DataRow>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">Created</Text>
-              <Text size="2" weight="medium">{new Date(subRegistry.data!.createdAt).toLocaleString()}</Text>
-            </DataRow>
-          </Flex>
+          <Datalist
+            items={[
+              { label: 'ID', value: <MonoCode>{subRegistry.data!.id}</MonoCode> },
+              { label: 'Tenant', value: tenant.data?.name ?? '-' },
+              { label: 'Created', value: new Date(subRegistry.data!.createdAt).toLocaleString() }
+            ]}
+          />
         </Group.Content>
       </Group.Wrapper>
 
@@ -159,13 +146,14 @@ export let SubRegistryDetail = () => {
                         <MonoText>{filter.value}</MonoText>
                       </Text>
                     </Flex>
-                    <DangerButton
+                    <Button
                       variant="outline"
                       size="1"
+                      color="red"
                       onClick={() => setFilterToRemove(filter.id)}
                     >
                       Remove
-                    </DangerButton>
+                    </Button>
                   </Flex>
                 </Card>
               ))}

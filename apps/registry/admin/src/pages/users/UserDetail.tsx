@@ -2,35 +2,11 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { styled } from 'styled-components';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Error } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Error, Datalist } from '@metorial-io/ui';
 import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../api/hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-
-let DataRow = styled(Flex)`
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
-
-  &:last-child {
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-`;
-
-let MonoText = styled.code`
-  font-family: monospace;
-  font-size: 12px;
-  background: #f1f5f9;
-  padding: 4px 8px;
-  border-radius: 4px;
-`;
-
-let TokenCard = styled(Flex)`
-  padding: 14px 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-`;
+import { MonoCode, Card } from '../../components/styled';
 
 let TokenSecret = styled.div<{ $copied?: boolean }>`
   background: ${p => (p.$copied ? '#f0fdf4' : '#fff')};
@@ -46,11 +22,6 @@ let TokenSecret = styled.div<{ $copied?: boolean }>`
   &:hover {
     border-color: ${p => (p.$copied ? '#86efac' : '#cbd5e1')};
   }
-`;
-
-let DangerButton = styled(Button)`
-  color: #dc2626;
-  border-color: #fecaca;
 `;
 
 let getTokenBadgeColor = (status: string): 'green' | 'red' | 'gray' => {
@@ -119,20 +90,13 @@ export let UserDetail = () => {
           }
         />
         <Group.Content>
-          <Flex direction="column" gap={16}>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">ID</Text>
-              <MonoText>{user.data!.id}</MonoText>
-            </DataRow>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">Scope</Text>
-              <Text size="2" weight="medium">{user.data!.scope?.identifier ?? '-'}</Text>
-            </DataRow>
-            <DataRow justify="space-between" align="center">
-              <Text size="2" color="gray600">Created</Text>
-              <Text size="2" weight="medium">{new Date(user.data!.createdAt).toLocaleString()}</Text>
-            </DataRow>
-          </Flex>
+          <Datalist
+            items={[
+              { label: 'ID', value: <MonoCode>{user.data!.id}</MonoCode> },
+              { label: 'Scope', value: user.data!.scope?.identifier ?? '-' },
+              { label: 'Created', value: new Date(user.data!.createdAt).toLocaleString() }
+            ]}
+          />
         </Group.Content>
       </Group.Wrapper>
 
@@ -184,42 +148,45 @@ export let UserDetail = () => {
             return (
               <Flex direction="column" gap={12}>
                 {tokenItems.map(token => (
-                  <TokenCard key={token.id} direction="column" gap={8}>
-                    <Flex align="center" justify="space-between">
-                      <Flex align="center" gap={8}>
-                        <Text size="2" weight="medium">{token.name}</Text>
-                        <Badge color={getTokenBadgeColor(token.status)} size="1">
-                          {token.status}
-                        </Badge>
+                  <Card key={token.id}>
+                    <Flex direction="column" gap={8}>
+                      <Flex align="center" justify="space-between">
+                        <Flex align="center" gap={8}>
+                          <Text size="2" weight="medium">{token.name}</Text>
+                          <Badge color={getTokenBadgeColor(token.status)} size="1">
+                            {token.status}
+                          </Badge>
+                        </Flex>
+                        {token.status === 'active' && (
+                          <Button
+                            variant="outline"
+                            size="1"
+                            color="red"
+                            onClick={() => setTokenToRevoke(token.id)}
+                          >
+                            Revoke
+                          </Button>
+                        )}
                       </Flex>
-                      {token.status === 'active' && (
-                        <DangerButton
-                          variant="outline"
-                          size="1"
-                          onClick={() => setTokenToRevoke(token.id)}
-                        >
-                          Revoke
-                        </DangerButton>
-                      )}
-                    </Flex>
-                    <TokenSecret
-                      $copied={copiedTokenId === token.id}
-                      onClick={() => copyToClipboard(token.secret, token.id)}
-                      title="Click to copy"
-                    >
-                      {copiedTokenId === token.id ? 'Copied!' : token.secret}
-                    </TokenSecret>
-                    <Flex gap={16}>
-                      <Text size="1" color="gray600">
-                        Created: {new Date(token.createdAt).toLocaleDateString()}
-                      </Text>
-                      {token.expiresAt && (
+                      <TokenSecret
+                        $copied={copiedTokenId === token.id}
+                        onClick={() => copyToClipboard(token.secret, token.id)}
+                        title="Click to copy"
+                      >
+                        {copiedTokenId === token.id ? 'Copied!' : token.secret}
+                      </TokenSecret>
+                      <Flex gap={16}>
                         <Text size="1" color="gray600">
-                          Expires: {new Date(token.expiresAt).toLocaleDateString()}
+                          Created: {new Date(token.createdAt).toLocaleDateString()}
                         </Text>
-                      )}
+                        {token.expiresAt && (
+                          <Text size="1" color="gray600">
+                            Expires: {new Date(token.expiresAt).toLocaleDateString()}
+                          </Text>
+                        )}
+                      </Flex>
                     </Flex>
-                  </TokenCard>
+                  </Card>
                 ))}
               </Flex>
             );

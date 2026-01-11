@@ -48,17 +48,6 @@ export let MonoCode = styled.code`
   border-radius: 4px;
 `;
 
-// Data row with bottom border (for detail pages)
-export let DataRow = styled(Flex)`
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
-
-  &:last-child {
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-`;
-
 // Form content wrapper with max width
 export let FormWrapper = styled.div`
   max-width: 480px;

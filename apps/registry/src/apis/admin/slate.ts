@@ -114,7 +114,7 @@ export let slateController = app.controller({
           scopeIdentifier: v.string(),
           slateIdentifier: v.string(),
 
-          contentBase64: v.string(),
+          contentBase64: v.any(),
           access: v.enumOf(['public', 'private'])
         })
       )
