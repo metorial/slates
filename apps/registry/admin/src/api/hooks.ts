@@ -103,7 +103,7 @@ export let useCreateWorkspace = workspacesLoader.createExternalMutator(
     adminClient.workspace.create(data)
 );
 
-export let useUpdateWorkspace = workspaceLoader.createExternalMutator(
+export let useUpdateWorkspace = workspacesLoader.createExternalMutator(
   (data: { tenantId: string; workspaceId: string; name?: string; description?: string }) =>
     adminClient.workspace.update(data)
 );
@@ -140,7 +140,7 @@ export let slateVersionsLoader = createLoader({
 export let useSlateVersions = (tenantId: string | undefined, slateId: string) =>
   slateVersionsLoader.use(tenantId && slateId ? { tenantId, slateId } : null);
 
-export let usePublishSlate = slateVersionsLoader.createExternalMutator(
+export let usePublishSlate = slatesLoader.createExternalMutator(
   (data: {
     tenantId: string;
     slateId: string;
