@@ -23,8 +23,12 @@ Bun.serve({
       return slatesRegistryAdminApi(req, server);
     }
 
+    if (url.pathname === '/') {
+      return Response.redirect(new URL('/admin', req.url), 302);
+    }
+
     // Admin dashboard
-    if (url.pathname.startsWith('/admin') || url.pathname === '/') {
+    if (url.pathname.startsWith('/admin')) {
       let path = url.pathname.replace(/^\/admin/, '') || '/index.html';
       if (path === '/') path = '/index.html';
 
