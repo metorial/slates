@@ -1,4 +1,4 @@
-import { ExtraHeaderLayout, LargePaneLayout, SidebarPane } from '@metorial-io/layout';
+import { Breadcrumbs, ExtraHeaderLayout, LargePaneLayout, SidebarPane } from '@metorial-io/layout';
 import { Logo } from '@metorial-io/ui';
 import {
   RiApps2Line,
@@ -8,34 +8,9 @@ import {
   RiStackLine,
   RiUserLine
 } from '@remixicon/react';
-import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
+import { Outlet, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTenant } from '../api/hooks';
-
-let Breadcrumbs = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-`;
-
-let BreadcrumbLink = styled(Link)`
-  color: #64748b;
-  text-decoration: none;
-
-  &:hover {
-    color: #3b82f6;
-  }
-`;
-
-let BreadcrumbSeparator = styled.span`
-  color: #cbd5e1;
-`;
-
-let BreadcrumbCurrent = styled.span`
-  font-weight: 600;
-  color: #1e293b;
-`;
 
 let ContentWrapper = styled.div`
   padding: 20px;
@@ -112,29 +87,18 @@ export let Layout = () => {
     });
   }
 
-  let breadcrumbHeader = (
-    <Breadcrumbs>
-      <BreadcrumbLink to="/tenants">Tenants</BreadcrumbLink>
-      {isOnTenantPage && tenant && (
-        <>
-          <BreadcrumbSeparator>/</BreadcrumbSeparator>
-          <BreadcrumbLink to={`/tenants/${tenantId}`}>{tenant.name}</BreadcrumbLink>
-          {currentItem && currentItem.label !== 'Overview' && (
-            <>
-              <BreadcrumbSeparator>/</BreadcrumbSeparator>
-              <BreadcrumbCurrent>{currentItem.label}</BreadcrumbCurrent>
-            </>
-          )}
-        </>
-      )}
-      {!isOnTenantPage && currentItem && (
-        <>
-          <BreadcrumbSeparator>/</BreadcrumbSeparator>
-          <BreadcrumbCurrent>{currentItem.label}</BreadcrumbCurrent>
-        </>
-      )}
-    </Breadcrumbs>
-  );
+  let breadcrumbs: { label: string; to: string }[] = [{ label: 'Tenants', to: '/tenants' }];
+
+  if (isOnTenantPage && tenant) {
+    breadcrumbs.push({ label: tenant.name, to: `/tenants/${tenantId}` });
+    if (currentItem && currentItem.label !== 'Overview') {
+      breadcrumbs.push({ label: currentItem.label, to: currentItem.to });
+    }
+  } else if (currentItem) {
+    breadcrumbs.push({ label: currentItem.label, to: currentItem.to });
+  }
+
+  let breadcrumbHeader = <Breadcrumbs breadcrumbs={breadcrumbs} />;
 
   return (
     <LargePaneLayout Nav={AdminNav}>
