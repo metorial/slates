@@ -8,17 +8,15 @@ export let readerTokenController = app.controller({
     .handler()
     .input(
       v.object({
-        tenantId: v.optional(v.string()),
+        tenantId: v.string(),
         name: v.string(),
         expiresAt: v.optional(v.date())
       })
     )
     .do(async ctx => {
-      let tenant = ctx.input.tenantId
-        ? await tenantService.getTenantById({
-            id: ctx.input.tenantId
-          })
-        : undefined;
+      let tenant = await tenantService.getTenantById({
+        id: ctx.input.tenantId
+      });
 
       let token = await readerTokenService.createReaderToken({
         input: {
