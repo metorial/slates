@@ -3,10 +3,10 @@ import { v } from '@lowerdeck/validation';
 import { slateInstanceOAuthSetupPresenter } from '../../presenters';
 import { slateInstanceOAuthSetupLogsPresenter } from '../../presenters/slateOAuthSetupLogs';
 import {
-  slateInstanceOAuthSetupService,
-  slateInstanceService,
   slateOAuthCredentialsService,
-  slateService
+  slateOAuthSetupService,
+  slateService,
+  slateVersionService
 } from '../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
@@ -15,7 +15,7 @@ export let slateOAuthSetupApp = tenantApp.use(async ctx => {
   let slateOAuthSetupId = ctx.body.slateOAuthSetupId;
   if (!slateOAuthSetupId) throw new Error('Slate OAuthSetup ID is required');
 
-  let slateOAuthSetup = await slateInstanceOAuthSetupService.getSlateInstanceOAuthSetupById({
+  let slateOAuthSetup = await slateOAuthSetupService.getSlateInstanceOAuthSetupById({
     id: slateOAuthSetupId,
     tenant: ctx.tenant
   });
@@ -35,7 +35,7 @@ export let slateOAuthSetupController = app.controller({
       )
     )
     .do(async ctx => {
-      let paginator = await slateInstanceOAuthSetupService.listSlateInstanceOAuthSetups({
+      let paginator = await slateOAuthSetupService.listSlateInstanceOAuthSetups({
         tenant: ctx.tenant,
         slateIds: ctx.input.slateIds
       });
@@ -53,7 +53,7 @@ export let slateOAuthSetupController = app.controller({
           tenantId: v.string(),
           slateId: v.string(),
           slateOAuthCredentialsId: v.string(),
-          slateInstanceId: v.optional(v.string()),
+          slateVersionId: v.optional(v.string()),
           authMethodId: v.optional(v.string()),
           redirectUrl: v.string(),
           input: v.record(v.any())
@@ -68,19 +68,19 @@ export let slateOAuthSetupController = app.controller({
         id: ctx.input.slateOAuthCredentialsId,
         tenant: ctx.tenant
       });
-      let slateInstance = ctx.input.slateInstanceId
-        ? await slateInstanceService.getSlateInstanceById({
-            id: ctx.input.slateInstanceId,
-            tenant: ctx.tenant
+      let slateVersion = ctx.input.slateVersionId
+        ? await slateVersionService.getSlateVersionById({
+            id: ctx.input.slateVersionId,
+            slate
           })
         : undefined;
 
-      let res = await slateInstanceOAuthSetupService.createSlateInstanceOAuthSetup({
+      let res = await slateOAuthSetupService.createSlateInstanceOAuthSetup({
         tenant: ctx.tenant,
 
         input: {
           slate,
-          slateInstance,
+          slateVersion,
           oauthCredentials,
 
           redirectUrl: ctx.input.redirectUrl,
@@ -112,7 +112,7 @@ export let slateOAuthSetupController = app.controller({
       })
     )
     .do(async ctx => {
-      let logs = await slateInstanceOAuthSetupService.getSlateInstanceOAuthSetupLogs({
+      let logs = await slateOAuthSetupService.getSlateInstanceOAuthSetupLogs({
         setup: ctx.slateOAuthSetup
       });
 
@@ -128,11 +128,12 @@ export let slateOAuthSetupController = app.controller({
       })
     )
     .do(async ctx => {
-      let slateOAuthSetups =
-        await slateInstanceOAuthSetupService.getManySlateInstanceOAuthSetupsByIds({
+      let slateOAuthSetups = await slateOAuthSetupService.getManySlateInstanceOAuthSetupsByIds(
+        {
           ids: ctx.input.slateOAuthSetupIds,
           tenant: ctx.tenant
-        });
+        }
+      );
 
       return slateOAuthSetups.map(slateInstanceOAuthSetupPresenter);
     })

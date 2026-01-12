@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { slateAuthConfigPresenter } from '../../presenters';
-import { slateAuthConfigService, slateInstanceService, slateService } from '../../services';
+import { slateAuthConfigService, slateService, slateVersionService } from '../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
 
@@ -46,7 +46,7 @@ export let slateAuthConfigController = app.controller({
         v.object({
           tenantId: v.string(),
           slateId: v.string(),
-          slateInstanceId: v.optional(v.string()),
+          slateVersionId: v.optional(v.string()),
           authMethodId: v.optional(v.string()),
           authConfig: v.record(v.any())
         })
@@ -56,17 +56,17 @@ export let slateAuthConfigController = app.controller({
       let slate = await slateService.getSlateById({
         id: ctx.input.slateId
       });
-      let slateInstance = ctx.input.slateInstanceId
-        ? await slateInstanceService.getSlateInstanceById({
-            id: ctx.input.slateInstanceId,
-            tenant: ctx.tenant
+      let slateVersion = ctx.input.slateVersionId
+        ? await slateVersionService.getSlateVersionById({
+            id: ctx.input.slateVersionId,
+            slate
           })
         : undefined;
 
       let res = await slateAuthConfigService.createSlateAuthConfig({
         tenant: ctx.tenant,
         slate,
-        slateInstance,
+        slateVersion,
 
         input: {
           authConfig: ctx.input.authConfig,
