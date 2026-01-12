@@ -145,10 +145,22 @@ model SlateAuthConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  defaultForInstances      SlateInstance[]                  @relation(name: "defaultAuthConfig")
-  slateInstanceOAuthSetups SlateInstanceOAuthSetup[]
-  usingInstances           SlateAuthConfigUsedForInstance[]
-  slateAuthConfigEvents    SlateAuthConfigEvent[]
+  defaultForInstances           SlateInstance[]                  @relation(name: "defaultAuthConfig")
+  slateInstanceOAuthSetups      SlateInstanceOAuthSetup[]
+  usingInstances                SlateAuthConfigUsedForInstance[]
+  slateAuthConfigEvents         SlateAuthConfigEvent[]
+  slateAuthConfigManualDecrypts SlateAuthConfigManualDecrypt[]
+}
+
+model SlateAuthConfigManualDecrypt {
+  oid BigInt @id
+
+  configOid BigInt
+  config    SlateAuthConfig @relation(fields: [configOid], references: [oid], onDelete: Cascade)
+
+  note String
+
+  createdAt DateTime @default(now())
 }
 
 model SlateAuthConfigUsedForInstance {
