@@ -12,7 +12,7 @@ let callbackUrlBase = new URL(env.service.SERVICE_PUBLIC_URL);
 callbackUrlBase.pathname = '/slates-hub/callback';
 let callbackUrl = callbackUrlBase.toString();
 
-class slateInstanceOAuthHandlerServiceImpl {
+class slateOAuthHandlerServiceImpl {
   async startOAuthFlow(d: { setupId: string }) {
     let setup = await db.slateInstanceOAuthSetup.findUnique({
       where: { id: d.setupId },
@@ -156,7 +156,7 @@ class slateInstanceOAuthHandlerServiceImpl {
   async completeOAuthFlow(d: {
     input: { code: string; state?: string; lastOAuthSetupCookieId: string };
   }) {
-    let setup = await db.slateInstanceOAuthSetup.findFirst({
+    let setups = await db.slateInstanceOAuthSetup.findMany({
       where: {
         OR: [
           { id: d.input.lastOAuthSetupCookieId },
@@ -165,6 +165,7 @@ class slateInstanceOAuthHandlerServiceImpl {
       },
       include: { slateVersion: true, authMethod: true, oauthCredentials: true, tenant: true }
     });
+    let setup = setups.find(s => s.id == d.input.state) ?? setups[0];
     if (!setup || setup.status == 'completed') {
       throw new ServiceError(
         badRequestError({
@@ -307,7 +308,7 @@ class slateInstanceOAuthHandlerServiceImpl {
   }
 }
 
-export let slateInstanceOAuthHandlerService = Service.create(
-  'slateInstanceOAuthHandlerService',
-  () => new slateInstanceOAuthHandlerServiceImpl()
+export let slateOAuthHandlerService = Service.create(
+  'slateOAuthHandlerService',
+  () => new slateOAuthHandlerServiceImpl()
 ).build();

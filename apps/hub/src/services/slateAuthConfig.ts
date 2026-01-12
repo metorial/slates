@@ -1,7 +1,7 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Slate, SlateInstance, Tenant } from '../../prisma/generated/client';
+import type { Slate, SlateVersion, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { ID, snowflake } from '../id';
 import { extractExpiresAt } from '../lib/extractExpiresAt';
@@ -20,15 +20,16 @@ class slateAuthConfigServiceImpl {
   async createSlateAuthConfig(d: {
     tenant: Tenant;
     slate: Slate;
-    slateInstance?: SlateInstance;
+    // slateInstance?: SlateInstance;
+    slateVersion?: SlateVersion;
     input: {
       authMethodId?: string;
       authConfig: Record<string, any>;
     };
   }) {
     let fullVersion = await this.getVersion({
-      slateInstance: d.slateInstance,
-      slate: d.slate
+      slate: d.slate,
+      currentVersionOid: d.slateVersion?.oid
     });
 
     let defaultAuthMethod =
@@ -101,7 +102,7 @@ class slateAuthConfigServiceImpl {
         isProcessing: true,
         tokenExpiresAt,
 
-        instanceOid: d.slateInstance?.oid,
+        // instanceOid: d.slateInstance?.oid,
         slateOid: d.slate.oid,
         authMethodOid: method.authMethod.oid,
         tenantOid: d.tenant.oid,
@@ -165,7 +166,7 @@ class slateAuthConfigServiceImpl {
     );
   }
 
-  private async getVersion(d: { slateInstance?: SlateInstance; slate: Slate }) {
+  private async getVersion(d: { currentVersionOid?: bigint; slate: Slate }) {
     if (!d.slate.currentVersionOid) {
       throw new ServiceError(
         badRequestError({
@@ -177,7 +178,7 @@ class slateAuthConfigServiceImpl {
     let fullVersion = await db.slateVersion.findFirstOrThrow({
       where: {
         slateOid: d.slate.oid,
-        oid: d.slateInstance?.lockedSlateVersionOid ?? d.slate.currentVersionOid
+        oid: d.currentVersionOid ?? d.slate.currentVersionOid
       },
       include: {
         specification: {
