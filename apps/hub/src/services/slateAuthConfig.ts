@@ -1,7 +1,12 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Slate, SlateVersion, Tenant } from '../../prisma/generated/client';
+import type {
+  Slate,
+  SlateAuthConfig,
+  SlateVersion,
+  Tenant
+} from '../../prisma/generated/client';
 import { db } from '../db';
 import { ID, snowflake } from '../id';
 import { extractExpiresAt } from '../lib/extractExpiresAt';
@@ -163,6 +168,35 @@ class slateAuthConfigServiceImpl {
             include
           })
       )
+    );
+  }
+
+  async DANGEROUSLY_decryptAuthConfig(d: {
+    slateAuthConfig: SlateAuthConfig;
+    tenant: Tenant;
+    note: string;
+  }) {
+    let secret = await secretService.DANGEROUSLY_decryptSecret({
+      secretOid: d.slateAuthConfig.secretOid,
+      purpose: 'slate_authentication_configuration',
+      tenant: d.tenant
+    });
+
+    await db.slateAuthConfigManualDecrypt.create({
+      data: {
+        oid: snowflake.nextId(),
+        configOid: d.slateAuthConfig.oid,
+        note: d.note
+      }
+    });
+
+    return (
+      (d.slateAuthConfig.type == 'manual'
+        ? secret.input
+        : {
+            ...secret.input,
+            ...secret.output
+          }) ?? {}
     );
   }
 
