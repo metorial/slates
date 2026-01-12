@@ -3,7 +3,6 @@ import { Hash } from '@lowerdeck/hash';
 import { generatePlainId } from '@lowerdeck/id';
 import { v } from '@lowerdeck/validation';
 import { createSlatesRegistryClient } from '@metorial-services/slates-registry-client';
-import { createSlatesRegistryInternalClient } from '@metorial-services/slates-registry-internal-client';
 import { addMinutes } from 'date-fns';
 import type { Registry } from '../prisma/generated/client';
 import { db } from './db';
@@ -85,23 +84,20 @@ let getReaderToken = async (registry: Registry) => {
     }
 
     if (reg?.internalUrl) {
-      let internalClient = createSlatesRegistryInternalClient({
-        endpoint: reg.internalUrl
-      });
-
-      let expiresAt = addMinutes(new Date(), 60);
-
-      let token = await internalClient.readerToken.create({
-        expiresAt: addMinutes(expiresAt, 5),
-        name: `Hub Service ${hubInstanceId}`
-      });
-
-      readerToken.set(registry.id, {
-        token: prom,
-        expiresAt: expiresAt.getTime()
-      });
-
-      return token.secret;
+      throw new Error('Internal access is not supported');
+      // let internalClient = createSlatesRegistryInternalClient({
+      //   endpoint: reg.internalUrl
+      // });
+      // let expiresAt = addMinutes(new Date(), 60);
+      // let token = await internalClient.readerToken.create({
+      //   expiresAt: addMinutes(expiresAt, 5),
+      //   name: `Hub Service ${hubInstanceId}`,
+      // });
+      // readerToken.set(registry.id, {
+      //   token: prom,
+      //   expiresAt: expiresAt.getTime()
+      // });
+      // return token.secret;
     }
   })();
 
