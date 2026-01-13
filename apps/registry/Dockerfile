@@ -42,11 +42,6 @@ FROM base AS runner
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -74,8 +69,8 @@ EXPOSE 52041
 
 # Health check using curl
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-    CMD curl -f http://localhost:52040/health && \
-    curl -f http://localhost:52041/health || exit 1
+    CMD curl -f http://localhost:52040/ping && \
+    curl -f http://localhost:52041/ping || exit 1
 
 # Start command: push schema and start service
 CMD ["sh", "-c", "bun prisma db push && bun src/server.ts"]
