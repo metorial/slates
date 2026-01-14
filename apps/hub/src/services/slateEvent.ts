@@ -5,7 +5,16 @@ import type { Slate } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
-  slateVersion: true
+  slateVersion: {
+    include: {
+      activeDeployment: true,
+      slateVersionDiscoveries: {
+        orderBy: { createdAt: 'desc' as const },
+        take: 1
+      }
+    }
+  },
+  slate: true
 };
 
 class slateEventServiceImpl {
@@ -41,6 +50,21 @@ class slateEventServiceImpl {
               slateOid: d.slate.oid,
               slateVersion: versions ? { oid: { in: versions.map(v => v.oid) } } : undefined
             },
+            orderBy: { createdAt: 'desc' },
+            include
+          })
+      )
+    );
+  }
+
+  async listAllEvents(d: { type?: string }) {
+    return Paginator.create(({ prisma }) =>
+      prisma(
+        async opts =>
+          await db.slateEvent.findMany({
+            ...opts,
+            where: d.type ? { type: d.type as any } : undefined,
+            orderBy: { createdAt: 'desc' },
             include
           })
       )

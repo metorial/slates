@@ -18,6 +18,25 @@ export let slateDeploymentApp = slateApp.use(async ctx => {
 });
 
 export let slateDeploymentController = app.controller({
+  listAll: app
+    .handler()
+    .input(
+      Paginator.validate(
+        v.object({
+          status: v.optional(v.string())
+        })
+      )
+    )
+    .do(async ctx => {
+      let paginator = await slateDeploymentService.listAllDeployments({
+        status: ctx.input.status
+      });
+
+      let list = await paginator.run(ctx.input);
+
+      return Paginator.presentLight(list, slateDeploymentPresenter);
+    }),
+
   list: slateApp
     .handler()
     .input(

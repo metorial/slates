@@ -85,7 +85,7 @@ let getReaderToken = async (registry: Registry) => {
     }
 
     if (reg?.internalUrl) {
-      let internalClient = createSlatesRegistryInternalClient({
+      /*let internalClient = createSlatesRegistryInternalClient({
         endpoint: reg.internalUrl
       });
 
@@ -101,7 +101,7 @@ let getReaderToken = async (registry: Registry) => {
         expiresAt: expiresAt.getTime()
       });
 
-      return token.secret;
+      return token.secret; */
     }
   })();
 

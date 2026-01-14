@@ -295,6 +295,7 @@ model SlateVersionDiscovery {
   status SlateVersionDiscoveryStatus
 
   errorMessage String?
+  errorCode   String?
 
   slateVersionOid BigInt
   slateVersion    SlateVersion @relation(fields: [slateVersionOid], references: [oid])

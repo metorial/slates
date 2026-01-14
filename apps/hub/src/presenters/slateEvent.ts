@@ -1,17 +1,57 @@
-import type { SlateEvent, SlateVersion } from '../../prisma/generated/client';
+import type {
+  Slate,
+  SlateDeployment,
+  SlateEvent,
+  SlateVersion,
+  SlateVersionDiscovery
+} from '../../prisma/generated/client';
 
 export let slateEventPresenter = (
   evt: SlateEvent & {
-    slateVersion: SlateVersion;
+    slateVersion: SlateVersion & {
+      activeDeployment?: SlateDeployment | null;
+      slateVersionDiscoveries?: SlateVersionDiscovery[];
+    };
+    slate?: Slate;
   }
-) => ({
-  object: 'slate.specification',
+) => {
+  let deployment = evt.slateVersion.activeDeployment;
+  let discovery = evt.slateVersion.slateVersionDiscoveries?.[0];
 
-  id: evt.id,
-  type: evt.type,
-  message: evt.message,
+  return {
+    object: 'slate.event',
 
-  slateVersionId: evt.slateVersion.id,
+    id: evt.id,
+    type: evt.type,
+    message: evt.message,
 
-  createdAt: evt.createdAt
-});
+    slate: evt.slate
+      ? {
+          id: evt.slate.id,
+          name: evt.slate.name,
+          identifier: evt.slate.identifier
+        }
+      : null,
+
+    version: {
+      id: evt.slateVersion.id,
+      version: evt.slateVersion.version
+    },
+
+    deployment: deployment
+      ? {
+          id: deployment.id,
+          status: deployment.status
+        }
+      : null,
+
+    discovery: discovery
+      ? {
+          id: discovery.id,
+          status: discovery.status
+        }
+      : null,
+
+    createdAt: evt.createdAt
+  };
+};

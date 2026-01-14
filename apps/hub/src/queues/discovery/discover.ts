@@ -455,6 +455,7 @@ export let discoverSlateErrorQueueProcessor = discoverSlateErrorQueue.process(as
       slateVersionOid: version.oid,
       status: 'failed',
       invocationOid: data.invocationOid,
+      errorCode: data.error.code,
       errorMessage: `Discovery failed: [${data.error.code}] - ${data.error.message}`
     }
   });

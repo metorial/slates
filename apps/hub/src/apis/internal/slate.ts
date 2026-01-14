@@ -63,5 +63,24 @@ export let slateController = app.controller({
       });
 
       return slates.map(slatePresenter);
+    }),
+
+  getStats: slateApp
+    .handler()
+    .input(
+      v.object({
+        slateId: v.string()
+      })
+    )
+    .do(async ctx => {
+      let stats = await slateService.getSlateStats({
+        slate: ctx.slate
+      });
+
+      return {
+        object: 'slate.stats',
+        slateId: ctx.slate.id,
+        ...stats
+      };
     })
 });

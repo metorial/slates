@@ -26,6 +26,12 @@ export let slateDeploymentPresenter = (
       }
     : null,
 
+  slate: {
+    id: slateDeployment.slate.id,
+    name: slateDeployment.slate.name,
+    identifier: slateDeployment.slate.identifier
+  },
+
   version: slateVersionPresenter({
     ...slateDeployment.slateVersion,
     slate: slateDeployment.slate

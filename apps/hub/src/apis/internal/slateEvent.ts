@@ -18,6 +18,25 @@ export let slateEventApp = slateApp.use(async ctx => {
 });
 
 export let slateEventController = app.controller({
+  listAll: app
+    .handler()
+    .input(
+      Paginator.validate(
+        v.object({
+          type: v.optional(v.string())
+        })
+      )
+    )
+    .do(async ctx => {
+      let paginator = await slateEventService.listAllEvents({
+        type: ctx.input.type
+      });
+
+      let list = await paginator.run(ctx.input);
+
+      return Paginator.presentLight(list, slateEventPresenter);
+    }),
+
   list: slateApp
     .handler()
     .input(
