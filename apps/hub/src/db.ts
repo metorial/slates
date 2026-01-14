@@ -1,8 +1,8 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import {
-  type SlatesAction as ProtoSlatesAction,
-  type SlateAuthenticationMethod,
-  type SlatesMessageProviderIdentifyResponse
+import type {
+  SlatesAction as ProtoSlatesAction,
+  SlateAuthenticationMethod,
+  SlatesMessageProviderIdentifyResponse
 } from '@slates/proto';
 import { PrismaClient } from '../prisma/generated/client';
 

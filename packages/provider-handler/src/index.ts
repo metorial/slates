@@ -1,11 +1,11 @@
 import { badRequestError, preconditionFailedError, ServiceError } from '@lowerdeck/error';
-import { createSlatesProviderProtoHandler, SlatesParticipant } from '@slates/proto';
+import { createSlatesProviderProtoHandler, type SlatesParticipant } from '@slates/proto';
 import {
   runWithContext,
-  Slate,
+  type Slate,
   SlateContext,
   SlateLogger,
-  SlateLogListener
+  type SlateLogListener
 } from '@slates/provider';
 import { getAction, getActionWithType, getAuthMethod, mapAction, mapAuthMethod } from './spec';
 import { State } from './state';
@@ -148,7 +148,7 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       return { success: true, config: updatedConfig?.config ?? newConfig };
     });
 
-    manager.onRequest('slates/config.get_default', async ({ params }) => {
+    manager.onRequest('slates/config.get_default', async () => {
       getContextBasic();
 
       let getDefaultConfig = slate.spec.config.handlers.getDefaultConfig;
@@ -160,13 +160,13 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       return { config: defaultConfig };
     });
 
-    manager.onRequest('slates/config.schema.get', async ({ params }) => {
+    manager.onRequest('slates/config.schema.get', async () => {
       getContextBasic();
 
       return { schema: toJsonSchema(slate.spec.configSchema) };
     });
 
-    manager.onRequest('slates/provider.identify', async ({ params }) => {
+    manager.onRequest('slates/provider.identify', async () => {
       getContextBasic();
 
       return {
@@ -181,7 +181,7 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       };
     });
 
-    manager.onRequest('slates/auth.methods.list', async ({ params }) => {
+    manager.onRequest('slates/auth.methods.list', async () => {
       getContextBasic();
 
       return {
@@ -320,12 +320,14 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       let authMethod = getAuthMethod(slate, params.authenticationMethodId);
 
       if (authMethod.getProfile) {
-        let profileRes = await runWithContext(getEmptyContext(), () =>
-          authMethod.getProfile!({
-            output: params.output as any,
-            input: params.input,
-            scopes: params.scopes
-          })
+        let profileRes = await runWithContext(
+          getEmptyContext(),
+          () =>
+            authMethod.getProfile!({
+              output: params.output as any,
+              input: params.input,
+              scopes: params.scopes
+            })!
         );
 
         return {
@@ -368,7 +370,7 @@ export let createProviderHandler = <ConfigType extends {}, AuthType extends {}>(
       );
     });
 
-    manager.onRequest('slates/actions.list', async ({ params }) => {
+    manager.onRequest('slates/actions.list', async () => {
       getContextBasic();
 
       return {

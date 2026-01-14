@@ -31,11 +31,11 @@ let getFunctionBayInvocationResultWithRetry = async (
     try {
       return await functionBay.functionInvocation.get({
         tenantId: functionBayTenant.id,
-        functionId: d.slateVersion.providerDeploymentInfo!.functionId,
+        functionId: d.slateVersion.providerDeploymentInfo?.functionId!,
         functionInvocationId: d.invocationId
       });
     } catch (err) {
-      if (attempt == 5) throw err;
+      if (attempt === 5) throw err;
 
       await delay(200 * attempt);
     }
@@ -81,7 +81,7 @@ export let storeSlateInvocation = (
       let hasResponseError = false;
 
       let sanitizedResponses = d.responseMessages?.map(m => {
-        if (typeof m != 'object' || m == null) console.log('Non-object response message:', m);
+        if (typeof m !== 'object' || m == null) console.log('Non-object response message:', m);
 
         let method = 'id' in m && m.id ? idToMethodMap.get(m.id) : null;
 
@@ -126,7 +126,7 @@ export let storeSlateInvocation = (
         data: {
           isPending: false,
           hasResponseError: hasResponseError,
-          hasInvocationError: invocationResult.status == 'failed',
+          hasInvocationError: invocationResult.status === 'failed',
 
           providerInvocationId: d.invocationResult.id,
           bucketOid: invocationsBucketRecord.oid

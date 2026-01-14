@@ -44,12 +44,12 @@ export let useAuth = async (ctx: Context) => {
   }
 
   let userAuth = await userTokenService.authenticateWithUserToken({ secret: token });
-  if (userAuth.status == 'success') {
+  if (userAuth.status === 'success') {
     return { type: 'user' as const, ...userAuth };
   }
 
   let readerAuth = await readerTokenService.authenticateWithReaderToken({ secret: token });
-  if (readerAuth.status == 'success') {
+  if (readerAuth.status === 'success') {
     return { type: 'reader' as const, ...readerAuth };
   }
 

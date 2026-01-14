@@ -36,7 +36,7 @@ class slateServiceImpl {
         slateId: d.slate.slateIdentifierOnRegistry
       }
     });
-    if (res.status != 200)
+    if (res.status !== 200)
       throw new ServiceError(
         badRequestError({
           message: `Failed to fetch slate record from registry: ${res.statusText}`
@@ -46,7 +46,7 @@ class slateServiceImpl {
     return await res.json();
   }
 
-  async listSlates(d: {}) {
+  async listSlates(_d: {}) {
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>

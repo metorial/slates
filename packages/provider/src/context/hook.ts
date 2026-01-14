@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks';
-import { SlateContext } from './context';
+import type { SlateContext } from './context';
 
 let asyncLocalStorage = new AsyncLocalStorage<SlateContext<any, any, any>>();
 

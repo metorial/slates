@@ -27,7 +27,8 @@
   "scripts": {
     "test": "vitest run --passWithNoTests",
     "lint": "prettier src/**/*.ts --check",
-    "build": "microbundle"
+    "build": "microbundle",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@slates/provider": "^1.0.0-rc.6"

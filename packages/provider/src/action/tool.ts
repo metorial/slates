@@ -1,6 +1,10 @@
-import z from 'zod';
-import { SlateSpecification } from '../specification/specification';
-import { SlateAction, SlateActionParameters, SlateToolInvocationHandler } from './action';
+import type z from 'zod';
+import type { SlateSpecification } from '../specification/specification';
+import {
+  SlateAction,
+  type SlateActionParameters,
+  type SlateToolInvocationHandler
+} from './action';
 import { SlateActionBuilder } from './builder';
 
 export interface SlateToolParameters<
@@ -36,7 +40,7 @@ export class SlateTool<
     params: SlateActionParameters
   ) {
     return new SlateActionBuilder('tool', spec, params, params => {
-      if (params.type != 'tool') throw new Error('Invalid action type for tool');
+      if (params.type !== 'tool') throw new Error('Invalid action type for tool');
       return new SlateTool(spec, params.inputSchema, params.outputSchema, params);
     });
   }

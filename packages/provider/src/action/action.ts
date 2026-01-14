@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { SlateContext } from '../context';
-import { SlateSpecification } from '../specification/specification';
+import type { z } from 'zod';
+import type { SlateContext } from '../context';
+import type { SlateSpecification } from '../specification/specification';
 
 export type SlateActionType = 'tool' | 'trigger';
 

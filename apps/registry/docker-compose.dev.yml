@@ -24,7 +24,7 @@ services:
   object-storage:
     image: ghcr.io/metorial/object-storage:latest
     ports:
-      - "52010:52010"
+      - '52010:52010'
     volumes:
       - object-store-data:/app/data
     environment:
@@ -32,7 +32,7 @@ services:
       AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${OBJECT_STORAGE_AWS_REGION}
-      
+
       OBJECT_STORE__SERVER__HOST: 0.0.0.0
       OBJECT_STORE__SERVER__PORT: 52010
       OBJECT_STORE__BACKEND__TYPE: s3
@@ -44,15 +44,15 @@ services:
     networks:
       - slates-registry-network
 
-  slates-registry:  
+  slates-registry:
     build:
       context: .
       dockerfile: dev.Dockerfile
     container_name: slates-registry-service
     restart: unless-stopped
     ports:
-      - "52040:52040"
-      - "52041:52041"
+      - '52040:52040'
+      - '52041:52041'
     environment:
       DATABASE_URL: postgresql://slates-registry:slates-registry@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0

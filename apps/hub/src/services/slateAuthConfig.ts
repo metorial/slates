@@ -38,15 +38,15 @@ class slateAuthConfigServiceImpl {
     });
 
     let defaultAuthMethod =
-      fullVersion.specification?.slateAuthMethods.find(m => m.authMethod.type == 'token') ??
+      fullVersion.specification?.slateAuthMethods.find(m => m.authMethod.type === 'token') ??
       fullVersion.specification?.slateAuthMethods[0];
 
     let method = d.input.authMethodId
       ? fullVersion.specification?.slateAuthMethods.find(
           m =>
-            m.authMethod.id == d.input.authMethodId ||
-            m.authMethod.type == d.input.authMethodId ||
-            m.authMethod.key == d.input.authMethodId
+            m.authMethod.id === d.input.authMethodId ||
+            m.authMethod.type === d.input.authMethodId ||
+            m.authMethod.key === d.input.authMethodId
         )
       : defaultAuthMethod;
     if (!method) {
@@ -69,12 +69,12 @@ class slateAuthConfigServiceImpl {
 
     // For oauth we use the output schema since we are manually setting oauth credentials here
     let schema =
-      method.authMethod.type == 'oauth'
+      method.authMethod.type === 'oauth'
         ? method.authMethod.spec.outputSchema
         : method.authMethod.spec.inputSchema;
 
     let storedConfig = d.input.authConfig;
-    if (method.authMethod.type == 'oauth') {
+    if (method.authMethod.type === 'oauth') {
       storedConfig.refreshToken = '0'; // Placeholder to pass schema validation
 
       if (schema?.properties?.expiresAt) {
@@ -94,7 +94,7 @@ class slateAuthConfigServiceImpl {
       tenant: d.tenant,
       purpose: 'slate_authentication_configuration',
       secretData:
-        method.authMethod.type == 'oauth' ? { output: storedConfig } : { input: storedConfig }
+        method.authMethod.type === 'oauth' ? { output: storedConfig } : { input: storedConfig }
     });
 
     let tokenExpiresAt = extractExpiresAt(storedConfig);
@@ -103,7 +103,7 @@ class slateAuthConfigServiceImpl {
       data: {
         oid: snowflake.nextId(),
         id: configId,
-        type: method.authMethod.type == 'oauth' ? 'oauth_manual' : 'manual',
+        type: method.authMethod.type === 'oauth' ? 'oauth_manual' : 'manual',
         isProcessing: true,
         tokenExpiresAt,
 
@@ -191,7 +191,7 @@ class slateAuthConfigServiceImpl {
     });
 
     return (
-      (d.slateAuthConfig.type == 'manual'
+      (d.slateAuthConfig.type === 'manual'
         ? secret.input
         : {
             ...secret.input,
@@ -226,7 +226,7 @@ class slateAuthConfigServiceImpl {
         }
       }
     });
-    if (fullVersion.status != 'active' || !fullVersion.specification) {
+    if (fullVersion.status !== 'active' || !fullVersion.specification) {
       throw new ServiceError(
         badRequestError({
           message: 'Provider version has not been deployed yet.'

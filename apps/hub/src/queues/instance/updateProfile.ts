@@ -56,7 +56,7 @@ export let updateProfileQueueProcessor = updateProfileQueue.process(async data =
     output: decrypted.output || {}
   });
   console.log('Got profile result for auth config', authConfig.id, res);
-  if (res.status == 'error') return;
+  if (res.status === 'error') return;
 
   let profile = {
     ...res.data.profile,
