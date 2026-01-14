@@ -1,7 +1,11 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Slate, SlateDeployment } from '../../prisma/generated/client';
+import type {
+  Slate,
+  SlateDeployment,
+  SlateDeploymentStatus
+} from '../../prisma/generated/client';
 import { db } from '../db';
 import { functionBay, functionBayTenant } from '../functionBay';
 
@@ -33,14 +37,28 @@ class slateDeploymentServiceImpl {
 
   async getBuildOutput(d: { slateDeployment: SlateDeployment }) {
     if (!d.slateDeployment.providerDeploymentInfo) {
-      return [];
+      return { output: null };
     }
 
-    return await functionBay.functionDeployment.getOutput({
+    let steps = await functionBay.functionDeployment.getOutput({
       tenantId: functionBayTenant.id,
       functionId: d.slateDeployment.providerDeploymentInfo.functionId,
       functionDeploymentId: d.slateDeployment.providerDeploymentInfo.functionDeploymentId
     });
+
+    let output = steps
+      .flatMap(step => {
+        let statusIndicator = step.status === 'failed' ? ' [FAILED]' : '';
+        let header = `=== ${step.name} (${step.type})${statusIndicator} ===\n`;
+        let logs = step.logs
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .map(log => log.message)
+          .join('\n');
+        return header + logs;
+      })
+      .join('\n\n');
+
+    return { output: output || null };
   }
 
   async listSlateDeployments(d: { slate: Slate; versionIds?: string[] }) {
@@ -62,6 +80,21 @@ class slateDeploymentServiceImpl {
               slateOid: d.slate.oid,
               slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined
             },
+            orderBy: { createdAt: 'desc' },
+            include
+          })
+      )
+    );
+  }
+
+  async listAllDeployments(d: { status?: string }) {
+    return Paginator.create(({ prisma }) =>
+      prisma(
+        async opts =>
+          await db.slateDeployment.findMany({
+            ...opts,
+            where: d.status ? { status: d.status as SlateDeploymentStatus } : undefined,
+            orderBy: { createdAt: 'desc' },
             include
           })
       )

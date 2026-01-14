@@ -93,6 +93,21 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
 
     let directory = await unzipper.Open.buffer(Buffer.from(zipBuffer));
 
+    let slatePackageJsonFile = directory.files.find(f => f.path === 'package.json');
+    let slateDependencies: Record<string, string> = {};
+
+    if (slatePackageJsonFile) {
+      try {
+        let slatePackageJson = JSON.parse((await slatePackageJsonFile.buffer()).toString());
+        slateDependencies = {
+          ...(slatePackageJson.dependencies || {}),
+          ...(slatePackageJson.devDependencies || {})
+        };
+      } catch (e) {
+        console.warn(`[Deployment]: Failed to parse slate package.json, using no dependencies`, e);
+      }
+    }
+
     let func = await functionBay.function.upsert({
       identifier: `slates::slate_version::${version.id}::${generateCode(6)}`,
       name: `Slate Version ${version.id} Deployment`,
@@ -111,7 +126,8 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
               '@slates/provider-handler': 'latest',
               '@slates/proto': 'latest',
               slates: 'latest',
-              '@lowerdeck/serialize': 'latest'
+              '@lowerdeck/serialize': 'latest',
+              ...slateDependencies
             }
           },
           null,
@@ -121,7 +137,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
       {
         filename: 'slates_entry_point.js',
         content: `
-          import { provider } from './index';
+          import { provider } from './src/index';
           import { createProviderHandler } from '@slates/provider-handler';
           import { SlatesProviderProtoHandlerManager } from '@slates/proto';
           import { serialize } from '@lowerdeck/serialize';
@@ -208,7 +224,6 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
       env: {},
       files: [
         ...initialFiles,
-
         ...(await Promise.all(
           directory.files.map(async f => ({
             filename: initialFilenames.has(f.path) ? `_${f.path}` : f.path,
