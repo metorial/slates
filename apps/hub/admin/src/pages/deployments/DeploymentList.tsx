@@ -132,7 +132,7 @@ export let DeploymentList = () => {
                         {deployment.error && (
                           <Text
                             size="1"
-                            color="red"
+                            color="red600"
                             style={{
                               maxWidth: 160,
                               overflow: 'hidden',
