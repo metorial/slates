@@ -43,7 +43,7 @@ class registryServiceImpl {
     );
   }
 
-  async listAllRegistries(d: { tenant?: Tenant }) {
+  async listAllRegistries(_d: { tenant?: Tenant }) {
     return db.registry.findMany({
       where: {
         status: 'active'

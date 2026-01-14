@@ -13,7 +13,7 @@ let initBuckets = async () => {
     try {
       await initBuckets();
       return;
-    } catch (err) {
+    } catch (_err) {
       console.error('Error initializing storage buckets, retrying...');
     }
 

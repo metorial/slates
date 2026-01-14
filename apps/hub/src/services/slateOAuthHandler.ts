@@ -18,7 +18,7 @@ class slateOAuthHandlerServiceImpl {
       where: { id: d.setupId },
       include: { slateVersion: true, authMethod: true, oauthCredentials: true, tenant: true }
     });
-    if (!setup || setup.status == 'completed') {
+    if (!setup || setup.status === 'completed') {
       throw new ServiceError(
         badRequestError({
           message: 'Invalid OAuth setup ID.'
@@ -73,7 +73,7 @@ class slateOAuthHandlerServiceImpl {
       }
     });
 
-    if (urlRes.status == 'error') {
+    if (urlRes.status === 'error') {
       await db.slateInstanceOAuthSetup.updateMany({
         where: { oid: setup.oid },
         data: {
@@ -128,7 +128,7 @@ class slateOAuthHandlerServiceImpl {
         ]
       }
     });
-    if (!setup || setup.status == 'completed') {
+    if (!setup || setup.status === 'completed') {
       throw new ServiceError(
         badRequestError({
           message: 'Invalid OAuth setup ID.'
@@ -165,8 +165,8 @@ class slateOAuthHandlerServiceImpl {
       },
       include: { slateVersion: true, authMethod: true, oauthCredentials: true, tenant: true }
     });
-    let setup = setups.find(s => s.id == d.input.state) ?? setups[0];
-    if (!setup || setup.status == 'completed') {
+    let setup = setups.find(s => s.id === d.input.state) ?? setups[0];
+    if (!setup || setup.status === 'completed') {
       throw new ServiceError(
         badRequestError({
           message: 'Invalid OAuth setup ID.'
@@ -174,7 +174,7 @@ class slateOAuthHandlerServiceImpl {
       );
     }
 
-    if (d.input.state && d.input.state != setup.id) {
+    if (d.input.state && d.input.state !== setup.id) {
       throw new ServiceError(
         badRequestError({
           message: 'OAuth state does not match the expected value.'
@@ -219,7 +219,7 @@ class slateOAuthHandlerServiceImpl {
       }
     });
 
-    if (authRes.status == 'error') {
+    if (authRes.status === 'error') {
       await db.slateInstanceOAuthSetupEvent.createMany({
         data: {
           oid: snowflake.nextId(),

@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "start": "bun ./src/server.ts",
-    "dev": "docker compose -p slates-registry -f ./docker-compose.dev.yml up --pull always --build slates-registry object-storage"
+    "dev": "docker compose -p slates-registry -f ./docker-compose.dev.yml up --pull always --build slates-registry object-storage",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "latest"

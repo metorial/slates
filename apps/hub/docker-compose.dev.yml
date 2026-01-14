@@ -6,7 +6,7 @@ services:
     container_name: slates-hub-postgres
     restart: unless-stopped
     ports:
-      - "45432:5432"
+      - '45432:5432'
     environment:
       POSTGRES_USER: slates-hub
       POSTGRES_PASSWORD: slates-hub
@@ -32,7 +32,7 @@ services:
       AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${OBJECT_STORAGE_AWS_REGION}
-      
+
       OBJECT_STORE__SERVER__HOST: 0.0.0.0
       OBJECT_STORE__SERVER__PORT: 52010
       OBJECT_STORE__BACKEND__TYPE: s3
@@ -44,15 +44,14 @@ services:
     networks:
       - slates-hub-network
 
-
-  forge:  
+  forge:
     image: ghcr.io/metorial/forge:latest
     container_name: slates-hub-forge
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/forge
       REDIS_URL: redis://redis:6379/0
-      
+
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DEFAULT_PROVIDER: aws.code-build
 
@@ -72,14 +71,14 @@ services:
     networks:
       - slates-hub-network
 
-  function-bay:  
+  function-bay:
     image: ghcr.io/metorial/function-bay:latest
     container_name: slates-hub-function-bay
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/function-bay
       REDIS_URL: redis://redis:6379/0
-      
+
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DEFAULT_PROVIDER: ${DEFAULT_PROVIDER}
 
@@ -100,7 +99,7 @@ services:
     networks:
       - slates-hub-network
 
-  signal:  
+  signal:
     image: ghcr.io/metorial/signal:latest
     container_name: slates-hub-signal
     restart: unless-stopped
@@ -117,15 +116,15 @@ services:
     networks:
       - slates-hub-network
 
-  slates-registry:  
+  slates-registry:
     build:
       context: ../registry
       dockerfile: ../registry/dev.Dockerfile
     container_name: slates-hub-registry
     restart: unless-stopped
     ports:
-      - "52040:52040"
-      - "52041:52041"
+      - '52040:52040'
+      - '52041:52041'
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0
@@ -146,15 +145,15 @@ services:
     networks:
       - slates-hub-network
 
-  slates-hub:  
+  slates-hub:
     build:
       context: ../../
       dockerfile: ./apps/hub/dev.Dockerfile
     container_name: slates-hub-service
     restart: unless-stopped
     ports:
-      - "52045:52045"
-      - "52046:52046"
+      - '52045:52045'
+      - '52046:52046'
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-hub
       REDIS_URL: redis://redis:6379/0
@@ -170,7 +169,7 @@ services:
       OBJECT_STORAGE_URL: http://object-storage:52010
       INVOCATIONS_BUCKET_NAME: slates-hub-invocations
 
-      INITIAL_REGISTRIES: "http://slates-registry:52040"
+      INITIAL_REGISTRIES: 'http://slates-registry:52040'
 
       SIGNAL_API_URL: http://signal:52050/metorial-signal
       SIGNAL_SENDER_IDENTIFIER: dev-slates-hub

@@ -4,10 +4,10 @@ import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { env } from '../../env';
 import { slateOAuthHandlerService } from '../../services/slateOAuthHandler';
 
-const SETUP_COOKIE_NAME = 'slates_hub_oauth_setup_id';
+let SETUP_COOKIE_NAME = 'slates_hub_oauth_setup_id';
 
 let cookieOpts = {
-  secure: env.service.METORIAL_ENV != 'development',
+  secure: env.service.METORIAL_ENV !== 'development',
   httpOnly: true,
   sameSite: 'lax' as const,
   path: '/'

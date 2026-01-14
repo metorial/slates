@@ -5,7 +5,7 @@ export let paginatorSchema = z.object({
     z.string().refine(
       v => {
         let num = Number(v);
-        return !isNaN(num) && num > 0 && num <= 100;
+        return !Number.isNaN(num) && num > 0 && num <= 100;
       },
       { message: 'Limit must be a number between 1 and 100' }
     )

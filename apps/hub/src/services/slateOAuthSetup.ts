@@ -7,9 +7,9 @@ import type { Slate, SlateOAuthCredentials, Tenant } from '../../prisma/generate
 import { db } from '../db';
 import { getId } from '../id';
 import { validateJsonSchema } from '../lib/validateJsonSchema';
-import { secretService, type SecretSlateInstanceOauthSetup } from './secret';
+import { type SecretSlateInstanceOauthSetup, secretService } from './secret';
 
-let Sentry = getSentry();
+let _Sentry = getSentry();
 
 let include = {
   slate: true,
@@ -33,7 +33,7 @@ class slateOAuthSetupServiceImpl {
       input: Record<string, any>;
     };
   }) {
-    if (d.input.slateVersion && d.input.slateVersion.slateOid != d.input.slate.oid) {
+    if (d.input.slateVersion && d.input.slateVersion.slateOid !== d.input.slate.oid) {
       throw new ServiceError(
         badRequestError({
           message: 'Slate Instance does not belong to the provided Slate.'
@@ -47,7 +47,7 @@ class slateOAuthSetupServiceImpl {
     });
     let authMethods = (version.specification?.slateAuthMethods ?? []).map(a => a.authMethod);
 
-    let oauthAuthMethod = authMethods.find(m => m.type == 'oauth');
+    let oauthAuthMethod = authMethods.find(m => m.type === 'oauth');
     if (!oauthAuthMethod) {
       throw new ServiceError(
         badRequestError({
@@ -60,9 +60,9 @@ class slateOAuthSetupServiceImpl {
     let authMethod = d.input.authMethodId
       ? authMethods.find(
           m =>
-            m.id == d.input.authMethodId ||
-            m.type == d.input.authMethodId ||
-            m.key == d.input.authMethodId
+            m.id === d.input.authMethodId ||
+            m.type === d.input.authMethodId ||
+            m.key === d.input.authMethodId
         )
       : oauthAuthMethod;
 
@@ -178,7 +178,7 @@ class slateOAuthSetupServiceImpl {
         }
       }
     });
-    if (fullVersion.status != 'active' || !fullVersion.activeDeploymentOid) {
+    if (fullVersion.status !== 'active' || !fullVersion.activeDeploymentOid) {
       throw new ServiceError(
         badRequestError({
           message: 'Provider version has not been deployed yet.'

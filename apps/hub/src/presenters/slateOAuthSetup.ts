@@ -24,7 +24,7 @@ export let slateInstanceOAuthSetupPresenter = (
   redirectUrl: setup.redirectUrl,
 
   url:
-    setup.status == 'completed'
+    setup.status === 'completed'
       ? null
       : `${env.service.SERVICE_PUBLIC_URL}/slates-hub/authorization?setup_id=${setup.id}`,
 

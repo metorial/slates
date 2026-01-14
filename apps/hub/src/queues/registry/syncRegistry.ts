@@ -67,7 +67,7 @@ export let syncRegistryQueueProcessor = syncRegistryQueue.process(data =>
     await db.registry.update({
       where: { id: reg.id },
       data: {
-        changeNotificationCursor: items[items.length - 1]!.id,
+        changeNotificationCursor: items[items.length - 1]?.id,
         lastSyncedAt: new Date()
       }
     });

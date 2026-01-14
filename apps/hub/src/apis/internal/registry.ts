@@ -43,7 +43,7 @@ export let registryController = app.controller({
         tenantId: v.string()
       })
     )
-    .do(async ctx => {
+    .do(async _ctx => {
       let res = await registryService.listAllRegistries({});
 
       return res.map(registryPresenter);

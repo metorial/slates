@@ -49,7 +49,7 @@ export let slateInvocationLitePresenter = async (inv: SlateInvocation) => {
     id: inv.id,
     status: inv.isPending
       ? ('processing_result' as const)
-      : output.provider?.status == 'failed' || inv.hasInvocationError
+      : output.provider?.status === 'failed' || inv.hasInvocationError
         ? ('invocation_failed' as const)
         : inv.hasResponseError
           ? ('message_failed' as const)

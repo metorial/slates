@@ -1,5 +1,4 @@
 export * from './action';
+export type * from './builder';
 export * from './tool';
 export * from './trigger';
-
-export type * from './builder';

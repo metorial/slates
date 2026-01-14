@@ -4,37 +4,37 @@ export * from './config';
 export * from './controlFlow';
 export * from './identify';
 
-import { z } from 'zod';
+import type { z } from 'zod';
 import {
-  SlatesActionRequests,
+  type SlatesActionRequests,
+  type SlatesActionResponses,
   slatesActionRequestsByMethod,
-  SlatesActionResponses,
   slatesActionResponsesByMethod
 } from './action';
 import {
-  SlatesAuthNotifications,
+  type SlatesAuthNotifications,
+  type SlatesAuthRequests,
+  type SlatesAuthResponses,
   slatesAuthNotificationsByMethod,
-  SlatesAuthRequests,
   slatesAuthRequestsByMethod,
-  SlatesAuthResponses,
   slatesAuthResponsesByMethod
 } from './auth';
 import {
-  SlatesConfigNotifications,
+  type SlatesConfigNotifications,
+  type SlatesConfigRequests,
+  type SlatesConfigResponses,
   slatesConfigNotificationsByMethod,
-  SlatesConfigRequests,
   slatesConfigRequestsByMethod,
-  SlatesConfigResponses,
   slatesConfigResponsesByMethod
 } from './config';
 import {
-  SlatesControlFlowNotifications,
+  type SlatesControlFlowNotifications,
   slatesControlFlowNotificationsByMethod
 } from './controlFlow';
 import {
-  SlatesIdentifyRequests,
+  type SlatesIdentifyRequests,
+  type SlatesIdentifyResponses,
   slatesIdentifyRequestsByMethod,
-  SlatesIdentifyResponses,
   slatesIdentifyResponsesByMethod
 } from './identify';
 

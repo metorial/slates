@@ -16,7 +16,7 @@ import { getId } from '../id';
 import { validateJsonSchema } from '../lib/validateJsonSchema';
 import { slateInstanceConfigChangedQueue } from '../queues/instance/configChanged';
 
-let Sentry = getSentry();
+let _Sentry = getSentry();
 
 let include = {
   lockedSlateVersion: true,
@@ -210,7 +210,7 @@ class slateInstanceServiceImpl {
         }
       }
     });
-    if (fullVersion.status != 'active' || !fullVersion.specification) {
+    if (fullVersion.status !== 'active' || !fullVersion.specification) {
       throw new ServiceError(
         badRequestError({
           message: 'Provider version has not been deployed yet.'

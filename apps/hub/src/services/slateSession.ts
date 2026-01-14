@@ -125,7 +125,7 @@ class slateSessionServiceImpl {
       },
       include: { specification: true }
     });
-    if (fullVersion.status != 'active' || !fullVersion.activeDeploymentOid) {
+    if (fullVersion.status !== 'active' || !fullVersion.activeDeploymentOid) {
       throw new ServiceError(
         badRequestError({
           message: 'Provider version has not been deployed yet.'

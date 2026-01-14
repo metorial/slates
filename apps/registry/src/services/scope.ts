@@ -23,7 +23,7 @@ class scopeServiceImpl {
     return scope;
   }
 
-  async listScopes(d: {}) {
+  async listScopes(_d: {}) {
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>

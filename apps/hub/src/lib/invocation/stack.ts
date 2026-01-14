@@ -2,10 +2,10 @@ import { delay } from '@lowerdeck/delay';
 import { badRequestError, ServiceError } from '@lowerdeck/error';
 import { generatePlainId } from '@lowerdeck/id';
 import { serialize } from '@lowerdeck/serialize';
-import {
-  slatesResponsesByMethod,
-  type SlatesParticipant,
-  type slatesRequestsByMethod
+import type {
+  SlatesParticipant,
+  slatesRequestsByMethod,
+  slatesResponsesByMethod
 } from '@slates/proto';
 import z from 'zod';
 import type { SlateInvocation, SlateVersion } from '../../../prisma/generated/client';
@@ -95,7 +95,7 @@ export class SlateInvocationStack {
       })
     ]);
 
-    if (providerInvocation.type == 'error') {
+    if (providerInvocation.type === 'error') {
       storeSlateInvocation({
         slateVersion: this.#slateVersion,
         participants: this.#participants,
@@ -160,7 +160,7 @@ export class SlateInvocationStack {
             invocation: SlateInvocation;
             error: InvocationError;
           } => {
-        let inputMessage = messages.find(m => m.method == key);
+        let inputMessage = messages.find(m => m.method === key);
         if (!inputMessage || !('id' in inputMessage) || !inputMessage.id) {
           return {
             status: 'error',
@@ -173,9 +173,9 @@ export class SlateInvocationStack {
         }
 
         let outputMessage: any = resultMessages.find(
-          m => 'id' in m && m.id == inputMessage.id
+          m => 'id' in m && m.id === inputMessage.id
         );
-        if (!outputMessage || typeof outputMessage != 'object' || outputMessage === null) {
+        if (!outputMessage || typeof outputMessage !== 'object' || outputMessage === null) {
           let errorMessage = resultMessages.find(m => 'error' in m);
           if (errorMessage) {
             let parse = errorSchema.safeParse(errorMessage);
