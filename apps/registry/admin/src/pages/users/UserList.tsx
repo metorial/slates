@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Avatar, Button, Text, Title, Badge, Flex, Spacer, Group, RenderDate } from '@metorial-io/ui';
-import { useUsers } from '../../api/hooks';
+import { useUsers } from '../../hooks';
 import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
 export let UserList = () => {

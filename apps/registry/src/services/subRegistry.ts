@@ -1,7 +1,11 @@
 import { badRequestError, conflictError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { SubRegistry, SubRegistryFilterType, Tenant } from '../../prisma/generated/client';
+import type {
+  SubRegistry,
+  SubRegistryFilterType,
+  Tenant
+} from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
 import { getId } from '../id';
@@ -13,7 +17,7 @@ let include = {
 
 let validFilterTypes = ['scope', 'prefix', 'package'] as const;
 
-let validateFilterType = (type: string): asserts type is SubRegistryFilterType => {
+let validateFilterType = (type: string) => {
   if (!validFilterTypes.includes(type as SubRegistryFilterType)) {
     throw new ServiceError(
       badRequestError({
@@ -31,7 +35,7 @@ let validateFilterValue = (type: SubRegistryFilterType, value: string): void => 
       })
     );
   }
-}
+};
 
 let baseDomain = env.url.SUB_REGISTRY_BASE_DOMAIN;
 if (baseDomain && !baseDomain.startsWith('.')) {
@@ -127,7 +131,7 @@ class subRegistryServiceImpl {
   async addFilter(d: {
     subRegistry: SubRegistry;
     input: {
-      type: string;
+      type: SubRegistryFilterType;
       value: string;
     };
   }) {
@@ -168,7 +172,7 @@ class subRegistryServiceImpl {
 
   async setFilters(d: {
     subRegistry: SubRegistry;
-    filters: Array<{ type: string; value: string }>;
+    filters: Array<{ type: SubRegistryFilterType; value: string }>;
   }) {
     for (let filter of d.filters) {
       validateFilterType(filter.type);

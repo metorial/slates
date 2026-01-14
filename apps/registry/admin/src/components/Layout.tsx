@@ -10,7 +10,7 @@ import {
 } from '@remixicon/react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { useTenant } from '../api/hooks';
+import { useTenant } from '../hooks';
 
 let ContentWrapper = styled.div`
   padding: 20px;

@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Avatar, Button, Text, Title, Flex, Spacer, Badge, Group, RenderDate } from '@metorial-io/ui';
-import { useSubRegistries } from '../../api/hooks';
+import { useSubRegistries } from '../../hooks';
 import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
 export let SubRegistryList = () => {

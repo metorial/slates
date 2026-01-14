@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { Button, Flex, Group, Input, Spacer, Text, Select } from '@metorial-io/ui';
-import { usePublishNewSlate, useUsers, useWorkspaces } from '../../api/hooks';
+import { usePublishNewSlate, useUsers, useWorkspaces } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper, FileInput } from '../../components/styled';
 

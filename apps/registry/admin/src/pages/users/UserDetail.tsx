@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { Button, Flex, Text, Group, Badge, Input, Spacer, Datalist, Callout, RenderDate, Copy } from '@metorial-io/ui';
-import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../api/hooks';
+import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MonoCode } from '../../components/styled';

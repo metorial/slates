@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
 import { Button, Flex, Group, Text, Select, Callout } from '@metorial-io/ui';
-import { usePublishSlate, useSlate } from '../../api/hooks';
+import { usePublishSlate, useSlate } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper, FileInput, MonoCode } from '../../components/styled';
 
@@ -65,7 +65,10 @@ export let SlatePublish = () => {
               {slateData.currentVersion && (
                 <Callout color="gray" style={{ marginBottom: 20 }}>
                   <Text size="2" color="gray600">
-                    Current version: <Text as="span" weight="medium" color="gray900">v{slateData.currentVersion.version}</Text>
+                    Current version:{' '}
+                    <Text as="span" weight="medium" color="gray900">
+                      v{slateData.currentVersion.version}
+                    </Text>
                   </Text>
                 </Callout>
               )}
@@ -73,7 +76,9 @@ export let SlatePublish = () => {
               <form onSubmit={form.handleSubmit}>
                 <Flex direction="column" gap={20}>
                   <Flex direction="column" gap={6}>
-                    <Text size="2" weight="medium">Slate Package (ZIP)</Text>
+                    <Text size="2" weight="medium">
+                      Slate Package (ZIP)
+                    </Text>
                     <FileInput
                       type="file"
                       accept=".zip"
@@ -81,13 +86,17 @@ export let SlatePublish = () => {
                       required
                     />
                     <form.RenderError field="file" />
-                    <Text size="1" color="gray500">Upload a ZIP file containing slate.json and other assets</Text>
+                    <Text size="1" color="gray500">
+                      Upload a ZIP file containing slate.json and other assets
+                    </Text>
                   </Flex>
 
                   <Select
                     label="Access Level"
                     value={form.values.access}
-                    onChange={value => form.setFieldValue('access', value as 'public' | 'private')}
+                    onChange={value =>
+                      form.setFieldValue('access', value as 'public' | 'private')
+                    }
                     items={[
                       { id: 'private', label: 'Private' },
                       { id: 'public', label: 'Public' }
@@ -98,7 +107,11 @@ export let SlatePublish = () => {
                   <publishSlate.RenderError />
 
                   <Flex gap={12} style={{ marginTop: 8 }}>
-                    <Button type="submit" color="green" disabled={!form.values.file} loading={publishSlate.isLoading}>
+                    <Button
+                      type="submit"
+                      disabled={!form.values.file}
+                      loading={publishSlate.isLoading}
+                    >
                       Publish Version
                     </Button>
                     <Button
@@ -117,4 +130,4 @@ export let SlatePublish = () => {
       </Flex>
     );
   });
-}
+};

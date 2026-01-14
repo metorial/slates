@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Flex, Group, Badge as UiBadge, Datalist, RenderDate } from '@metorial-io/ui';
-import { useTenant } from '../../api/hooks';
+import { useTenant } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
 import { MonoCode } from '../../components/styled';
 

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useForm } from '@metorial-io/data-hooks';
 import { Button, Input, Flex, Group, Spacer } from '@metorial-io/ui';
-import { useCreateTenant } from '../../api/hooks';
+import { useCreateTenant } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
 import { FormWrapper } from '../../components/styled';
 

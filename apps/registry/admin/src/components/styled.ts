@@ -1,6 +1,6 @@
 import { styled } from 'styled-components';
-import { Link } from 'react-router-dom';
 import { Flex } from '@metorial-io/ui';
+import { Link } from 'react-router-dom';
 
 // Empty state container used in list pages
 export let EmptyState = styled(Flex)`
@@ -106,19 +106,4 @@ export let SlateLogoPlaceholder = styled(Flex)`
   background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
   font-size: 16px;
   color: #94a3b8;
-`;
-
-// Action button link (like Publish button)
-export let ActionLink = styled(Link)`
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #3b82f6;
-  background: #eff6ff;
-  border-radius: 6px;
-  text-decoration: none;
-
-  &:hover {
-    background: #dbeafe;
-  }
 `;

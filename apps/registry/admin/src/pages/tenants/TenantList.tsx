@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Avatar, Button, Text, Title, Flex, Spacer, Group, RenderDate } from '@metorial-io/ui';
-import { useTenants } from '../../api/hooks';
+import { useTenants } from '../../hooks';
 import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
 
 export let TenantList = () => {

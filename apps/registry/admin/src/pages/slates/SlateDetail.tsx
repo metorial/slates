@@ -1,7 +1,15 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import { Badge, Button, Flex, Group, Text, CenteredSpinner, RenderDate } from '@metorial-io/ui';
-import { useSlate, useSlateVersions } from '../../api/hooks';
+import {
+  Badge,
+  Button,
+  Flex,
+  Group,
+  Text,
+  CenteredSpinner,
+  RenderDate
+} from '@metorial-io/ui';
+import { useSlate, useSlateVersions } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
 import { MonoCode, SlateLogoImage, SlateLogoPlaceholder } from '../../components/styled';
 import { styled } from 'styled-components';
@@ -46,55 +54,108 @@ export let SlateDetail = () => {
               {slateData.logoUrl ? (
                 <LargeLogo src={slateData.logoUrl} alt="" />
               ) : (
-                <LargeLogoPlaceholder align="center" justify="center">S</LargeLogoPlaceholder>
+                <LargeLogoPlaceholder align="center" justify="center">
+                  S
+                </LargeLogoPlaceholder>
               )}
               <Flex direction="column" style={{ flex: 1 }}>
                 <Flex justify="space-between" align="start" style={{ marginBottom: 8 }}>
-                  <Text size="5" weight="bold">{slateData.name}</Text>
-                  <Button color="green" onClick={() => navigate(`/tenants/${tenantId}/slates/${slateData.id}/publish`)}>
+                  <Text size="5" weight="bold">
+                    {slateData.name}
+                  </Text>
+                  <Button
+                    onClick={() =>
+                      navigate(`/tenants/${tenantId}/slates/${slateData.id}/publish`)
+                    }
+                  >
                     Publish New Version
                   </Button>
                 </Flex>
                 <MonoCode style={{ marginBottom: 12 }}>{slateData.fullIdentifier}</MonoCode>
-                {slateData.description && <Text size="2" color="gray600">{slateData.description}</Text>}
+                {slateData.description && (
+                  <Text size="2" color="gray600">
+                    {slateData.description}
+                  </Text>
+                )}
               </Flex>
             </Flex>
           </Group.Content>
 
           <Group.Content>
             <Flex gap={8} wrap="wrap" style={{ marginBottom: 20 }}>
-              <Badge color={slateData.access === 'public' ? 'green' : 'gray'} size="1">{slateData.access}</Badge>
-              <Badge color={slateData.status === 'active' ? 'green' : 'gray'} size="1">{slateData.status}</Badge>
-              <Badge color={slateData.scope?.type === 'workspace' ? 'purple' : 'blue'} size="1">
+              <Badge color={slateData.access === 'public' ? 'green' : 'gray'} size="1">
+                {slateData.access}
+              </Badge>
+              <Badge color={slateData.status === 'active' ? 'green' : 'gray'} size="1">
+                {slateData.status}
+              </Badge>
+              <Badge
+                color={slateData.scope?.type === 'workspace' ? 'purple' : 'blue'}
+                size="1"
+              >
                 {slateData.scope?.type}: {slateData.scope?.name}
               </Badge>
             </Flex>
 
             <Flex direction="column" gap={16}>
-              <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
-                <Text size="2" color="gray600">ID</Text>
+              <Flex
+                justify="space-between"
+                align="center"
+                style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}
+              >
+                <Text size="2" color="gray600">
+                  ID
+                </Text>
                 <MonoCode>{slateData.id}</MonoCode>
               </Flex>
-              <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
-                <Text size="2" color="gray600">Current Version</Text>
-                <Text size="2" weight="medium">{slateData.currentVersion?.version ?? 'No version'}</Text>
+              <Flex
+                justify="space-between"
+                align="center"
+                style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}
+              >
+                <Text size="2" color="gray600">
+                  Current Version
+                </Text>
+                <Text size="2" weight="medium">
+                  {slateData.currentVersion?.version ?? 'No version'}
+                </Text>
               </Flex>
-              <Flex justify="space-between" align="center" style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
-                <Text size="2" color="gray600">Created By</Text>
-                <Text size="2" weight="medium">{slateData.createdByUser?.name ?? 'Unknown'}</Text>
+              <Flex
+                justify="space-between"
+                align="center"
+                style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}
+              >
+                <Text size="2" color="gray600">
+                  Created By
+                </Text>
+                <Text size="2" weight="medium">
+                  {slateData.createdByUser?.name ?? 'Unknown'}
+                </Text>
               </Flex>
               <Flex justify="space-between" align="center">
-                <Text size="2" color="gray600">Created</Text>
-                <Text size="2" weight="medium"><RenderDate date={slateData.createdAt} /></Text>
+                <Text size="2" color="gray600">
+                  Created
+                </Text>
+                <Text size="2" weight="medium">
+                  <RenderDate date={slateData.createdAt} />
+                </Text>
               </Flex>
             </Flex>
 
             {slateData.skills && slateData.skills.length > 0 && (
-              <Flex direction="column" gap={10} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
-                <Text size="2" color="gray600">Skills</Text>
+              <Flex
+                direction="column"
+                gap={10}
+                style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}
+              >
+                <Text size="2" color="gray600">
+                  Skills
+                </Text>
                 <Flex gap={8} wrap="wrap">
                   {slateData.skills.map(skill => (
-                    <Badge key={skill} color="blue" size="1">{skill}</Badge>
+                    <Badge key={skill} color="blue" size="1">
+                      {skill}
+                    </Badge>
                   ))}
                 </Flex>
               </Flex>
@@ -108,14 +169,27 @@ export let SlateDetail = () => {
             {versions.isLoading && !versions.data ? (
               <CenteredSpinner />
             ) : versionItems.length === 0 ? (
-              <Text size="2" color="gray600">No versions published yet.</Text>
+              <Text size="2" color="gray600">
+                No versions published yet.
+              </Text>
             ) : (
               <Flex direction="column" gap={12}>
                 {versionItems.map(version => (
-                  <VersionItem key={version.id} $current={version.isCurrent} align="center" justify="space-between">
+                  <VersionItem
+                    key={version.id}
+                    $current={version.isCurrent}
+                    align="center"
+                    justify="space-between"
+                  >
                     <Flex align="center" gap={12}>
-                      <Text size="3" weight="bold" style={{ fontFamily: 'monospace' }}>v{version.version}</Text>
-                      {version.isCurrent && <Badge color="green" size="1">Current</Badge>}
+                      <Text size="3" weight="bold" style={{ fontFamily: 'monospace' }}>
+                        v{version.version}
+                      </Text>
+                      {version.isCurrent && (
+                        <Badge color="green" size="1">
+                          Current
+                        </Badge>
+                      )}
                     </Flex>
                     <Text size="2" color="gray600">
                       <RenderDate date={version.createdAt} />
@@ -123,7 +197,8 @@ export let SlateDetail = () => {
                     </Text>
                   </VersionItem>
                 ))}
-                {(versions.data?.pagination.hasMoreBefore || versions.data?.pagination.hasMoreAfter) && (
+                {(versions.data?.pagination.hasMoreBefore ||
+                  versions.data?.pagination.hasMoreAfter) && (
                   <Flex justify="flex-end" gap={10}>
                     <Button
                       variant="outline"
@@ -150,4 +225,4 @@ export let SlateDetail = () => {
       </Flex>
     );
   });
-}
+};
