@@ -1,4 +1,4 @@
-import baseAxios, { CreateAxiosDefaults } from 'axios';
+import baseAxios, { type CreateAxiosDefaults } from 'axios';
 import { getCurrentContext } from '../context/hook';
 
 baseAxios.interceptors.request.use(

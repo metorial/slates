@@ -40,7 +40,7 @@ export class SheetsClient {
     if (this.isApiKey) {
       this.axios.defaults.params = { key: config.token };
     } else {
-      this.axios.defaults.headers.common['Authorization'] = `Bearer ${config.token}`;
+      this.axios.defaults.headers.common.Authorization = `Bearer ${config.token}`;
     }
   }
 
@@ -671,7 +671,7 @@ export class DriveClient {
     this.axios = createAxios({
       baseURL: 'https://www.googleapis.com/drive/v3'
     });
-    this.axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    this.axios.defaults.headers.common.Authorization = `Bearer ${token}`;
   }
 
   async watchFile(

@@ -39,7 +39,7 @@ export let slateInstanceConfigChangedQueueProcessor = slateInstanceConfigChanged
       previousConfig: previousConfig ? previousConfig.value : null,
       newConfig: newConfig.value
     });
-    if (res.status == 'error') {
+    if (res.status === 'error') {
       await db.slateInstanceConfig.updateMany({
         where: { oid: newConfig.oid },
         data: {

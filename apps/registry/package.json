@@ -7,7 +7,8 @@
     "start": "bun ./src/server.ts",
     "dev": "bun run build:admin && docker compose -p slates-registry -f ./docker-compose.dev.yml up --pull always --build slates-registry object-storage",
     "build:admin": "vite build --config admin/vite.config.ts",
-    "dev:admin": "vite --config admin/vite.config.ts"
+    "dev:admin": "vite --config admin/vite.config.ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "latest",

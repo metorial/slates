@@ -54,7 +54,7 @@ export let processAuthQueueProcessor = processAuthQueue.process(async data => {
       previousInput: null,
       newInput: decrypted.input
     });
-    if (res.status == 'error') {
+    if (res.status === 'error') {
       await db.slateAuthConfig.updateMany({
         where: { oid: authConfig.oid },
         data: {
@@ -82,7 +82,7 @@ export let processAuthQueueProcessor = processAuthQueue.process(async data => {
       authenticationMethodId: authConfig.authMethod.key,
       input: decrypted.input ?? {}
     });
-    if (res.status == 'error') {
+    if (res.status === 'error') {
       await db.slateAuthConfig.updateMany({
         where: { oid: authConfig.oid },
         data: {
@@ -99,7 +99,7 @@ export let processAuthQueueProcessor = processAuthQueue.process(async data => {
   }
 
   let tokenExpiresAt = extractExpiresAt(decrypted.output);
-  if (tokenExpiresAt != authConfig.tokenExpiresAt) {
+  if (tokenExpiresAt !== authConfig.tokenExpiresAt) {
     await db.slateAuthConfig.updateMany({
       where: { oid: authConfig.oid },
       data: { tokenExpiresAt }

@@ -87,6 +87,28 @@ export let slateAuthConfigController = app.controller({
     )
     .do(async ctx => slateAuthConfigPresenter(ctx.slateAuthConfig)),
 
+  decrypt: slateAuthConfigApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateAuthConfigId: v.string(),
+        note: v.string()
+      })
+    )
+    .do(async ctx => {
+      let decrypted = await slateAuthConfigService.DANGEROUSLY_decryptAuthConfig({
+        slateAuthConfig: ctx.slateAuthConfig,
+        tenant: ctx.tenant,
+        note: ctx.input.note
+      });
+
+      return {
+        decryptedAuthConfig: decrypted,
+        authConfig: slateAuthConfigPresenter(ctx.slateAuthConfig)
+      };
+    }),
+
   getMany: tenantApp
     .handler()
     .input(

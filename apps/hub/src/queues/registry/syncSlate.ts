@@ -124,7 +124,7 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
         }
       });
 
-      if (newVersionId == version.id) {
+      if (newVersionId === version.id) {
         await db.slateEvent.create({
           data: {
             ...getId('slateEvent'),

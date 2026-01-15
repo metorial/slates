@@ -5,13 +5,13 @@ import {
   notFoundError,
   validationError
 } from '@lowerdeck/error';
-import z from 'zod';
+import type z from 'zod';
 import {
-  SlatesNotifications,
+  type SlatesNotifications,
+  type SlatesRequests,
+  type SlatesResponsesByMethod,
   slatesNotificationsByMethod,
-  SlatesRequests,
-  slatesRequestsByMethod,
-  SlatesResponsesByMethod
+  slatesRequestsByMethod
 } from '../messages';
 
 export class SlatesProviderProtoHandlerManager {

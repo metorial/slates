@@ -1,4 +1,4 @@
-import z from 'zod';
+import type z from 'zod';
 
 export type SlateAuthWithOauth<
   InputType extends {},
@@ -24,7 +24,7 @@ export type SlateAuthWithOauth<
   onInputChanged?: (params: {
     previousInput: InputType | null;
     newInput: InputType;
-  }) => Promise<{ input?: InputType } | void>;
+  }) => Promise<{ input?: InputType } | undefined>;
 
   getDefaultInput?: () => Promise<InputType>;
 
@@ -84,7 +84,7 @@ export type SlateAuthWithToken<InputType extends {}, OutputType extends { token?
   onInputChanged?: (params: {
     previousInput: InputType;
     newInput: InputType;
-  }) => Promise<{ input?: InputType } | void>;
+  }) => Promise<{ input?: InputType } | undefined>;
 
   getDefaultInput?: () => Promise<InputType>;
 
@@ -106,7 +106,7 @@ export type SlateAuthWithServiceAccount<InputType extends {}, OutputType extends
   onInputChanged?: (params: {
     previousInput: InputType;
     newInput: InputType;
-  }) => Promise<{ input?: InputType } | void>;
+  }) => Promise<{ input?: InputType } | undefined>;
 
   getDefaultInput?: () => Promise<InputType>;
 
@@ -128,7 +128,7 @@ export type SlateAuthWithCustomData<InputType extends {}, OutputType extends {}>
   onInputChanged?: (params: {
     previousInput: InputType;
     newInput: InputType;
-  }) => Promise<{ input?: InputType } | void>;
+  }) => Promise<{ input?: InputType } | undefined>;
 
   getDefaultInput?: () => Promise<InputType>;
 
@@ -137,7 +137,7 @@ export type SlateAuthWithCustomData<InputType extends {}, OutputType extends {}>
   }>;
 };
 
-export type SlateAuthWithNone<InputType extends {}, OutputType extends {}> = {
+export type SlateAuthWithNone<_InputType extends {}, _OutputType extends {}> = {
   type: 'auth.none';
 
   name: string;

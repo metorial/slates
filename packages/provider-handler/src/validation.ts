@@ -1,5 +1,5 @@
 import { ServiceError, validationError } from '@lowerdeck/error';
-import z from 'zod';
+import type z from 'zod';
 
 export let zodToValidationError = (entity: string, message: string, e: z.ZodError) => {
   return validationError({

@@ -1,5 +1,5 @@
-import { SlateTool, SlateTrigger } from '../action';
-import { SlateSpecification } from './specification';
+import type { SlateTool, SlateTrigger } from '../action';
+import type { SlateSpecification } from './specification';
 
 export class Slate<ConfigType extends {}, AuthType extends {}> {
   private constructor(

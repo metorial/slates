@@ -1,18 +1,18 @@
-import z from 'zod';
-import { SlateSpecification } from '../specification/specification';
+import type z from 'zod';
+import type { SlateSpecification } from '../specification/specification';
 import {
   SlateAction,
-  SlateActionParameters,
-  SlatePollingOptions,
-  SlateTriggerMappingHandler,
-  SlateTriggerPollingHandler,
-  SlateTriggerWebhookAutoRegistrationHandler,
-  SlateTriggerWebhookAutoUnregistrationHandler,
-  SlateTriggerWebhookRequestHandler
+  type SlateActionParameters,
+  type SlatePollingOptions,
+  type SlateTriggerMappingHandler,
+  type SlateTriggerPollingHandler,
+  type SlateTriggerWebhookAutoRegistrationHandler,
+  type SlateTriggerWebhookAutoUnregistrationHandler,
+  type SlateTriggerWebhookRequestHandler
 } from './action';
 import { SlateActionBuilder } from './builder';
 
-export const SlateDefaultPollingIntervalSeconds = 60 * 10;
+export let SlateDefaultPollingIntervalSeconds = 60 * 10;
 
 export interface SlateTriggerParameters<
   ConfigType extends {},
@@ -72,7 +72,7 @@ export class SlateTrigger<
     params: SlateActionParameters
   ) {
     return new SlateActionBuilder('trigger', spec, params, params => {
-      if (params.type != 'trigger') throw new Error('Invalid action type for trigger');
+      if (params.type !== 'trigger') throw new Error('Invalid action type for trigger');
       return new SlateTrigger(spec, params.inputSchema, params.outputSchema, params);
     });
   }

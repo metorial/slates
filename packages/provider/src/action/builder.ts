@@ -1,7 +1,7 @@
-import z from 'zod';
+import type z from 'zod';
 import { SlateDeclarationError } from '../error';
-import { SlateSpecification } from '../specification/specification';
-import {
+import type { SlateSpecification } from '../specification/specification';
+import type {
   SlateAction,
   SlateActionCreateParameters,
   SlateActionParameters,
@@ -41,7 +41,7 @@ export class SlateActionBuilder<
 
   constructor(
     private readonly type: Type,
-    private readonly spec: SlateSpecification<ConfigType, AuthType>,
+    readonly spec: SlateSpecification<ConfigType, AuthType>,
     private readonly params: SlateActionParameters,
     private readonly factory: (
       params: SlateActionCreateParameters<any, any, any, any>

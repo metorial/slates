@@ -10,10 +10,10 @@ import {
 import { createLock } from '@lowerdeck/lock';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import { v, type ValidationTypeValue } from '@lowerdeck/validation';
+import { type ValidationTypeValue, v } from '@lowerdeck/validation';
 import semver from 'semver';
 import unzipper from 'unzipper';
-import { type Slate, SlateAccess, type User } from '../../prisma/generated/client';
+import type { Slate, SlateAccess, User } from '../../prisma/generated/client';
 import { db } from '../db';
 import { env } from '../env';
 import { getId, ID, snowflake } from '../id';
@@ -100,7 +100,7 @@ class slateVersionServiceImpl {
           );
         }
 
-        if (slateJson.name != `@${d.input.scopeIdentifier}/${d.input.slateIdentifier}`) {
+        if (slateJson.name !== `@${d.input.scopeIdentifier}/${d.input.slateIdentifier}`) {
           throw new ServiceError(
             badRequestError({
               message: `slate.json name "${slateJson.name}" does not match scope/slate identifier.`
@@ -141,7 +141,7 @@ class slateVersionServiceImpl {
         }
         slateJson.version = valid;
 
-        if (d.input.access == 'public' && env.access.PUBLIC_ACCESS_PERMITTED === false) {
+        if (d.input.access === 'public' && env.access.PUBLIC_ACCESS_PERMITTED === false) {
           throw new ServiceError(
             forbiddenError({
               message: 'Public access is not permitted on this tenant.'
@@ -181,7 +181,7 @@ class slateVersionServiceImpl {
           },
           include: { currentVersion: true }
         });
-        if (slate?.status == 'deleted') {
+        if (slate?.status === 'deleted') {
           throw new ServiceError(
             preconditionFailedError({
               message: 'Cannot publish to a slate that has been deleted.'

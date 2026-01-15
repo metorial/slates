@@ -145,7 +145,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
               input: action.inputSchema,
               output: action.outputSchema,
               invocationType:
-                action.type == 'action.trigger' ? action.invocation.type : undefined
+                action.type === 'action.trigger' ? action.invocation.type : undefined
             })
           );
           let identifier = `${identifierBase}::action::${action.id}::${hash}`;
@@ -378,8 +378,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
           });
 
           if (
-            slate.currentVersion &&
-            slate.currentVersion.specificationOid &&
+            slate.currentVersion?.specificationOid &&
             slate.currentVersion.specificationOid !== specification.oid
           ) {
             await db.slateSpecificationChange.create({
