@@ -57,9 +57,7 @@ export let WorkspaceList = () => {
                     </Text>
                   </div>
                 </Flex>
-                <Text size="1" color="gray500">
-                  <RenderDate date={workspace.createdAt} />
-                </Text>
+                <RenderDate date={workspace.createdAt} />
               </ListItemRow>
             </ListItemLink>
           ))}

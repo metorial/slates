@@ -7,6 +7,8 @@
     "start": "bun ./src/server.ts",
     "dev": "docker compose -p slates-hub -f ./docker-compose.dev.yml up --pull always --build forge function-bay object-storage signal slates-registry slates-hub",
     "typecheck": "tsc --noEmit",
+    "typecheck:admin": "tsc --noEmit --project admin/tsconfig.json",
+    "typecheck:all": "bun run typecheck && bun run typecheck:admin",
     "build:admin": "vite build --config admin/vite.config.ts",
     "dev:admin": "vite --config admin/vite.config.ts"
   },

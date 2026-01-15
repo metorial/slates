@@ -1,7 +1,12 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
+import { SlateVersionDiscoveryStatus } from '../../../prisma/generated/client';
 import { slateVersionDiscoveryPresenter } from '../../presenters/slateDiscovery';
+import { slateDiscoveryBuildOutputPresenter } from '../../presenters/slateDiscoveryBuildOutput';
+import { slateDiscoverySpecificationPresenter } from '../../presenters/slateDiscoverySpecification';
+import { slateDiscoveryToolCallStatsPresenter } from '../../presenters/slateDiscoveryToolCallStats';
 import { slateVersionDiscoveryService } from '../../services/slateDiscovery';
+import { slateSpecificationService } from '../../services/slateSpecification';
 import { app } from './_app';
 import { slateApp } from './slate';
 import { slateVersionApp } from './slateVersion';
@@ -24,13 +29,13 @@ export let slateDiscoveryController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          status: v.optional(v.string())
+          status: v.optional(v.enumOf(Object.values(SlateVersionDiscoveryStatus) as [SlateVersionDiscoveryStatus, ...SlateVersionDiscoveryStatus[]]))
         })
       )
     )
     .do(async ctx => {
-      let status = ctx.input.status as 'succeeded' | 'failed' | undefined;
-      let paginator = await slateVersionDiscoveryService.listAllDiscoveries({
+      let status = ctx.input.status;
+      let paginator = await slateVersionDiscoveryService.listSlateVersionDiscoveries({
         status
       });
 
@@ -85,7 +90,7 @@ export let slateDiscoveryController = app.controller({
         slateVersionDiscovery: ctx.slateDiscovery
       });
 
-      return res;
+      return slateDiscoveryBuildOutputPresenter(res);
     }),
 
   getSpecification: slateDiscoveryApp
@@ -98,9 +103,13 @@ export let slateDiscoveryController = app.controller({
       })
     )
     .do(async ctx => {
-      return await slateVersionDiscoveryService.getSpecification({
-        slateVersionDiscovery: ctx.slateDiscovery
+      if (!ctx.slateDiscovery.specificationOid) return null;
+
+      let specification = await slateSpecificationService.getSlateSpecificationByOid({
+        oid: ctx.slateDiscovery.specificationOid
       });
+
+      return slateDiscoverySpecificationPresenter(specification);
     }),
 
   getToolCallStats: slateDiscoveryApp
@@ -113,8 +122,10 @@ export let slateDiscoveryController = app.controller({
       })
     )
     .do(async ctx => {
-      return await slateVersionDiscoveryService.getToolCallStats({
+      let stats = await slateVersionDiscoveryService.getToolCallStats({
         slateVersionDiscovery: ctx.slateDiscovery
       });
+
+      return slateDiscoveryToolCallStatsPresenter(stats);
     })
 });

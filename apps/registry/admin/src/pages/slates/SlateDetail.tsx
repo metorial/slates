@@ -7,7 +7,8 @@ import {
   Group,
   Text,
   CenteredSpinner,
-  RenderDate
+  RenderDate,
+  Datalist
 } from '@metorial-io/ui';
 import { useSlate, useSlateVersions } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
@@ -97,50 +98,14 @@ export let SlateDetail = () => {
               </Badge>
             </Flex>
 
-            <Flex direction="column" gap={16}>
-              <Flex
-                justify="space-between"
-                align="center"
-                style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}
-              >
-                <Text size="2" color="gray600">
-                  ID
-                </Text>
-                <MonoCode>{slateData.id}</MonoCode>
-              </Flex>
-              <Flex
-                justify="space-between"
-                align="center"
-                style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}
-              >
-                <Text size="2" color="gray600">
-                  Current Version
-                </Text>
-                <Text size="2" weight="medium">
-                  {slateData.currentVersion?.version ?? 'No version'}
-                </Text>
-              </Flex>
-              <Flex
-                justify="space-between"
-                align="center"
-                style={{ paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}
-              >
-                <Text size="2" color="gray600">
-                  Created By
-                </Text>
-                <Text size="2" weight="medium">
-                  {slateData.createdByUser?.name ?? 'Unknown'}
-                </Text>
-              </Flex>
-              <Flex justify="space-between" align="center">
-                <Text size="2" color="gray600">
-                  Created
-                </Text>
-                <Text size="2" weight="medium">
-                  <RenderDate date={slateData.createdAt} />
-                </Text>
-              </Flex>
-            </Flex>
+            <Datalist
+              items={[
+                { label: 'ID', value: <MonoCode>{slateData.id}</MonoCode> },
+                { label: 'Current Version', value: slateData.currentVersion?.version ?? 'No version' },
+                { label: 'Created By', value: slateData.createdByUser?.name ?? 'Unknown' },
+                { label: 'Created', value: <RenderDate date={slateData.createdAt} /> }
+              ]}
+            />
 
             {slateData.skills && slateData.skills.length > 0 && (
               <Flex
@@ -191,15 +156,15 @@ export let SlateDetail = () => {
                         </Badge>
                       )}
                     </Flex>
-                    <Text size="2" color="gray600">
+                    <Flex align="center" gap={4}>
                       <RenderDate date={version.createdAt} />
-                      {version.createdByUser && <span> by {version.createdByUser.name}</span>}
-                    </Text>
+                      {version.createdByUser && <Text size="2" color="gray600">by {version.createdByUser.name}</Text>}
+                    </Flex>
                   </VersionItem>
                 ))}
                 {(versions.data?.pagination.hasMoreBefore ||
                   versions.data?.pagination.hasMoreAfter) && (
-                  <Flex justify="flex-end" gap={10}>
+                  <Flex justify="end" gap={10}>
                     <Button
                       variant="outline"
                       size="2"

@@ -63,7 +63,6 @@ services:
       PUBLIC_ACCESS_PERMITTED: 'true'
     volumes:
       - ./src:/app/src:ro
-      - ./dist/admin:/app/dist/admin:ro
       - ./package.json:/app/package.json:ro
       - ./tsconfig.json:/app/tsconfig.json:ro
     depends_on:

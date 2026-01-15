@@ -1,13 +1,5 @@
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import {
-  Badge,
-  CenteredSpinner,
-  Flex,
-  Group,
-  InlineCopy,
-  RenderDate,
-  Text
-} from '@metorial-io/ui';
+import { Badge, Datalist, Flex, Group, InlineCopy, RenderDate, Text } from '@metorial-io/ui';
 import { Link, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
 import {
@@ -26,9 +18,6 @@ import {
 } from '../../state/index.js';
 import { BackLink } from '../../components/BackLink.js';
 import {
-  InfoLabel,
-  InfoRow,
-  InfoValue,
   MonoCode,
   SlateLogoPlaceholder
 } from '../../components/styled.js';
@@ -112,13 +101,14 @@ export let SlateDetail = () => {
   let discoveries = useSlateDiscoveries(slateId);
   let events = useSlateEvents(slateId);
 
-  return renderWithLoader({ slate })(({ slate }) => {
-    let slateData = slate.data!;
-    let statsData = stats.data;
-    let versionItems = versions.data?.items ?? [];
-    let deploymentItems = deployments.data?.items ?? [];
-    let discoveryItems = discoveries.data?.items ?? [];
-    let eventItems = events.data?.items ?? [];
+  return renderWithLoader({ slate, versions, deployments, discoveries, events })(
+    ({ slate, versions, deployments, discoveries, events }) => {
+      let slateData = slate.data!;
+      let statsData = stats.data;
+      let versionItems = versions.data?.items ?? [];
+      let deploymentItems = deployments.data?.items ?? [];
+      let discoveryItems = discoveries.data?.items ?? [];
+      let eventItems = events.data?.items ?? [];
 
     return (
       <Flex direction="column" gap={24}>
@@ -189,43 +179,38 @@ export let SlateDetail = () => {
           </Group.Content>
 
           <Group.Content>
-            <InfoRow>
-              <InfoLabel>ID</InfoLabel>
-              <InfoValue>
-                <Flex align="center" gap={6}>
-                  <MonoCode>{slateData.id}</MonoCode>
-                  <InlineCopy value={slateData.id} />
-                </Flex>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Current Version</InfoLabel>
-              <InfoValue>
-                {slateData.currentVersion ? (
-                  <Flex align="center" gap={8}>
-                    <Text size="2" weight="medium">
-                      v{slateData.currentVersion.version}
-                    </Text>
-                    <Badge
-                      color={versionStatusColors[slateData.currentVersion.status] || 'gray'}
-                      size="1"
-                    >
-                      {slateData.currentVersion.status}
-                    </Badge>
-                  </Flex>
-                ) : (
-                  <Text size="2" color="gray600">
-                    No version
-                  </Text>
-                )}
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Created</InfoLabel>
-              <InfoValue>
-                <RenderDate date={slateData.createdAt} />
-              </InfoValue>
-            </InfoRow>
+            <Datalist
+              items={[
+                {
+                  label: 'ID',
+                  value: (
+                    <Flex align="center" gap={6}>
+                      <MonoCode>{slateData.id}</MonoCode>
+                      <InlineCopy value={slateData.id} />
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Current Version',
+                  value: slateData.currentVersion ? (
+                    <Flex align="center" gap={8}>
+                      <Text size="2" weight="medium">
+                        v{slateData.currentVersion.version}
+                      </Text>
+                      <Badge
+                        color={versionStatusColors[slateData.currentVersion.status] || 'gray'}
+                        size="1"
+                      >
+                        {slateData.currentVersion.status}
+                      </Badge>
+                    </Flex>
+                  ) : (
+                    'No version'
+                  )
+                },
+                { label: 'Created', value: <RenderDate date={slateData.createdAt} /> }
+              ]}
+            />
           </Group.Content>
         </Group.Wrapper>
 
@@ -237,9 +222,7 @@ export let SlateDetail = () => {
             <ViewAllLink to={`/slates/${slateId}/versions`}>View All Versions →</ViewAllLink>
           </SectionHeader>
           <Group.Content>
-            {versions.isLoading && !versions.data ? (
-              <CenteredSpinner />
-            ) : versionItems.length === 0 ? (
+            {versionItems.length === 0 ? (
               <Text size="2" color="gray600">
                 No versions available.
               </Text>
@@ -264,9 +247,7 @@ export let SlateDetail = () => {
                         {version.status}
                       </Badge>
                     </Flex>
-                    <Text size="2" color="gray600">
-                      <RenderDate date={version.createdAt} />
-                    </Text>
+                    <RenderDate date={version.createdAt} />
                   </VersionItem>
                 ))}
               </Flex>
@@ -284,9 +265,7 @@ export let SlateDetail = () => {
             </ViewAllLink>
           </SectionHeader>
           <Group.Content>
-            {deployments.isLoading && !deployments.data ? (
-              <CenteredSpinner />
-            ) : deploymentItems.length === 0 ? (
+            {deploymentItems.length === 0 ? (
               <Text size="2" color="gray600">
                 No deployments yet.
               </Text>
@@ -312,9 +291,7 @@ export let SlateDetail = () => {
                           </Text>
                         )}
                       </Flex>
-                      <Text size="2" color="gray600">
-                        <RenderDate date={deployment.createdAt} />
-                      </Text>
+                      <RenderDate date={deployment.createdAt} />
                     </Flex>
                   </ItemCard>
                 ))}
@@ -323,7 +300,6 @@ export let SlateDetail = () => {
           </Group.Content>
         </Group.Wrapper>
 
-        {/* Discoveries Section */}
         <Group.Wrapper>
           <SectionHeader align="center" justify="space-between">
             <Text size="3" weight="strong">
@@ -334,9 +310,7 @@ export let SlateDetail = () => {
             </ViewAllLink>
           </SectionHeader>
           <Group.Content>
-            {discoveries.isLoading && !discoveries.data ? (
-              <CenteredSpinner />
-            ) : discoveryItems.length === 0 ? (
+            {discoveryItems.length === 0 ? (
               <Text size="2" color="gray600">
                 No discoveries yet.
               </Text>
@@ -362,9 +336,7 @@ export let SlateDetail = () => {
                           </Text>
                         )}
                       </Flex>
-                      <Text size="2" color="gray600">
-                        <RenderDate date={discovery.createdAt} />
-                      </Text>
+                      <RenderDate date={discovery.createdAt} />
                     </Flex>
                   </ItemCard>
                 ))}
@@ -381,9 +353,7 @@ export let SlateDetail = () => {
             <ViewAllLink to={`/slates/${slateId}/events`}>View All Events →</ViewAllLink>
           </SectionHeader>
           <Group.Content>
-            {events.isLoading && !events.data ? (
-              <CenteredSpinner />
-            ) : eventItems.length === 0 ? (
+            {eventItems.length === 0 ? (
               <Text size="2" color="gray600">
                 No events yet.
               </Text>
@@ -410,9 +380,7 @@ export let SlateDetail = () => {
                         </Text>
                       )}
                     </Flex>
-                    <Text size="2" color="gray600">
-                      <RenderDate date={event.createdAt} />
-                    </Text>
+                    <RenderDate date={event.createdAt} />
                   </EventItem>
                 ))}
               </Flex>

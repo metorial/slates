@@ -1,13 +1,5 @@
 import { renderWithLoader } from '@metorial-io/data-hooks';
-import {
-  Badge,
-  Button,
-  CenteredSpinner,
-  Flex,
-  Group,
-  InlineCopy,
-  Text
-} from '@metorial-io/ui';
+import { Badge, Button, Datalist, Flex, Group, InlineCopy, Text } from '@metorial-io/ui';
 import { Link, useParams } from 'react-router-dom';
 import { versionStatusColors } from '../../constants/statusColors.js';
 import {
@@ -18,7 +10,7 @@ import {
   useVersionSpecification
 } from '../../state/index.js';
 import { BackLink } from '../../components/BackLink.js';
-import { InfoLabel, InfoRow, InfoValue, MonoCode, TextLink } from '../../components/styled.js';
+import { MonoCode, TextLink } from '../../components/styled.js';
 import { SpecificationViewer } from '../../components/SpecificationViewer.js';
 
 export let VersionDetail = () => {
@@ -31,12 +23,13 @@ export let VersionDetail = () => {
   let successfulDiscovery = discoveries.data?.items?.find(d => d.status === 'succeeded');
   let specification = useVersionSpecification(slateId, versionId, successfulDiscovery?.id);
 
-  return renderWithLoader({ slate, version })(({ slate, version }) => {
-    let slateData = slate.data!;
-    let versionData = version.data!;
+  return renderWithLoader({ slate, version })(
+    ({ slate, version }) => {
+      let slateData = slate.data!;
+      let versionData = version.data!;
 
-    let latestDeployment = deployments.data?.items?.[0];
-    let latestDiscovery = discoveries.data?.items?.[0];
+      let latestDeployment = deployments.data?.items?.[0];
+      let latestDiscovery = discoveries.data?.items?.[0];
 
     return (
       <Flex direction="column" gap={24}>
@@ -47,44 +40,48 @@ export let VersionDetail = () => {
         <Group.Wrapper>
           <Group.Header title={`Version ${versionData.version}`} />
           <Group.Content>
-            <InfoRow>
-              <InfoLabel>Version ID</InfoLabel>
-              <InfoValue>
-                <Flex align="center" gap={6}>
-                  <MonoCode>{versionData.id}</MonoCode>
-                  <InlineCopy value={versionData.id} />
-                </Flex>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Version</InfoLabel>
-              <InfoValue>
-                <Flex align="center" gap={8}>
-                  <Badge color="blue">v{versionData.version}</Badge>
-                  {versionData.isCurrent && (
-                    <Badge color="green" size="1">
-                      Current
+            <Datalist
+              items={[
+                {
+                  label: 'Version ID',
+                  value: (
+                    <Flex align="center" gap={6}>
+                      <MonoCode>{versionData.id}</MonoCode>
+                      <InlineCopy value={versionData.id} />
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Version',
+                  value: (
+                    <Flex align="center" gap={8}>
+                      <Badge color="blue">v{versionData.version}</Badge>
+                      {versionData.isCurrent && (
+                        <Badge color="green" size="1">
+                          Current
+                        </Badge>
+                      )}
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Status',
+                  value: (
+                    <Badge color={versionStatusColors[versionData.status] || 'gray'}>
+                      {versionData.status}
                     </Badge>
-                  )}
-                </Flex>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Status</InfoLabel>
-              <InfoValue>
-                <Badge color={versionStatusColors[versionData.status] || 'gray'}>
-                  {versionData.status}
-                </Badge>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Slate</InfoLabel>
-              <InfoValue>
-                <TextLink to={`/slates/${slateId}`}>
-                  {slateData.name || slateData.identifier}
-                </TextLink>
-              </InfoValue>
-            </InfoRow>
+                  )
+                },
+                {
+                  label: 'Slate',
+                  value: (
+                    <TextLink to={`/slates/${slateId}`}>
+                      {slateData.name || slateData.identifier}
+                    </TextLink>
+                  )
+                }
+              ]}
+            />
           </Group.Content>
         </Group.Wrapper>
 
@@ -128,13 +125,7 @@ export let VersionDetail = () => {
           )}
         </Flex>
 
-        {specification.isLoading ? (
-          <Group.Wrapper>
-            <Group.Content>
-              <CenteredSpinner />
-            </Group.Content>
-          </Group.Wrapper>
-        ) : specification.data ? (
+        {specification.data ? (
           <SpecificationViewer specification={specification.data} />
         ) : !successfulDiscovery ? (
           <Group.Wrapper>

@@ -25,6 +25,10 @@ let authFieldsToRedact = [
 let getFunctionBayInvocationResultWithRetry = async (
   d: SlateInvocationBaseParams & { invocationId: string }
 ) => {
+  if (!d.invocationId) {
+    throw new Error('invocationId is required for getFunctionBayInvocationResultWithRetry');
+  }
+
   let attempt = 0;
   while (true) {
     attempt++;

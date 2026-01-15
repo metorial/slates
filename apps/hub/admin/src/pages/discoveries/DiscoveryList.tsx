@@ -142,9 +142,7 @@ export let DiscoveryList = () => {
                       )}
                     </Flex>
                     <Flex style={{ width: 180 }}>
-                      <Text size="2" color="gray600">
-                        <RenderDate date={discovery.createdAt} />
-                      </Text>
+                      <RenderDate date={discovery.createdAt} />
                     </Flex>
                   </Flex>
                 </Group.Row>

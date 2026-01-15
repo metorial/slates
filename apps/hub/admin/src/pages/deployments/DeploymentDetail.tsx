@@ -1,7 +1,7 @@
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import {
   Badge,
-  CenteredSpinner,
+  Datalist,
   Flex,
   Group,
   InlineCopy,
@@ -13,13 +13,41 @@ import { deploymentStatusColors } from '../../constants/statusColors.js';
 import { useBuildOutput, useSlate, useSlateDeployment } from '../../state/index.js';
 import { BackLink } from '../../components/BackLink.js';
 import {
-  InfoLabel,
-  InfoRow,
-  InfoValue,
   LogViewer,
   MonoCode,
   TextLink
 } from '../../components/styled.js';
+
+type BuildStep = {
+  name: string;
+  type: string;
+  status: string;
+  logs: { timestamp: number; message: string }[];
+};
+
+let BuildStepView = ({ step }: { step: BuildStep }) => {
+  let logs = step.logs
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .map(log => log.message)
+    .join('\n');
+
+  return (
+    <Flex direction="column" gap={8}>
+      <Flex align="center" gap={8}>
+        <Text size="2" weight="medium">
+          {step.name}
+        </Text>
+        <Badge color="gray" size="1">
+          {step.type}
+        </Badge>
+        <Badge color={step.status === 'failed' ? 'red' : 'green'} size="1">
+          {step.status}
+        </Badge>
+      </Flex>
+      {logs && <LogViewer>{logs}</LogViewer>}
+    </Flex>
+  );
+};
 
 export let DeploymentDetail = () => {
   let { slateId, deploymentId } = useParams<{ slateId: string; deploymentId: string }>();
@@ -30,6 +58,7 @@ export let DeploymentDetail = () => {
   return renderWithLoader({ slate, deployment })(({ slate, deployment }) => {
     let slateData = slate.data!;
     let deploymentData = deployment.data!;
+    let buildSteps = (buildOutput.data ?? []) as BuildStep[];
 
     return (
       <Flex direction="column" gap={24}>
@@ -40,59 +69,58 @@ export let DeploymentDetail = () => {
         <Group.Wrapper>
           <Group.Header title="Deployment Details" />
           <Group.Content>
-            <InfoRow>
-              <InfoLabel>Deployment ID</InfoLabel>
-              <InfoValue>
-                <Flex align="center" gap={6}>
-                  <MonoCode>{deploymentData.id}</MonoCode>
-                  <InlineCopy value={deploymentData.id} />
-                </Flex>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Status</InfoLabel>
-              <InfoValue>
-                <Badge color={deploymentStatusColors[deploymentData.status] || 'gray'}>
-                  {deploymentData.status}
-                </Badge>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Version</InfoLabel>
-              <InfoValue>
-                <Flex align="center" gap={8}>
-                  {deploymentData.version?.id ? (
-                    <Link
-                      to={`/slates/${slateId}/versions/${deploymentData.version.id}`}
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <Badge color="blue">v{deploymentData.version?.version ?? '-'}</Badge>
-                    </Link>
-                  ) : (
-                    <Badge color="blue">v{deploymentData.version?.version ?? '-'}</Badge>
-                  )}
-                  {deploymentData.version?.isCurrent && (
-                    <Badge color="green" size="1">
-                      Current
+            <Datalist
+              items={[
+                {
+                  label: 'Deployment ID',
+                  value: (
+                    <Flex align="center" gap={6}>
+                      <MonoCode>{deploymentData.id}</MonoCode>
+                      <InlineCopy value={deploymentData.id} />
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Status',
+                  value: (
+                    <Badge color={deploymentStatusColors[deploymentData.status] || 'gray'}>
+                      {deploymentData.status}
                     </Badge>
-                  )}
-                </Flex>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Slate</InfoLabel>
-              <InfoValue>
-                <TextLink to={`/slates/${slateId}`}>
-                  {slateData.name || slateData.identifier}
-                </TextLink>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Created</InfoLabel>
-              <InfoValue>
-                <RenderDate date={deploymentData.createdAt} />
-              </InfoValue>
-            </InfoRow>
+                  )
+                },
+                {
+                  label: 'Version',
+                  value: (
+                    <Flex align="center" gap={8}>
+                      {deploymentData.version?.id ? (
+                        <Link
+                          to={`/slates/${slateId}/versions/${deploymentData.version.id}`}
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <Badge color="blue">v{deploymentData.version?.version ?? '-'}</Badge>
+                        </Link>
+                      ) : (
+                        <Badge color="blue">v{deploymentData.version?.version ?? '-'}</Badge>
+                      )}
+                      {deploymentData.version?.isCurrent && (
+                        <Badge color="green" size="1">
+                          Current
+                        </Badge>
+                      )}
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Slate',
+                  value: (
+                    <TextLink to={`/slates/${slateId}`}>
+                      {slateData.name || slateData.identifier}
+                    </TextLink>
+                  )
+                },
+                { label: 'Created', value: <RenderDate date={deploymentData.createdAt} /> }
+              ]}
+            />
           </Group.Content>
         </Group.Wrapper>
 
@@ -120,25 +148,14 @@ export let DeploymentDetail = () => {
         )}
 
         <Group.Wrapper>
-          <Flex
-            align="center"
-            justify="space-between"
-            style={{ padding: '12px 20px', borderBottom: '1px solid #e5e7eb' }}
-          >
-            <Text size="2" weight="medium">
-              Build Output
-            </Text>
-            {buildOutput.data?.output && <InlineCopy value={buildOutput.data.output} />}
-          </Flex>
+          <Group.Header title="Build Output" />
           <Group.Content>
-            {buildOutput.isLoading ? (
-              <CenteredSpinner />
-            ) : buildOutput.error ? (
-              <Text size="2" color="gray600">
-                Build output not available.
-              </Text>
-            ) : buildOutput.data?.output ? (
-              <LogViewer>{buildOutput.data.output}</LogViewer>
+            {buildSteps.length > 0 ? (
+              <Flex direction="column" gap={16}>
+                {buildSteps.map((step, i) => (
+                  <BuildStepView key={i} step={step} />
+                ))}
+              </Flex>
             ) : (
               <Text size="2" color="gray600">
                 No build output available yet.

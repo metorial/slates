@@ -15,7 +15,12 @@ let include = {
       specification: true,
       slate: {
         include: {
-          registry: true
+          registry: true,
+          currentVersion: {
+            include: {
+              specification: true
+            }
+          }
         }
       }
     }
@@ -45,6 +50,8 @@ class slateVersionDiscoveryServiceImpl {
       }
     });
 
+    if (!invocation.providerInvocationId) return null;
+
     let version = await db.slateVersion.findFirstOrThrow({
       where: {
         oid: d.slateVersionDiscovery.slateVersionOid
@@ -61,17 +68,23 @@ class slateVersionDiscoveryServiceImpl {
     });
   }
 
-  async listSlateVersionDiscoveries(d: { slate: Slate; versionIds?: string[] }) {
-    let versions = d.versionIds
-      ? await db.slateVersion.findMany({
-          where: {
-            slateOid: d.slate.oid,
-            OR: [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
-          }
-        })
-      : await db.slateVersion.findMany({
-          where: { slateOid: d.slate.oid }
-        });
+  async listSlateVersionDiscoveries(d: {
+    slate?: Slate;
+    versionIds?: string[];
+    status?: 'succeeded' | 'failed';
+  }) {
+    let versions =
+      d.slate || d.versionIds
+        ? await db.slateVersion.findMany({
+            where: {
+              slateOid: d.slate?.oid,
+              OR: d.versionIds
+                ? [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
+                : undefined
+            },
+            select: { oid: true }
+          })
+        : undefined;
 
     return Paginator.create(({ prisma }) =>
       prisma(
@@ -79,22 +92,9 @@ class slateVersionDiscoveryServiceImpl {
           await db.slateVersionDiscovery.findMany({
             ...opts,
             where: {
-              slateVersionOid: { in: versions.map(v => v.oid) }
+              slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined,
+              status: d.status
             },
-            orderBy: { createdAt: 'desc' },
-            include
-          })
-      )
-    );
-  }
-
-  async listAllDiscoveries(d: { status?: 'succeeded' | 'failed' }) {
-    return Paginator.create(({ prisma }) =>
-      prisma(
-        async opts =>
-          await db.slateVersionDiscovery.findMany({
-            ...opts,
-            where: d.status ? { status: d.status } : undefined,
             orderBy: { createdAt: 'desc' },
             include
           })
@@ -148,65 +148,6 @@ class slateVersionDiscoveryServiceImpl {
       succeeded: totalSucceeded,
       failed: totalFailed,
       byTool: stats
-    };
-  }
-
-  async getSpecification(d: { slateVersionDiscovery: SlateVersionDiscovery }) {
-    if (!d.slateVersionDiscovery.specificationOid) return null;
-
-    let specification = await db.slateSpecification.findFirst({
-      where: { oid: d.slateVersionDiscovery.specificationOid },
-      include: {
-        slateActions: {
-          include: { action: true }
-        },
-        slateAuthMethods: {
-          include: { authMethod: true }
-        },
-        slateConfigSchemas: {
-          include: { configSchema: true }
-        }
-      }
-    });
-
-    if (!specification) return null;
-
-    return {
-      provider: {
-        name: specification.name,
-        key: specification.key,
-        protocolVersion: specification.protocolVersion
-      },
-      tools: specification.slateActions
-        .map(sa => sa.action)
-        .filter(a => a.type === 'tool')
-        .map(a => ({
-          key: a.key,
-          name: a.name,
-          description: (a.spec as any)?.description,
-          inputSchema: (a.spec as any)?.inputSchema,
-          outputSchema: (a.spec as any)?.outputSchema
-        })),
-      triggers: specification.slateActions
-        .map(sa => sa.action)
-        .filter(a => a.type === 'trigger')
-        .map(a => ({
-          key: a.key,
-          name: a.name,
-          description: (a.spec as any)?.description,
-          inputSchema: (a.spec as any)?.inputSchema,
-          outputSchema: (a.spec as any)?.outputSchema
-        })),
-      authMethods: specification.slateAuthMethods.map(sam => sam.authMethod).map(am => ({
-        key: am.key,
-        name: am.name,
-        type: am.type,
-        scopes: (am.spec as any)?.scopes,
-        capabilities: (am.spec as any)?.capabilities,
-        inputSchema: (am.spec as any)?.inputSchema,
-        outputSchema: (am.spec as any)?.outputSchema
-      })),
-      configSchema: specification.slateConfigSchemas[0]?.configSchema?.schema ?? null
     };
   }
 }

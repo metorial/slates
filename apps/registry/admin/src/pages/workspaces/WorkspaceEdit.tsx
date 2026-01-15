@@ -32,7 +32,7 @@ export let WorkspaceEdit = () => {
     schema: yup =>
       yup.object({
         name: yup.string().required(),
-        description: yup.string()
+        description: yup.string().default('')
       })
   });
 

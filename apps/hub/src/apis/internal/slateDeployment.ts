@@ -1,5 +1,6 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
+import { SlateDeploymentStatus } from '../../../prisma/generated/client';
 import { slateDeploymentPresenter } from '../../presenters';
 import { slateDeploymentService } from '../../services';
 import { app } from './_app';
@@ -23,13 +24,14 @@ export let slateDeploymentController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          status: v.optional(v.string())
+          status: v.optional(v.enumOf(Object.values(SlateDeploymentStatus) as [SlateDeploymentStatus, ...SlateDeploymentStatus[]]))
         })
       )
     )
     .do(async ctx => {
-      let paginator = await slateDeploymentService.listAllDeployments({
-        status: ctx.input.status
+      let status = ctx.input.status;
+      let paginator = await slateDeploymentService.listSlateDeployments({
+        status
       });
 
       let list = await paginator.run(ctx.input);

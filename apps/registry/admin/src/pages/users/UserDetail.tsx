@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Datalist, Callout, RenderDate, Copy } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Datalist, Callout, RenderDate, Copy, confirm } from '@metorial-io/ui';
 import { useUser, useUserTokens, useCreateUserToken, useRevokeUserToken } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
-import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MonoCode } from '../../components/styled';
 
 let getTokenBadgeColor = (status: string): 'green' | 'red' | 'gray' => {
@@ -21,7 +20,6 @@ export let UserDetail = () => {
   let revokeToken = useRevokeUserToken();
 
   let [showCreateForm, setShowCreateForm] = useState(false);
-  let [tokenToRevoke, setTokenToRevoke] = useState<string | null>(null);
 
   let tokenForm = useForm({
     initialValues: {
@@ -41,13 +39,19 @@ export let UserDetail = () => {
       })
   });
 
-  let handleRevokeToken = async () => {
-    if (!tenantId || !userId || !tokenToRevoke) return;
-    await revokeToken.mutate({ tenantId, userId, tokenId: tokenToRevoke });
-    setTokenToRevoke(null);
+  let handleRevokeToken = (tokenId: string) => {
+    confirm({
+      title: 'Revoke Token',
+      description: 'Are you sure you want to revoke this token? This action cannot be undone and any applications using this token will lose access.',
+      confirmText: 'Revoke Token',
+      onConfirm: () => {
+        if (!tenantId || !userId) return;
+        revokeToken.mutate({ tenantId, userId, tokenId });
+      }
+    });
   };
 
-  return renderWithLoader({ user, tokens })(({ user, tokens }) => (
+  return renderWithLoader({ user, tokens })(({ user }) => (
     <Flex direction="column" gap={24}>
       <BackLink to={`/tenants/${tenantId}/users`}>Back to Users</BackLink>
 
@@ -115,84 +119,72 @@ export let UserDetail = () => {
 
           <Spacer size={24} />
 
-          {(() => {
-            let tokenItems = tokens.data?.items ?? [];
-            if (tokenItems.length === 0) {
-              return <Text size="2" color="gray600">No tokens created yet.</Text>;
-            }
-            return (
-              <Flex direction="column" gap={12}>
-                {tokenItems.map(token => (
-                  <Callout key={token.id} color="gray">
-                    <Flex direction="column" gap={8}>
-                      <Flex align="center" justify="space-between">
-                        <Flex align="center" gap={8}>
-                          <Text size="2" weight="medium">{token.name}</Text>
-                          <Badge color={getTokenBadgeColor(token.status)} size="1">
-                            {token.status}
-                          </Badge>
-                        </Flex>
-                        {token.status === 'active' && (
-                          <Button
-                            variant="outline"
-                            size="1"
-                            color="red"
-                            onClick={() => setTokenToRevoke(token.id)}
-                          >
-                            Revoke
-                          </Button>
-                        )}
+          {tokens.data?.items.length === 0 ? (
+            <Text size="2" color="gray600">No tokens created yet.</Text>
+          ) : (
+            <Flex direction="column" gap={12}>
+              {tokens.data?.items.map(token => (
+                <Callout key={token.id} color="gray">
+                  <Flex direction="column" gap={8}>
+                    <Flex align="center" justify="space-between">
+                      <Flex align="center" gap={8}>
+                        <Text size="2" weight="medium">{token.name}</Text>
+                        <Badge color={getTokenBadgeColor(token.status)} size="1">
+                          {token.status}
+                        </Badge>
                       </Flex>
-                      <Copy value={token.secret} />
-                      <Flex gap={16}>
-                        <Text size="1" color="gray600">
-                          Created: <RenderDate date={token.createdAt} />
-                        </Text>
-                        {token.expiresAt && (
-                          <Text size="1" color="gray600">
-                            Expires: <RenderDate date={token.expiresAt} />
-                          </Text>
-                        )}
-                      </Flex>
+                      {token.status === 'active' && (
+                        <Button
+                          variant="outline"
+                          size="1"
+                          color="red"
+                          onClick={() => handleRevokeToken(token.id)}
+                        >
+                          Revoke
+                        </Button>
+                      )}
                     </Flex>
-                  </Callout>
-                ))}
-                {(tokens.data?.pagination.hasMoreBefore || tokens.data?.pagination.hasMoreAfter) && (
-                  <Flex justify="flex-end" gap={10}>
-                    <Button
-                      variant="outline"
-                      size="2"
-                      disabled={!tokens.data?.pagination.hasMoreBefore || tokens.isLoading}
-                      onClick={() => tokens.previous()}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="2"
-                      disabled={!tokens.data?.pagination.hasMoreAfter || tokens.isLoading}
-                      onClick={() => tokens.next()}
-                    >
-                      Next
-                    </Button>
+                    <Copy value={token.secret} />
+                    <Flex gap={16} align="center">
+                      <Flex align="center" gap={4}>
+                        <Text size="1" color="gray600">Created:</Text>
+                        <RenderDate date={token.createdAt} />
+                      </Flex>
+                      {token.expiresAt && (
+                        <Flex align="center" gap={4}>
+                          <Text size="1" color="gray600">Expires:</Text>
+                          <RenderDate date={token.expiresAt} />
+                        </Flex>
+                      )}
+                    </Flex>
                   </Flex>
-                )}
-              </Flex>
-            );
-          })()}
+                </Callout>
+              ))}
+              {(tokens.data?.pagination.hasMoreBefore || tokens.data?.pagination.hasMoreAfter) && (
+                <Flex justify="end" gap={10}>
+                  <Button
+                    variant="outline"
+                    size="2"
+                    disabled={!tokens.data?.pagination.hasMoreBefore || tokens.isLoading}
+                    onClick={tokens.previous}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="2"
+                    disabled={!tokens.data?.pagination.hasMoreAfter || tokens.isLoading}
+                    onClick={tokens.next}
+                  >
+                    Next
+                  </Button>
+                </Flex>
+              )}
+            </Flex>
+          )}
         </Group.Content>
       </Group.Wrapper>
 
-      <ConfirmDialog
-        open={tokenToRevoke !== null}
-        onOpenChange={open => !open && setTokenToRevoke(null)}
-        title="Revoke Token"
-        description="Are you sure you want to revoke this token? This action cannot be undone and any applications using this token will lose access."
-        confirmLabel="Revoke Token"
-        onConfirm={handleRevokeToken}
-        destructive
-        loading={revokeToken.isLoading}
-      />
     </Flex>
   ));
 }

@@ -1,18 +1,34 @@
 import type {
+  Registry,
   Slate,
   SlateDeployment,
   SlateEvent,
+  SlateSpecification,
   SlateVersion,
   SlateVersionDiscovery
 } from '../../prisma/generated/client';
+import { slatePresenter } from './slate';
+import { slateDeploymentPresenter } from './slateDeployment';
+import { slateVersionDiscoveryPresenter } from './slateDiscovery';
+import { slateVersionPresenter } from './slateVersion';
 
 export let slateEventPresenter = (
   evt: SlateEvent & {
     slateVersion: SlateVersion & {
-      activeDeployment?: SlateDeployment | null;
-      slateVersionDiscoveries?: SlateVersionDiscovery[];
+      specification: SlateSpecification | null;
+      activeDeployment?:
+        | (SlateDeployment & {
+            slateVersion: SlateVersion & { specification: SlateSpecification | null };
+          })
+        | null;
+      slateVersionDiscoveries?: (SlateVersionDiscovery & {
+        slateVersion: SlateVersion & { specification: SlateSpecification | null };
+      })[];
     };
-    slate?: Slate;
+    slate: Slate & {
+      registry: Registry;
+      currentVersion: (SlateVersion & { specification: SlateSpecification | null }) | null;
+    };
   }
 ) => {
   let deployment = evt.slateVersion.activeDeployment;
@@ -25,31 +41,19 @@ export let slateEventPresenter = (
     type: evt.type,
     message: evt.message,
 
-    slate: evt.slate
-      ? {
-          id: evt.slate.id,
-          name: evt.slate.name,
-          identifier: evt.slate.identifier
-        }
-      : null,
+    slate: slatePresenter(evt.slate),
 
-    version: {
-      id: evt.slateVersion.id,
-      version: evt.slateVersion.version
-    },
+    version: slateVersionPresenter({ ...evt.slateVersion, slate: evt.slate }),
 
     deployment: deployment
-      ? {
-          id: deployment.id,
-          status: deployment.status
-        }
+      ? slateDeploymentPresenter({ ...deployment, slate: evt.slate })
       : null,
 
     discovery: discovery
-      ? {
-          id: discovery.id,
-          status: discovery.status
-        }
+      ? slateVersionDiscoveryPresenter({
+          ...discovery,
+          slateVersion: { ...discovery.slateVersion, slate: evt.slate }
+        })
       : null,
 
     createdAt: evt.createdAt

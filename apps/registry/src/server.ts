@@ -24,7 +24,7 @@ Bun.serve({
     }
 
     if (url.pathname === '/') {
-      return Response.redirect(new URL('/admin', req.url), 302);
+      return Response.redirect(new URL('/admin', req.url).toString(), 302);
     }
 
     // Admin dashboard

@@ -146,9 +146,7 @@ export let DeploymentList = () => {
                       </Flex>
                     </Flex>
                     <Flex style={{ width: 180 }}>
-                      <Text size="2" color="gray600">
-                        <RenderDate date={deployment.createdAt} />
-                      </Text>
+                      <RenderDate date={deployment.createdAt} />
                     </Flex>
                   </Flex>
                 </Group.Row>

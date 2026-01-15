@@ -1,14 +1,19 @@
 import type {
+  Registry,
   Slate,
   SlateDeployment,
   SlateSpecification,
   SlateVersion
 } from '../../prisma/generated/client';
+import { slatePresenter } from './slate';
 import { slateVersionPresenter } from './slateVersion';
 
 export let slateDeploymentPresenter = (
   slateDeployment: SlateDeployment & {
-    slate: Slate;
+    slate: Slate & {
+      registry: Registry;
+      currentVersion: (SlateVersion & { specification: SlateSpecification | null }) | null;
+    };
     slateVersion: SlateVersion & {
       specification: SlateSpecification | null;
     };
@@ -26,11 +31,7 @@ export let slateDeploymentPresenter = (
       }
     : null,
 
-  slate: {
-    id: slateDeployment.slate.id,
-    name: slateDeployment.slate.name,
-    identifier: slateDeployment.slate.identifier
-  },
+  slate: slatePresenter(slateDeployment.slate),
 
   version: slateVersionPresenter({
     ...slateDeployment.slateVersion,

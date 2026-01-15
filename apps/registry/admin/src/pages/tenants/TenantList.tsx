@@ -51,9 +51,7 @@ export let TenantList = () => {
                     </Text>
                   </div>
                 </Flex>
-                <Text size="1" color="gray500">
-                  <RenderDate date={tenant.createdAt} />
-                </Text>
+                <RenderDate date={tenant.createdAt} />
               </ListItemRow>
             </ListItemLink>
           ))}

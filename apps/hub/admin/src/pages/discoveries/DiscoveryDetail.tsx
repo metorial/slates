@@ -1,7 +1,7 @@
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import {
   Badge,
-  CenteredSpinner,
+  Datalist,
   Flex,
   Group,
   InlineCopy,
@@ -17,7 +17,7 @@ import {
   useSlateDiscovery
 } from '../../state/index.js';
 import { BackLink } from '../../components/BackLink.js';
-import { InfoLabel, InfoRow, InfoValue, LogViewer, MonoCode, TextLink } from '../../components/styled.js';
+import { LogViewer, MonoCode, TextLink } from '../../components/styled.js';
 import { SpecificationViewer } from '../../components/SpecificationViewer.js';
 
 let formatBuildOutput = (buildOutput: any): string => {
@@ -57,6 +57,8 @@ export let DiscoveryDetail = () => {
 
   return renderWithLoader({ discovery })(({ discovery }) => {
     let discoveryData = discovery.data!;
+    let specificationData = specification.data;
+    let buildOutputData = buildOutput.data;
 
     return (
       <Flex direction="column" gap={24}>
@@ -65,45 +67,44 @@ export let DiscoveryDetail = () => {
         <Group.Wrapper>
           <Group.Header title="Discovery Details" />
           <Group.Content>
-            <InfoRow>
-              <InfoLabel>Discovery ID</InfoLabel>
-              <InfoValue>
-                <Flex align="center" gap={6}>
-                  <MonoCode>{discoveryData.id}</MonoCode>
-                  <InlineCopy value={discoveryData.id} />
-                </Flex>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Slate</InfoLabel>
-              <InfoValue>
-                <TextLink to={`/slates/${discoveryData.slate?.id}`}>
-                  {discoveryData.slate?.name ?? discoveryData.slate?.identifier ?? '-'}
-                </TextLink>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Status</InfoLabel>
-              <InfoValue>
-                <Badge color={discoveryStatusColors[discoveryData.status] || 'gray'} size="1">
-                  {discoveryData.status}
-                </Badge>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Version</InfoLabel>
-              <InfoValue>
-                <Badge color="blue" size="1">
-                  v{discoveryData.version?.version ?? '-'}
-                </Badge>
-              </InfoValue>
-            </InfoRow>
-            <InfoRow>
-              <InfoLabel>Created</InfoLabel>
-              <InfoValue>
-                <RenderDate date={discoveryData.createdAt} />
-              </InfoValue>
-            </InfoRow>
+            <Datalist
+              items={[
+                {
+                  label: 'Discovery ID',
+                  value: (
+                    <Flex align="center" gap={6}>
+                      <MonoCode>{discoveryData.id}</MonoCode>
+                      <InlineCopy value={discoveryData.id} />
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Slate',
+                  value: (
+                    <TextLink to={`/slates/${discoveryData.slate?.id}`}>
+                      {discoveryData.slate?.name ?? discoveryData.slate?.identifier ?? '-'}
+                    </TextLink>
+                  )
+                },
+                {
+                  label: 'Status',
+                  value: (
+                    <Badge color={discoveryStatusColors[discoveryData.status] || 'gray'} size="1">
+                      {discoveryData.status}
+                    </Badge>
+                  )
+                },
+                {
+                  label: 'Version',
+                  value: (
+                    <Badge color="blue" size="1">
+                      v{discoveryData.version?.version ?? '-'}
+                    </Badge>
+                  )
+                },
+                { label: 'Created', value: <RenderDate date={discoveryData.createdAt} /> }
+              ]}
+            />
           </Group.Content>
         </Group.Wrapper>
 
@@ -132,23 +133,15 @@ export let DiscoveryDetail = () => {
           </Group.Wrapper>
         )}
 
-        {specification.isLoading ? (
-          <Group.Wrapper>
-            <Group.Content>
-              <CenteredSpinner />
-            </Group.Content>
-          </Group.Wrapper>
-        ) : specification.data ? (
-          <SpecificationViewer specification={specification.data} toolCallStats={toolCallStats.data} />
-        ) : null}
+        {specificationData && (
+          <SpecificationViewer specification={specificationData} toolCallStats={toolCallStats.data} />
+        )}
 
         <Group.Wrapper>
           <Group.Header title="Discovery Logs" />
           <Group.Content>
-            {buildOutput.isLoading ? (
-              <CenteredSpinner />
-            ) : buildOutput.data ? (
-              <LogViewer>{formatBuildOutput(buildOutput.data)}</LogViewer>
+            {buildOutputData ? (
+              <LogViewer>{formatBuildOutput(buildOutputData)}</LogViewer>
             ) : (
               <Text size="2" color="gray600">
                 No logs available.

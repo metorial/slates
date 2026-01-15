@@ -10,7 +10,7 @@ export default defineConfig({
   root: __dirname,
   base: '/admin/',
   resolve: {
-    dedupe: ['react', 'react-dom', 'react-router-dom']
+    dedupe: ['react', 'react-dom', 'react-router-dom', 'styled-components']
   },
   build: {
     outDir: path.resolve(__dirname, '../dist/admin'),

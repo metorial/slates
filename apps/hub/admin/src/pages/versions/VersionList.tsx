@@ -84,9 +84,7 @@ export let VersionList = () => {
                       )}
                     </Flex>
                     <Flex style={{ width: 180 }}>
-                      <Text size="2" color="gray600">
-                        <RenderDate date={version.createdAt} />
-                      </Text>
+                      <RenderDate date={version.createdAt} />
                     </Flex>
                   </Flex>
                 </Group.Row>

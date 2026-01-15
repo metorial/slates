@@ -11,8 +11,11 @@ RUN bun install
 # Copy source code
 COPY . .
 
+# Build admin frontend
+RUN bun run build:admin
+
 # Expose port
 EXPOSE 51001
 
-# Run server with hot reloading (admin is built on host and mounted)
+# Run server with hot reloading
 CMD ["sh", "-c", "bun prisma db push && bun --watch src/server.ts"]

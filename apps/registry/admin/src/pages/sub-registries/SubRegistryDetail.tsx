@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { renderWithLoader, useForm } from '@metorial-io/data-hooks';
-import { Button, Flex, Text, Group, Badge, Input, Spacer, Datalist, Select, Callout, RenderDate } from '@metorial-io/ui';
+import { Button, Flex, Text, Group, Badge, Input, Spacer, Datalist, Select, Callout, RenderDate, confirm } from '@metorial-io/ui';
 import { useSubRegistry, useTenant, useAddSubRegistryFilter, useRemoveSubRegistryFilter } from '../../hooks';
 import { BackLink } from '../../components/BackLink';
-import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MonoCode, MonoText } from '../../components/styled';
 
 let getFilterTypeDescription = (filterType: 'scope' | 'prefix' | 'package'): string => {
@@ -21,7 +20,6 @@ export let SubRegistryDetail = () => {
   let removeFilter = useRemoveSubRegistryFilter();
 
   let [showAddForm, setShowAddForm] = useState(false);
-  let [filterToRemove, setFilterToRemove] = useState<string | null>(null);
 
   let filterForm = useForm({
     initialValues: {
@@ -43,10 +41,16 @@ export let SubRegistryDetail = () => {
       })
   });
 
-  let handleRemoveFilter = async () => {
-    if (!tenantId || !subRegistryId || !filterToRemove) return;
-    await removeFilter.mutate({ tenantId, subRegistryId, filterId: filterToRemove });
-    setFilterToRemove(null);
+  let handleRemoveFilter = (filterId: string) => {
+    confirm({
+      title: 'Remove Filter',
+      description: 'Are you sure you want to remove this filter? This will change which slates appear in this sub-registry.',
+      confirmText: 'Remove Filter',
+      onConfirm: () => {
+        if (!tenantId || !subRegistryId) return;
+        removeFilter.mutate({ tenantId, subRegistryId, filterId });
+      }
+    });
   };
 
   return renderWithLoader({ subRegistry })(({ subRegistry }) => (
@@ -147,7 +151,7 @@ export let SubRegistryDetail = () => {
                       variant="outline"
                       size="1"
                       color="red"
-                      onClick={() => setFilterToRemove(filter.id)}
+                      onClick={() => handleRemoveFilter(filter.id)}
                     >
                       Remove
                     </Button>
@@ -159,16 +163,6 @@ export let SubRegistryDetail = () => {
         </Group.Content>
       </Group.Wrapper>
 
-      <ConfirmDialog
-        open={filterToRemove !== null}
-        onOpenChange={open => !open && setFilterToRemove(null)}
-        title="Remove Filter"
-        description="Are you sure you want to remove this filter? This will change which slates appear in this sub-registry."
-        confirmLabel="Remove Filter"
-        onConfirm={handleRemoveFilter}
-        destructive
-        loading={removeFilter.isLoading}
-      />
     </Flex>
   ));
 }

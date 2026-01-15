@@ -2,13 +2,14 @@ import {
   Accordion,
   AccordionSingle,
   Badge,
+  Datalist,
   Flex,
   Group,
   Tabs,
   Text
 } from '@metorial-io/ui';
 import { useState } from 'react';
-import { InfoLabel, InfoRow, InfoValue, MonoCode } from './styled';
+import { MonoCode } from './styled';
 
 let getTypeColor = (
   type: string
@@ -173,24 +174,19 @@ export let SpecificationViewer = ({
       <Group.Content>
         {activeTab === 'overview' && (
           <Flex direction="column" gap={24}>
-            <Flex direction="column" gap={16}>
-              <InfoRow>
-                <InfoLabel>Provider Name</InfoLabel>
-                <InfoValue>{specification.provider?.name || '-'}</InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>Provider Key</InfoLabel>
-                <InfoValue>
-                  <MonoCode>{specification.provider?.key || '-'}</MonoCode>
-                </InfoValue>
-              </InfoRow>
-              <InfoRow>
-                <InfoLabel>Protocol Version</InfoLabel>
-                <InfoValue>
-                  <MonoCode>{specification.provider?.protocolVersion || '-'}</MonoCode>
-                </InfoValue>
-              </InfoRow>
-            </Flex>
+            <Datalist
+              items={[
+                { label: 'Provider Name', value: specification.provider?.name || '-' },
+                {
+                  label: 'Provider Key',
+                  value: <MonoCode>{specification.provider?.key || '-'}</MonoCode>
+                },
+                {
+                  label: 'Protocol Version',
+                  value: <MonoCode>{specification.provider?.protocolVersion || '-'}</MonoCode>
+                }
+              ]}
+            />
 
             {toolCallStats && toolCallStats.total > 0 && (
               <Flex direction="column" gap={12}>

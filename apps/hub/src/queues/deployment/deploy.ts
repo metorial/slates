@@ -95,18 +95,42 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
     let directory = await unzipper.Open.buffer(Buffer.from(zipBuffer));
 
     let slatePackageJsonFile = directory.files.find(f => f.path === 'package.json');
-    let slateDependencies: Record<string, string> = {};
+    let slateEntrypoint: string | undefined;
 
     if (slatePackageJsonFile) {
       try {
         let slatePackageJson = JSON.parse((await slatePackageJsonFile.buffer()).toString());
-        slateDependencies = {
-          ...(slatePackageJson.dependencies || {}),
-          ...(slatePackageJson.devDependencies || {})
-        };
+        if (slatePackageJson.main) {
+          slateEntrypoint = './' + slatePackageJson.main.replace(/\.(js|ts)$/, '');
+        }
       } catch (e) {
-        console.warn(`[Deployment]: Failed to parse slate package.json, using no dependencies`, e);
+        console.warn(
+          `[Deployment]: Failed to parse slate package.json, using no dependencies`,
+          e
+        );
       }
+    }
+
+    if (!slateEntrypoint) {
+      let commonEntrypoints = [
+        'src/index.ts',
+        'src/index.js',
+        'index.ts',
+        'index.js',
+        'dist/index.js'
+      ];
+      for (let entry of commonEntrypoints) {
+        if (directory.files.some(f => f.path === entry)) {
+          slateEntrypoint = './' + entry.replace(/\.(js|ts)$/, '');
+          break;
+        }
+      }
+    }
+
+    if (!slateEntrypoint) {
+      throw new Error(
+        'Could not determine slate entrypoint - no main field in package.json and no common entry files found'
+      );
     }
 
     let func = await functionBay.function.upsert({
@@ -127,8 +151,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
               '@slates/provider-handler': 'latest',
               '@slates/proto': 'latest',
               slates: 'latest',
-              '@lowerdeck/serialize': 'latest',
-              ...slateDependencies
+              '@lowerdeck/serialize': 'latest'
             }
           },
           null,
@@ -138,7 +161,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
       {
         filename: 'slates_entry_point.js',
         content: `
-          import { provider } from './src/index';
+          import { provider } from '${slateEntrypoint}';
           import { createProviderHandler } from '@slates/provider-handler';
           import { SlatesProviderProtoHandlerManager } from '@slates/proto';
           import { serialize } from '@lowerdeck/serialize';

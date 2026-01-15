@@ -10,6 +10,9 @@ let include = {
   },
   slateActions: {
     include: { action: true }
+  },
+  slateConfigSchemas: {
+    include: { configSchema: true }
   }
 };
 
@@ -20,6 +23,18 @@ class slateSpecificationServiceImpl {
     let slateSpecification = await db.slateSpecification.findFirst({
       where: {
         id: d.id
+      },
+      include,
+      omit
+    });
+    if (!slateSpecification) throw new ServiceError(notFoundError('slate.specification'));
+    return slateSpecification;
+  }
+
+  async getSlateSpecificationByOid(d: { oid: bigint }) {
+    let slateSpecification = await db.slateSpecification.findFirst({
+      where: {
+        oid: d.oid
       },
       include,
       omit

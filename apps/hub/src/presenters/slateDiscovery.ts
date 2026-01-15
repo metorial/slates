@@ -1,16 +1,21 @@
 import type {
+  Registry,
   Slate,
   SlateVersionDiscovery,
   SlateSpecification,
   SlateVersion
 } from '../../prisma/generated/client';
+import { slatePresenter } from './slate';
 import { slateVersionPresenter } from './slateVersion';
 
 export let slateVersionDiscoveryPresenter = (
   slateVersionDiscovery: SlateVersionDiscovery & {
     slateVersion: SlateVersion & {
       specification: SlateSpecification | null;
-      slate: Slate;
+      slate: Slate & {
+        registry: Registry;
+        currentVersion: (SlateVersion & { specification: SlateSpecification | null }) | null;
+      };
     };
   }
 ) => ({
@@ -26,11 +31,7 @@ export let slateVersionDiscoveryPresenter = (
       }
     : null,
 
-  slate: {
-    id: slateVersionDiscovery.slateVersion.slate.id,
-    name: slateVersionDiscovery.slateVersion.slate.name,
-    identifier: slateVersionDiscovery.slateVersion.slate.identifier
-  },
+  slate: slatePresenter(slateVersionDiscovery.slateVersion.slate),
 
   version: slateVersionPresenter({
     ...slateVersionDiscovery.slateVersion,

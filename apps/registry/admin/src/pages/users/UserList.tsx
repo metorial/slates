@@ -57,9 +57,7 @@ export let UserList = () => {
                     </Text>
                   </div>
                 </Flex>
-                <Text size="1" color="gray500">
-                  <RenderDate date={user.createdAt} />
-                </Text>
+                <RenderDate date={user.createdAt} />
               </ListItemRow>
             </ListItemLink>
           ))}

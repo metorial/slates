@@ -28,7 +28,7 @@ export let slateEventController = app.controller({
       )
     )
     .do(async ctx => {
-      let paginator = await slateEventService.listAllEvents({
+      let paginator = await slateEventService.listSlateEvents({
         type: ctx.input.type
       });
 

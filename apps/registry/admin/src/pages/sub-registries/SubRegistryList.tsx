@@ -55,9 +55,7 @@ export let SubRegistryList = () => {
                     </Text>
                   </div>
                 </Flex>
-                <Text size="1" color="gray500">
-                  <RenderDate date={subRegistry.createdAt} />
-                </Text>
+                <RenderDate date={subRegistry.createdAt} />
               </ListItemRow>
             </ListItemLink>
           ))}

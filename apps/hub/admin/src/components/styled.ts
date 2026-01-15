@@ -92,29 +92,6 @@ export let DetailSection = styled.div`
   margin-bottom: 24px;
 `;
 
-export let InfoRow = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f1f5f9;
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-export let InfoLabel = styled.span`
-  font-size: 13px;
-  color: #64748b;
-  width: 140px;
-  flex-shrink: 0;
-`;
-
-export let InfoValue = styled.span`
-  font-size: 13px;
-  color: #111;
-`;
-
 export let TextLink = styled(Link)`
   font-size: 13px;
   color: #2563eb;
