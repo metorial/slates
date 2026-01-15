@@ -20,12 +20,15 @@ model SlateInstance {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  configs        SlateInstanceConfig[]
-  authConfigs    SlateAuthConfig[]
-  events         SlateInstanceEvent[]
-  oAuthSetups    SlateInstanceOAuthSetup[]
-  usedAuthConfig SlateAuthConfigUsedForInstance[]
-  slateSessions  SlateSession[]
+  configs               SlateInstanceConfig[]
+  authConfigs           SlateAuthConfig[]
+  events                SlateInstanceEvent[]
+  oAuthSetups           SlateInstanceOAuthSetup[]
+  usedAuthConfig        SlateAuthConfigUsedForInstance[]
+  slateSessions         SlateSession[]
+  slateTriggerReceivers SlateTriggerReceiver[]
+  slateTriggerEvents    SlateTriggerEvent[]
+  slateTriggerEventInputs SlateTriggerEventInput[]
 }
 
 enum SlateInstanceEventType {
@@ -150,6 +153,7 @@ model SlateAuthConfig {
   usingInstances                SlateAuthConfigUsedForInstance[]
   slateAuthConfigEvents         SlateAuthConfigEvent[]
   slateAuthConfigManualDecrypts SlateAuthConfigManualDecrypt[]
+  slateTriggerReceivers         SlateTriggerReceiver[]
 }
 
 model SlateAuthConfigManualDecrypt {

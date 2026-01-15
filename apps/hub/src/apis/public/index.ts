@@ -3,6 +3,7 @@ import { createHono } from '@lowerdeck/hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { env } from '../../env';
 import { slateOAuthHandlerService } from '../../services/slateOAuthHandler';
+import { slateTriggerWebhookQueue } from '../../queues/trigger/webhook';
 
 const SETUP_COOKIE_NAME = 'slates_hub_oauth_setup_id';
 
@@ -72,6 +73,70 @@ export let hubApp = createHono()
     });
 
     return c.redirect(res.redirectUrl);
+  })
+  .all('/slates-hub/triggers/webhook/:receiverTriggerId/*', async c => {
+    if (c.req.method === 'OPTIONS') return c.text('');
+
+    let receiverTriggerId = c.req.param('receiverTriggerId');
+    if (!receiverTriggerId) return c.text('Missing trigger receiver ID', 400);
+
+    let headers: Record<string, string> = {};
+    c.req.raw.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+
+    let bodyBuffer = await c.req.arrayBuffer();
+    let body =
+      bodyBuffer.byteLength > 0
+        ? {
+            encoding: 'base64' as const,
+            content: Buffer.from(bodyBuffer).toString('base64')
+          }
+        : null;
+
+    await slateTriggerWebhookQueue.add({
+      receiverTriggerId,
+      request: {
+        url: c.req.url,
+        method: c.req.method,
+        headers,
+        body
+      }
+    });
+
+    return c.json({ status: 'queued' });
+  })
+  .all('/slates-hub/triggers/webhook/:receiverTriggerId', async c => {
+    if (c.req.method === 'OPTIONS') return c.text('');
+
+    let receiverTriggerId = c.req.param('receiverTriggerId');
+    if (!receiverTriggerId) return c.text('Missing trigger receiver ID', 400);
+
+    let headers: Record<string, string> = {};
+    c.req.raw.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+
+    let bodyBuffer = await c.req.arrayBuffer();
+    let body =
+      bodyBuffer.byteLength > 0
+        ? {
+            encoding: 'base64' as const,
+            content: Buffer.from(bodyBuffer).toString('base64')
+          }
+        : null;
+
+    await slateTriggerWebhookQueue.add({
+      receiverTriggerId,
+      request: {
+        url: c.req.url,
+        method: c.req.method,
+        headers,
+        body
+      }
+    });
+
+    return c.json({ status: 'queued' });
   })
   .options('*', c => c.text(''))
   .get('/ping', c => c.text('OK'));

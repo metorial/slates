@@ -35,6 +35,15 @@ export let ID = createIdGenerator({
   slateToolCall: idType.sorted('shtc'),
   slateSession: idType.sorted('shses'),
 
+  slateTriggerDestination: idType.sorted('shtd'),
+  slateTriggerReceiver: idType.sorted('shtr'),
+  slateTriggerReceiverTrigger: idType.sorted('shtrt'),
+  slateTriggerReceiverDestination: idType.sorted('shtrd'),
+  slateTriggerInvocation: idType.sorted('shtiv'),
+  slateTriggerEventInput: idType.sorted('shtin'),
+  slateTriggerEvent: idType.sorted('shte'),
+  slateTriggerDelivery: idType.sorted('shtdl'),
+
   changeNotification: idType.sorted('shcn')
 });
 
