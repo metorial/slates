@@ -1,7 +1,12 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { slateSessionPresenter } from '../../presenters';
-import { slateInstanceService, slateService, slateSessionService } from '../../services';
+import {
+  slateInstanceService,
+  slateService,
+  slateSessionService,
+  slateVersionService
+} from '../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
 
@@ -46,7 +51,8 @@ export let slateSessionController = app.controller({
         v.object({
           tenantId: v.string(),
           slateId: v.string(),
-          slateInstanceId: v.string()
+          slateInstanceId: v.string(),
+          lockedSlateVersion: v.optional(v.string())
         })
       )
     )
@@ -58,13 +64,20 @@ export let slateSessionController = app.controller({
         id: ctx.input.slateInstanceId,
         tenant: ctx.tenant
       });
+      let lockedVersion = ctx.input.lockedSlateVersion
+        ? await slateVersionService.getSlateVersionById({
+            slate,
+            id: ctx.input.lockedSlateVersion
+          })
+        : undefined;
 
       let res = await slateSessionService.createSlateSession({
         tenant: ctx.tenant,
 
         input: {
           slate,
-          slateInstance
+          slateInstance,
+          lockedVersion
         }
       });
 
