@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, assert } from 'vitest';
-import { Paginator } from '@lowerdeck/pagination';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { SlateStatus } from '../../../prisma/generated/client';
 import { testDb, cleanDatabase } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
-import { slateService } from '../../services/slate';
-import { slatePresenter } from '../../presenters/slate';
+import { slatesHubClient } from '../../test/client';
 import _ from 'lodash';
 
 describe('slate:list E2E', () => {
@@ -19,15 +17,13 @@ describe('slate:list E2E', () => {
       slateStatus: SlateStatus.active,
     });
 
-    const paginator = await slateService.listSlates({});
-    const list = await paginator.run({ limit: 10 });
-    const result = await Paginator.presentLight(list, slatePresenter);
+    const result = await slatesHubClient.slate.list({ limit: 10 });
 
     expect(result.items).toHaveLength(1);
 
     const [presented] = result.items;
-    assert(presented);
-    
+    expect(presented).toBeDefined();
+
     expect(presented).toMatchObject({
       object: 'slate',
       id: slate.id,
@@ -56,9 +52,7 @@ describe('slate:list E2E', () => {
       slateOverrides: { registryOid: registry.oid },
     });
 
-    const paginator = await slateService.listSlates({});
-    const list = await paginator.run({ limit: 10 });
-    const result = await Paginator.presentLight(list, slatePresenter);
+    const result = await slatesHubClient.slate.list({ limit: 10 });
 
     expect(result).toMatchObject({
       items: [{ identifier: 'active-slate' }],
@@ -78,26 +72,17 @@ describe('slate:list E2E', () => {
       )
     );
 
-    const paginator = await slateService.listSlates({});
-    const firstPageList = await paginator.run({ limit: 4 });
-    const firstPage = await Paginator.presentLight(
-      firstPageList,
-      slatePresenter
-    );
+    const firstPage = await slatesHubClient.slate.list({ limit: 4 });
     expect(firstPage.items).toHaveLength(4);
     expect(firstPage.pagination).toMatchObject({
       has_more_after: true,
     });
 
     const lastItemId = firstPage?.items?.[firstPage.items.length - 1]?.id;
-    const secondPageList = await paginator.run({
+    const secondPage = await slatesHubClient.slate.list({
       limit: 4,
       after: lastItemId,
     });
-    const secondPage = await Paginator.presentLight(
-      secondPageList,
-      slatePresenter
-    );
     expect(secondPage.items).toHaveLength(4);
     expect(secondPage.pagination).toMatchObject({
       has_more_after: true,
@@ -116,9 +101,7 @@ describe('slate:list E2E', () => {
       slateStatus: SlateStatus.active,
     });
 
-    const paginator = await slateService.listSlates({});
-    const list = await paginator.run({ limit: 10 });
-    const result = await Paginator.presentLight(list, slatePresenter);
+    const result = await slatesHubClient.slate.list({ limit: 10 });
     const presented = result.items[0];
 
     expect(presented).toMatchObject({
