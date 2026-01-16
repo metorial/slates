@@ -33,7 +33,7 @@ class slateTriggerDeliveryServiceImpl {
     triggerEventIds?: string[];
     triggerReceiverId?: string;
   }) {
-    if (d.triggerEventIds && d.triggerEventIds.length) {
+    if (d.triggerEventIds?.length) {
       let events = await db.slateTriggerEvent.findMany({
         where: {
           id: { in: d.triggerEventIds },

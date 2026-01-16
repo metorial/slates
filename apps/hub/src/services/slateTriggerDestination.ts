@@ -29,7 +29,7 @@ class slateTriggerDestinationServiceImpl {
       senderId: sender.id,
       name: d.input.name,
       description: d.input.description,
-      eventTypes: d.input.eventTypes && d.input.eventTypes.length ? d.input.eventTypes : null,
+      eventTypes: d.input.eventTypes?.length ? d.input.eventTypes : null,
       variant: {
         type: 'http_endpoint',
         url: d.input.url,
@@ -77,7 +77,7 @@ class slateTriggerDestinationServiceImpl {
       );
     }
 
-    let { sender, tenant: signalTenant } = await getTenantAndSenderForSignal(d.tenant);
+    let { tenant: signalTenant } = await getTenantAndSenderForSignal(d.tenant);
 
     let res = await signal.eventDestination.update({
       tenantId: signalTenant.id,

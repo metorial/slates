@@ -37,7 +37,7 @@ export let slateSpecificationPresenter = (
     .filter(sa => sa.action.type === 'tool')
     .map(sa => slateActionPresenter({ ...sa.action, slate: spec.slate })),
   triggers: spec.slateActions
-    .filter(sa => sa.action.type == 'trigger')
+    .filter(sa => sa.action.type === 'trigger')
     .map(sa => slateActionPresenter({ ...sa.action, slate: spec.slate })),
 
   createdAt: spec.createdAt
