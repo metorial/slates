@@ -74,9 +74,7 @@ export let hubApp = createHono()
 
     return c.redirect(res.redirectUrl);
   })
-  .all('/slates-hub/triggers/webhook/:receiverTriggerId/:key*?', async c => {
-    if (c.req.method === 'OPTIONS') return c.text('');
-
+  .post('/slates-hub/triggers/webhook/:receiverTriggerId/:key*?', async c => {
     let receiverTriggerId = c.req.param('receiverTriggerId');
     if (!receiverTriggerId) return c.text('Missing trigger receiver ID', 400);
 
