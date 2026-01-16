@@ -8,14 +8,11 @@ export let slateTriggerDestinationPresenter = (destination: SlateTriggerDestinat
   description: destination.description,
 
   type: destination.type,
+  status: destination.status,
   url: destination.url,
   method: destination.method,
   eventTypes: destination.eventTypes,
-  retry: destination.retry,
-
   signalDestinationId: destination.signalDestinationId,
-  signalWebhookId: destination.signalWebhookId,
-  signalSigningSecret: destination.signalSigningSecret,
 
   createdAt: destination.createdAt,
   updatedAt: destination.updatedAt

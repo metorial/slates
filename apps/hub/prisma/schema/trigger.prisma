@@ -2,6 +2,11 @@ enum SlateTriggerDestinationType {
   http_endpoint
 }
 
+enum SlateTriggerDestinationStatus {
+  active
+  inactive
+}
+
 enum SlateTriggerReceiverStatus {
   active
   paused
@@ -46,21 +51,22 @@ model SlateTriggerDestination {
   name        String
   description String?
   type        SlateTriggerDestinationType
+  status      SlateTriggerDestinationStatus @default(active)
 
   url        String
   method     String
   eventTypes String[]
-  retry      Json     @default("null")
 
   signalDestinationId String  @unique
-  signalWebhookId     String?
-  signalSigningSecret String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   receivers  SlateTriggerReceiverDestination[]
   deliveries SlateTriggerDelivery[]
+
+  @@index([tenantOid])
+  @@index([tenantOid, status])
 }
 
 model SlateTriggerReceiver {
@@ -93,6 +99,9 @@ model SlateTriggerReceiver {
   events       SlateTriggerEvent[]
   eventInputs  SlateTriggerEventInput[]
   invocations  SlateTriggerInvocation[]
+
+  @@index([tenantOid, slateInstanceOid])
+  @@index([tenantOid, slateOid])
 }
 
 model SlateTriggerReceiverDestination {
@@ -135,6 +144,7 @@ model SlateTriggerReceiverTrigger {
   eventInputs SlateTriggerEventInput[]
   invocations SlateTriggerInvocation[]
 
+  @@index([source, nextPollAt])
   @@unique([receiverOid, actionOid])
 }
 
@@ -157,6 +167,9 @@ model SlateTriggerInvocation {
   invocation    SlateInvocation @relation(fields: [invocationOid], references: [oid], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+
+  @@index([receiverOid])
+  @@index([receiverTriggerOid])
 }
 
 model SlateTriggerEventInput {
@@ -220,7 +233,7 @@ model SlateTriggerEvent {
 
   deliveryStatus SlateTriggerEventDeliveryStatus @default(pending)
 
-  signalEventId String?
+  signalEventId String
 
   invocationOid BigInt
   invocation    SlateInvocation @relation(fields: [invocationOid], references: [oid], onDelete: Cascade)
@@ -231,6 +244,7 @@ model SlateTriggerEvent {
   invocations SlateTriggerInvocation[]
   eventInputs SlateTriggerEventInput[]
 
+  @@index([receiverOid, createdAt])
   @@unique([receiverTriggerOid, sourceId])
 }
 
@@ -244,9 +258,29 @@ model SlateTriggerDelivery {
   destinationOid BigInt
   destination    SlateTriggerDestination @relation(fields: [destinationOid], references: [oid], onDelete: Cascade)
 
-  signalEventId String?
+  signalEventId String
 
   createdAt DateTime @default(now())
 
   @@unique([eventOid, destinationOid])
+}
+
+model SlateTriggerWebhookRequest {
+  oid BigInt @id
+  id  String @unique
+
+  receiverTriggerId String
+
+  url     String
+  method  String
+  headers Json
+  body    Json?  @default("null")
+
+  bodyStorageKey String?
+  processedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([receiverTriggerId])
+  @@index([processedAt])
 }

@@ -15,7 +15,11 @@ import type {
 } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId, snowflake } from '../id';
-import { getTriggerWebhookBaseUrl } from '../lib/triggerWebhook';
+import {
+  getTriggerWebhookBaseUrl,
+  type TriggerWebhookRequestLog,
+  type TriggerWebhookRequestPayload
+} from '../lib/triggerWebhook';
 import {
   slateTriggerEventProcessQueue,
   slateTriggerEventSendQueue,
@@ -332,12 +336,7 @@ class slateTriggerReceiverServiceImpl {
   private async enqueueTriggerEventInputs(d: {
     receiverTrigger: ReceiverTriggerWithRelations;
     inputs: Record<string, any>[];
-    request?: {
-      url: string;
-      method: string;
-      headers: Record<string, string>;
-      body: { encoding: 'base64'; content: string } | null;
-    } | null;
+    request?: TriggerWebhookRequestLog | TriggerWebhookRequestPayload | null;
   }) {
     if (d.inputs.length === 0) return;
 
@@ -364,6 +363,86 @@ class slateTriggerReceiverServiceImpl {
     );
   }
 
+  private resolveTriggerDestinations(d: {
+    receiver: ReceiverTriggerWithRelations['receiver'];
+    eventType: string;
+  }) {
+    let destinations = d.receiver.destinations
+      .map(r => r.destination)
+      .filter(dest => dest.status === 'active');
+    let shouldDeliver = destinations.length > 0;
+
+    if (d.receiver.eventTypes.length && !d.receiver.eventTypes.includes(d.eventType)) {
+      shouldDeliver = false;
+    }
+
+    return {
+      destinations,
+      shouldDeliver,
+      signalDestinationIds: shouldDeliver
+        ? destinations.map(dest => dest.signalDestinationId)
+        : []
+    };
+  }
+
+  private async createSignalEvent(d: {
+    receiver: ReceiverTriggerWithRelations['receiver'];
+    action: SlateAction;
+    event: {
+      id: string;
+      type: string;
+      sourceId: string;
+      output: Record<string, any>;
+      createdAt: Date;
+    };
+    signalDestinationIds: string[];
+  }) {
+    let { sender, tenant: signalTenant } = await getTenantAndSenderForSignal(d.receiver.tenant);
+
+    let payload = {
+      object: 'slate.trigger.event',
+
+      id: d.event.id,
+      type: d.event.type,
+      sourceId: d.event.sourceId,
+
+      slateId: d.receiver.slate.id,
+      slateInstanceId: d.receiver.slateInstance.id,
+      triggerReceiverId: d.receiver.id,
+      triggerId: d.action.id,
+      triggerKey: d.action.key,
+
+      data: d.event.output,
+
+      createdAt: d.event.createdAt
+    };
+
+    let signalEvent = await signal.event.create({
+      tenantId: signalTenant.id,
+      senderId: sender.id,
+      topics: [
+        `slate:${d.receiver.slate.id}`,
+        `slate_instance:${d.receiver.slateInstance.id}`,
+        `trigger:${d.action.key}`,
+        `trigger_receiver:${d.receiver.id}`
+      ],
+      eventType: d.event.type,
+      payloadJson: JSON.stringify(payload),
+      headers: {
+        'content-type': 'application/json',
+        'x-slates-trigger-event-id': d.event.id,
+        'x-slates-trigger-event-type': d.event.type,
+        'x-slates-slate-id': d.receiver.slate.id,
+        'x-slates-slate-instance-id': d.receiver.slateInstance.id,
+        'x-slates-trigger-receiver-id': d.receiver.id,
+        'x-slates-trigger-id': d.action.id
+      },
+      onlyForDestinations: d.signalDestinationIds
+    });
+
+    return signalEvent.id;
+  }
+
   private async dispatchTriggerEvent(d: {
     receiverTrigger: ReceiverTriggerWithRelations;
     action: SlateAction;
@@ -374,75 +453,38 @@ class slateTriggerReceiverServiceImpl {
       sourceId: string;
       output: Record<string, any>;
       createdAt: Date;
-      signalEventId: string | null;
+      signalEventId: string;
     };
   }) {
     let receiver = d.receiverTrigger.receiver;
-    let destinations = receiver.destinations.map(r => r.destination);
+    let targets = this.resolveTriggerDestinations({
+      receiver,
+      eventType: d.event.type
+    });
 
-    if (receiver.eventTypes.length && !receiver.eventTypes.includes(d.event.type)) {
+    if (!targets.shouldDeliver) {
       await db.slateTriggerEvent.update({
         where: { oid: d.event.oid },
         data: { deliveryStatus: 'skipped' }
       });
       return;
     }
-
-    if (destinations.length === 0) {
-      await db.slateTriggerEvent.update({
-        where: { oid: d.event.oid },
-        data: { deliveryStatus: 'skipped' }
-      });
-      return;
-    }
-
-    let { sender, tenant: signalTenant } = await getTenantAndSenderForSignal(receiver.tenant);
-
-    let payload = {
-      object: 'slate.trigger.event',
-
-      id: d.event.id,
-      type: d.event.type,
-      sourceId: d.event.sourceId,
-
-      slateId: receiver.slate.id,
-      slateInstanceId: receiver.slateInstance.id,
-      triggerReceiverId: receiver.id,
-      triggerId: d.action.id,
-      triggerKey: d.action.key,
-
-      data: d.event.output,
-
-      createdAt: d.event.createdAt
-    };
 
     let signalEventId = d.event.signalEventId;
 
     if (!signalEventId) {
-      let signalEvent = await signal.event.create({
-        tenantId: signalTenant.id,
-        senderId: sender.id,
-        topics: [
-          `slate:${receiver.slate.id}`,
-          `slate_instance:${receiver.slateInstance.id}`,
-          `trigger:${d.action.key}`,
-          `trigger_receiver:${receiver.id}`
-        ],
-        eventType: d.event.type,
-        payloadJson: JSON.stringify(payload),
-        headers: {
-          'content-type': 'application/json',
-          'x-slates-trigger-event-id': d.event.id,
-          'x-slates-trigger-event-type': d.event.type,
-          'x-slates-slate-id': receiver.slate.id,
-          'x-slates-slate-instance-id': receiver.slateInstance.id,
-          'x-slates-trigger-receiver-id': receiver.id,
-          'x-slates-trigger-id': d.action.id
+      signalEventId = await this.createSignalEvent({
+        receiver,
+        action: d.action,
+        event: {
+          id: d.event.id,
+          type: d.event.type,
+          sourceId: d.event.sourceId,
+          output: d.event.output,
+          createdAt: d.event.createdAt
         },
-        onlyForDestinations: destinations.map(dest => dest.signalDestinationId)
+        signalDestinationIds: targets.signalDestinationIds
       });
-
-      signalEventId = signalEvent.id;
 
       await db.slateTriggerEvent.update({
         where: { oid: d.event.oid },
@@ -453,11 +495,11 @@ class slateTriggerReceiverServiceImpl {
     }
 
     await db.slateTriggerDelivery.createMany({
-      data: destinations.map(dest => ({
+      data: targets.destinations.map(dest => ({
         ...getId('slateTriggerDelivery'),
         eventOid: d.event.oid,
         destinationOid: dest.oid,
-        signalEventId: signalEventId!
+        signalEventId
       })),
       skipDuplicates: true
     });
@@ -582,19 +624,43 @@ class slateTriggerReceiverServiceImpl {
         return;
       }
 
+      let createdAt = new Date();
+      let eventRecord = getId('slateTriggerEvent');
+      let receiver = eventInput.receiverTrigger.receiver;
+      let targets = this.resolveTriggerDestinations({
+        receiver,
+        eventType: mapRes.data.type
+      });
+
+      let signalEventId = await this.createSignalEvent({
+        receiver,
+        action: context.action,
+        event: {
+          id: eventRecord.id,
+          type: mapRes.data.type,
+          sourceId: mapRes.data.id,
+          output: mapRes.data.output,
+          createdAt
+        },
+        signalDestinationIds: targets.signalDestinationIds
+      });
+
       let event = await db.slateTriggerEvent.create({
         data: {
-          ...getId('slateTriggerEvent'),
-          receiverOid: eventInput.receiverTrigger.receiver.oid,
+          ...eventRecord,
+          receiverOid: receiver.oid,
           receiverTriggerOid: eventInput.receiverTrigger.oid,
           actionOid: eventInput.receiverTrigger.actionOid,
-          slateOid: eventInput.receiverTrigger.receiver.slate.oid,
-          slateInstanceOid: eventInput.receiverTrigger.receiver.slateInstance.oid,
+          slateOid: receiver.slate.oid,
+          slateInstanceOid: receiver.slateInstance.oid,
           type: mapRes.data.type,
           sourceId: mapRes.data.id,
           input: eventInput.input,
           output: mapRes.data.output,
-          invocationOid: mapRes.invocation.oid
+          deliveryStatus: targets.shouldDeliver ? 'pending' : 'skipped',
+          signalEventId,
+          invocationOid: mapRes.invocation.oid,
+          createdAt
         }
       });
 
@@ -614,10 +680,12 @@ class slateTriggerReceiverServiceImpl {
         }
       });
 
-      await slateTriggerEventSendQueue.add(
-        { eventId: event.id },
-        { id: event.id }
-      );
+      if (targets.shouldDeliver) {
+        await slateTriggerEventSendQueue.add(
+          { eventId: event.id },
+          { id: event.id }
+        );
+      }
     } catch (error) {
       let status = attemptCount >= 5 ? 'failed' : 'retrying';
       let errorMessage =
@@ -730,7 +798,8 @@ class slateTriggerReceiverServiceImpl {
     let destinations = await db.slateTriggerDestination.findMany({
       where: {
         tenantOid: d.tenant.oid,
-        id: { in: d.input.destinations }
+        id: { in: d.input.destinations },
+        status: 'active'
       }
     });
 
@@ -857,7 +926,8 @@ class slateTriggerReceiverServiceImpl {
       let destinations = await db.slateTriggerDestination.findMany({
         where: {
           tenantOid: d.tenant.oid,
-          id: { in: d.input.destinations }
+          id: { in: d.input.destinations },
+          status: 'active'
         }
       });
 
@@ -1243,12 +1313,8 @@ class slateTriggerReceiverServiceImpl {
 
   async handleTriggerWebhook(d: {
     receiverTriggerId: string;
-    request: {
-      url: string;
-      method: string;
-      headers: Record<string, string>;
-      body: { encoding: 'base64'; content: string } | null;
-    };
+    request: TriggerWebhookRequestPayload;
+    requestLog?: TriggerWebhookRequestLog | null;
   }) {
     let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
       where: {
@@ -1277,7 +1343,7 @@ class slateTriggerReceiverServiceImpl {
       url: d.request.url,
       method: d.request.method,
       headers: d.request.headers,
-      body: d.request.body,
+      body: d.request.body ?? null,
       state: receiverTrigger.state
     });
 
@@ -1303,7 +1369,7 @@ class slateTriggerReceiverServiceImpl {
     await this.enqueueTriggerEventInputs({
       receiverTrigger,
       inputs: res.data.inputs,
-      request: d.request
+      request: d.requestLog ?? d.request
     });
   }
 }

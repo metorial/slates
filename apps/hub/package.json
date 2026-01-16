@@ -5,10 +5,18 @@
   "private": true,
   "scripts": {
     "start": "bun ./src/server.ts",
-    "dev": "docker compose -p slates-hub -f ./docker-compose.dev.yml up --pull always --build forge function-bay object-storage signal slates-registry slates-hub"
+    "start:watch": "bun --watch ./src/server.ts",
+    "dev": "docker compose -p slates-hub -f ./docker-compose.dev.yml up -d",
+    "dev:stop": "docker compose -p slates-hub -f ./docker-compose.dev.yml down",
+    "dev:logs": "docker compose -p slates-hub -f ./docker-compose.dev.yml logs -f",
+    "dev:restart": "docker compose -p slates-hub -f ./docker-compose.dev.yml restart",
+    "test": "bunx vitest run --passWithNoTests",
+    "test:watch": "bunx vitest watch"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/lodash": "^4.17.23",
+    "vitest": "4.0.17"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -39,7 +47,7 @@
     "@lowerdeck/sentry": "^1.0.2",
     "@lowerdeck/serialize": "^1.0.4",
     "@lowerdeck/service": "^1.0.3",
-    "@lowerdeck/shadow-id": "^1.0.4",
+    "@lowerdeck/shadow-id": "^1.0.7",
     "@lowerdeck/slugify": "^1.0.4",
     "@lowerdeck/validation": "^1.0.4",
     "@metorial-services/function-bay-client": "1.0.3",
@@ -54,6 +62,7 @@
     "date-fns": "^4.1.0",
     "hono": "^4.11.3",
     "jszip": "^3.10.1",
+    "lodash": "4.17.21",
     "object-storage-client": "^0.2.5",
     "p-queue": "^9.0.1",
     "prisma": "^7.2.0",

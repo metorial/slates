@@ -43,6 +43,7 @@ export let ID = createIdGenerator({
   slateTriggerEventInput: idType.sorted('shtin'),
   slateTriggerEvent: idType.sorted('shte'),
   slateTriggerDelivery: idType.sorted('shtdl'),
+  slateTriggerWebhookRequest: idType.sorted('shtwr'),
 
   changeNotification: idType.sorted('shcn')
 });

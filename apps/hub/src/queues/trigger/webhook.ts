@@ -2,16 +2,16 @@ import { createLock } from '@lowerdeck/lock';
 import { createQueue } from '@lowerdeck/queue';
 import { db } from '../../db';
 import { env } from '../../env';
+import {
+  getTriggerWebhookRequestStorageKey,
+  type TriggerWebhookRequestLog,
+  type TriggerWebhookRequestPayload
+} from '../../lib/triggerWebhook';
 import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
+import { invocationsBucketRecord, storage } from '../../storage';
 
 export type TriggerWebhookQueuePayload = {
-  receiverTriggerId: string;
-  request: {
-    url: string;
-    method: string;
-    headers: Record<string, string>;
-    body: { encoding: 'base64'; content: string } | null;
-  };
+  webhookRequestId: string;
 };
 
 export let slateTriggerWebhookQueue = createQueue<TriggerWebhookQueuePayload>({
@@ -31,17 +31,107 @@ let webhookLock = createLock({
   redisUrl: env.service.REDIS_URL
 });
 
+type TriggerWebhookBody = TriggerWebhookRequestPayload['body'];
+
+let finalizeWebhookRequest = async (d: {
+  request: {
+    id: string;
+    receiverTriggerId: string;
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    createdAt: Date;
+  };
+  body: TriggerWebhookBody;
+  bodyStorageKey: string | null;
+}) => {
+  if (d.body && d.bodyStorageKey) {
+    await storage.putObject(
+      invocationsBucketRecord.bucket,
+      d.bodyStorageKey,
+      JSON.stringify({
+        id: d.request.id,
+        receiverTriggerId: d.request.receiverTriggerId,
+        url: d.request.url,
+        method: d.request.method,
+        headers: d.request.headers,
+        body: d.body,
+        createdAt: d.request.createdAt
+      })
+    );
+  }
+
+  await db.slateTriggerWebhookRequest.update({
+    where: { id: d.request.id },
+    data: {
+      processedAt: new Date(),
+      bodyStorageKey: d.bodyStorageKey,
+      body: null
+    }
+  });
+};
+
 export let slateTriggerWebhookQueueProcessor = slateTriggerWebhookQueue.process(async data => {
+  let request = await db.slateTriggerWebhookRequest.findFirst({
+    where: { id: data.webhookRequestId }
+  });
+  if (!request || request.processedAt) return;
+
+  let headers = request.headers as Record<string, string>;
+  let body = request.body as TriggerWebhookBody;
+  let bodyStorageKey = body ? getTriggerWebhookRequestStorageKey(request.id) : null;
+
+  let requestLog: TriggerWebhookRequestLog = {
+    id: request.id,
+    url: request.url,
+    method: request.method,
+    headers,
+    bodyStorageKey
+  };
+
   let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
-    where: { id: data.receiverTriggerId },
+    where: { id: request.receiverTriggerId },
     select: { id: true }
   });
-  if (!receiverTrigger) return;
+  if (!receiverTrigger) {
+    await finalizeWebhookRequest({
+      request: {
+        id: request.id,
+        receiverTriggerId: request.receiverTriggerId,
+        url: request.url,
+        method: request.method,
+        headers,
+        createdAt: request.createdAt
+      },
+      body,
+      bodyStorageKey
+    });
+    return;
+  }
 
   return webhookLock.usingLock(receiverTrigger.id, async () => {
     await slateTriggerReceiverService.handleTriggerWebhook({
       receiverTriggerId: receiverTrigger.id,
-      request: data.request
+      request: {
+        url: request.url,
+        method: request.method,
+        headers,
+        body
+      },
+      requestLog
+    });
+
+    await finalizeWebhookRequest({
+      request: {
+        id: request.id,
+        receiverTriggerId: request.receiverTriggerId,
+        url: request.url,
+        method: request.method,
+        headers,
+        createdAt: request.createdAt
+      },
+      body,
+      bodyStorageKey
     });
   });
 });

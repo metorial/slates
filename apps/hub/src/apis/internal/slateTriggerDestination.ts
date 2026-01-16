@@ -47,14 +47,7 @@ export let slateTriggerDestinationController = app.controller({
           description: v.optional(v.string()),
           url: v.string(),
           method: v.optional(v.enumOf(['POST', 'PUT', 'PATCH'])),
-          eventTypes: v.optional(v.array(v.string())),
-          retry: v.optional(
-            v.object({
-              type: v.enumOf(['linear', 'exponential']),
-              delaySeconds: v.number(),
-              maxAttempts: v.number()
-            })
-          )
+          eventTypes: v.optional(v.array(v.string()))
         })
       )
     )
@@ -66,8 +59,7 @@ export let slateTriggerDestinationController = app.controller({
           description: ctx.input.description,
           url: ctx.input.url,
           method: ctx.input.method,
-          eventTypes: ctx.input.eventTypes,
-          retry: ctx.input.retry
+          eventTypes: ctx.input.eventTypes
         }
       });
 
@@ -94,27 +86,19 @@ export let slateTriggerDestinationController = app.controller({
         description: v.optional(v.string()),
         url: v.optional(v.string()),
         method: v.optional(v.enumOf(['POST', 'PUT', 'PATCH'])),
-        eventTypes: v.optional(v.array(v.string())),
-        retry: v.optional(
-          v.object({
-            type: v.enumOf(['linear', 'exponential']),
-            delaySeconds: v.number(),
-            maxAttempts: v.number()
-          })
-        )
+        eventTypes: v.optional(v.array(v.string()))
       })
     )
     .do(async ctx => {
       let destination = await slateTriggerDestinationService.updateTriggerDestination({
         tenant: ctx.tenant,
-        destinationId: ctx.input.slateTriggerDestinationId,
+        destination: ctx.destination,
         input: {
           name: ctx.input.name,
           description: ctx.input.description,
           url: ctx.input.url,
           method: ctx.input.method,
-          eventTypes: ctx.input.eventTypes,
-          retry: ctx.input.retry
+          eventTypes: ctx.input.eventTypes
         }
       });
 
@@ -132,7 +116,7 @@ export let slateTriggerDestinationController = app.controller({
     .do(async ctx => {
       let destination = await slateTriggerDestinationService.deleteTriggerDestination({
         tenant: ctx.tenant,
-        destinationId: ctx.input.slateTriggerDestinationId
+        destination: ctx.destination
       });
 
       return slateTriggerDestinationPresenter(destination);
