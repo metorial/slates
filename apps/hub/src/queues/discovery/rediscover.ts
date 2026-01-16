@@ -43,7 +43,7 @@ export let rediscoverSlatesQueueProcessor = rediscoverSlatesQueue.process(async 
   );
 
   await rediscoverSlatesQueue.add({
-    cursor: versions[versions.length - 1]!.id
+    cursor: versions[versions.length - 1]?.id
   });
 });
 

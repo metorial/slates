@@ -1,5 +1,5 @@
-import z from 'zod';
-import { SlateAuthType } from './types';
+import type z from 'zod';
+import type { SlateAuthType } from './types';
 
 export class SlateAuth<OutputType extends {} = {}> {
   #outputSchema: z.ZodType<OutputType> | null = null;
@@ -68,7 +68,7 @@ export class SlateAuth<OutputType extends {} = {}> {
   }
 
   get authStack() {
-    return this.#authStack.filter(a => a.type != 'auth.none');
+    return this.#authStack.filter(a => a.type !== 'auth.none');
   }
 
   get outputSchema() {

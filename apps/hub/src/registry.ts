@@ -1,6 +1,5 @@
 import { ServiceError, validationError } from '@lowerdeck/error';
 import { Hash } from '@lowerdeck/hash';
-import { generatePlainId } from '@lowerdeck/id';
 import { v } from '@lowerdeck/validation';
 import { createSlatesRegistryClient } from '@metorial-services/slates-registry-client';
 import { addMinutes } from 'date-fns';
@@ -9,8 +8,6 @@ import { db } from './db';
 import { encryption } from './encryption';
 import { env } from './env';
 import { getId } from './id';
-
-let hubInstanceId = generatePlainId(10);
 
 let predefinedRegistrySchema = v.array(
   v.union([

@@ -39,7 +39,7 @@ class slateVersionServiceImpl {
         versionId: d.slateVersion.versionIdentifierOnRegistry
       }
     });
-    if (res.status != 200)
+    if (res.status !== 200)
       throw new ServiceError(
         badRequestError({
           message: `Failed to fetch slate record from registry: ${res.statusText}`

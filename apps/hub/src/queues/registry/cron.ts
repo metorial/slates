@@ -22,8 +22,8 @@ let syncRegistryAllQueue = createQueue({
 
 await syncRegistryAllQueue.add({});
 
-export let syncRegistryAllQueueProcessor = syncRegistryAllQueue.process(async data => {
-  let cursor: string | undefined = undefined;
+export let syncRegistryAllQueueProcessor = syncRegistryAllQueue.process(async _data => {
+  let cursor: string | undefined;
 
   while (true) {
     let regs = await db.registry.findMany({
@@ -34,7 +34,7 @@ export let syncRegistryAllQueueProcessor = syncRegistryAllQueue.process(async da
       orderBy: { id: 'asc' },
       take: 100
     });
-    if (regs.length == 0) break;
+    if (regs.length === 0) break;
 
     await syncRegistryQueue.addManyWithOps(
       regs.map(r => ({

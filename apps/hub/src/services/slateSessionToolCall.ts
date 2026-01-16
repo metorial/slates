@@ -75,7 +75,7 @@ class slateSessionToolCallServiceImpl {
 
     let version = session.slateVersion;
     if (
-      version.status != 'active' ||
+      version.status !== 'active' ||
       !version.specification ||
       !version.providerDeploymentInfo
     ) {
@@ -160,7 +160,7 @@ class slateSessionToolCallServiceImpl {
       }
     });
 
-    if (callRes.status == 'error') {
+    if (callRes.status === 'error') {
       return {
         status: 'error' as const,
         call,

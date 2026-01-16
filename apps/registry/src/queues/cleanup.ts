@@ -9,7 +9,7 @@ export let cleanupProcessor = createCron(
     redisUrl: env.service.REDIS_URL
   },
   async () => {
-    let threeDaysAgo = subDays(new Date(), 3);
-    let oneHourAgo = subHours(new Date(), 1);
+    let _threeDaysAgo = subDays(new Date(), 3);
+    let _oneHourAgo = subHours(new Date(), 1);
   }
 );

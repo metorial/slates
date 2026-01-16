@@ -4,7 +4,7 @@ services:
     container_name: slates-hub-postgres
     restart: unless-stopped
     ports:
-      - "45432:5432"
+      - '45432:5432'
     environment:
       POSTGRES_USER: slates-hub
       POSTGRES_PASSWORD: slates-hub
@@ -162,8 +162,8 @@ services:
     container_name: slates-hub-registry
     restart: unless-stopped
     ports:
-      - "52040:52040"
-      - "52041:52041"
+      - '52040:52040'
+      - '52041:52041'
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0

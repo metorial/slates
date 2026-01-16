@@ -1,6 +1,6 @@
 {
   "name": "@metorial-services/slates-hub-client",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "publishConfig": {
     "access": "public"
   },
@@ -28,7 +28,8 @@
     "test": "vitest run --passWithNoTests",
     "lint": "prettier src/**/*.ts --check",
     "build": "rm -rf ./dist && microbundle && dts-bundle-generator --config dts-bundle-generator.config.json",
-    "prepublish": "bun run build"
+    "prepublish": "bun run build",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@lowerdeck/rpc-client": "^1.0.2"

@@ -1,6 +1,6 @@
 import z from 'zod';
-import { SlateAuth } from '../auth';
-import { SlateConfig } from '../config';
+import type { SlateAuth } from '../auth';
+import type { SlateConfig } from '../config';
 
 export interface SlateSpecificationParameters {
   key: string;

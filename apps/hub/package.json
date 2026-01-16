@@ -11,7 +11,8 @@
     "dev:logs": "docker compose -p slates-hub -f ./docker-compose.dev.yml logs -f",
     "dev:restart": "docker compose -p slates-hub -f ./docker-compose.dev.yml restart",
     "test": "bunx vitest run --passWithNoTests",
-    "test:watch": "bunx vitest watch"
+    "test:watch": "bunx vitest watch",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "latest",

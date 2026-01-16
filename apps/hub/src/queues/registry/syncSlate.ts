@@ -121,7 +121,7 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
         update: slateVersionUpsertData
       });
 
-      if (newVersionId == version.id) {
+      if (newVersionId === version.id) {
         await db.slateEvent.create({
           data: {
             ...getId('slateEvent'),

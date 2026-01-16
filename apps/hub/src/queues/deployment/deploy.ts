@@ -88,7 +88,8 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
         }
       }
     );
-    if ((zipRes.status as any) != 200) throw new Error('Failed to download slate version zip');
+    if ((zipRes.status as any) !== 200)
+      throw new Error('Failed to download slate version zip');
     let zipBuffer = await zipRes.arrayBuffer();
 
     let directory = await unzipper.Open.buffer(Buffer.from(zipBuffer));
@@ -260,7 +261,7 @@ export let deploySlateVersionMonitorQueueProcessor = deploySlateVersionMonitorQu
       functionDeploymentId: data.functionDeploymentId
     });
 
-    if (funcDep.status == 'failed' || funcDep.status == 'succeeded') {
+    if (funcDep.status === 'failed' || funcDep.status === 'succeeded') {
       await deploySlateVersionProviderCompletedQueue.add({
         deploymentId: data.deploymentId,
         functionId: data.functionId,
@@ -269,7 +270,7 @@ export let deploySlateVersionMonitorQueueProcessor = deploySlateVersionMonitorQu
       return;
     }
 
-    if (funcDep.status != deployment.status) {
+    if (funcDep.status !== deployment.status) {
       await db.slateDeployment.update({
         where: { id: deployment.id },
         data: { status: funcDep.status }
@@ -303,7 +304,7 @@ export let deploySlateVersionProviderCompletedQueueProcessor =
       functionDeploymentId: data.functionDeploymentId
     });
 
-    if (funcDep.status == 'succeeded') {
+    if (funcDep.status === 'succeeded') {
       await deploySlateVersionCompletedQueue.add({
         deploymentId: data.deploymentId,
         functionId: data.functionId,
@@ -410,7 +411,7 @@ export let deploySlateVersionCompletedQueueProcessor =
           providerDeploymentInfo: {
             functionId: data.functionId,
             functionDeploymentId: funcDep.id,
-            functionVersionId: funcDep.version!.id
+            functionVersionId: funcDep.version?.id
           }
         }
       });

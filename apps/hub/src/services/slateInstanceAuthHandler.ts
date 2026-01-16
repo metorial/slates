@@ -87,7 +87,7 @@ class slateAuthHandlerServiceImpl {
       let expiredOrExpiring = authConfig.tokenExpiresAt.getTime() < minExpiration;
 
       if (expiredOrExpiring) {
-        if (authConfig.type != 'oauth_automated') {
+        if (authConfig.type !== 'oauth_automated') {
           throw new ServiceError(
             badRequestError({
               code: 'authentication_expired',
@@ -145,18 +145,18 @@ class slateAuthHandlerServiceImpl {
           data: {
             oid: snowflake.nextId(),
             type:
-              res.status == 'error'
+              res.status === 'error'
                 ? 'oauth_token_refresh_failed'
                 : 'oauth_token_refresh_completed',
             configOid: authConfig.oid,
             invocationOid: res.invocation.oid
           }
         });
-        if (res.status == 'error') {
+        if (res.status === 'error') {
           throw new ServiceError(
             badRequestError({
               code: 'oauth_token_refresh_failed',
-              message: 'Failed to refresh authentication token: ' + res.error.message
+              message: `Failed to refresh authentication token: ${res.error.message}`
             })
           );
         }

@@ -27,7 +27,8 @@
   "scripts": {
     "test": "vitest run --passWithNoTests",
     "lint": "prettier src/**/*.ts --check",
-    "build": "microbundle"
+    "build": "microbundle",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@toon-format/toon": "^2.1.0",

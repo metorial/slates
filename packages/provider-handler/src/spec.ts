@@ -1,6 +1,6 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
-import { SlateAuthenticationMethod, SlatesAction } from '@slates/proto';
-import { Slate, SlateDefaultPollingIntervalSeconds } from '@slates/provider';
+import type { SlateAuthenticationMethod, SlatesAction } from '@slates/proto';
+import { type Slate, SlateDefaultPollingIntervalSeconds } from '@slates/provider';
 import z from 'zod';
 import { toJsonSchema } from './validation';
 
@@ -8,7 +8,7 @@ export let getAuthMethod = <ConfigType extends {}, AuthType extends {}>(
   slate: Slate<ConfigType, AuthType>,
   authenticationMethodId: string
 ) => {
-  let authMethod = slate.spec.auth.authStack.find(m => m.key == authenticationMethodId);
+  let authMethod = slate.spec.auth.authStack.find(m => m.key === authenticationMethodId);
   if (!authMethod) {
     throw new ServiceError(
       badRequestError({
@@ -56,7 +56,7 @@ export let getAction = <ConfigType extends {}, AuthType extends {}>(
   slate: Slate<ConfigType, AuthType>,
   actionId: string
 ) => {
-  let action = slate.actions.find(m => m.key == actionId);
+  let action = slate.actions.find(m => m.key === actionId);
   if (!action) {
     throw new ServiceError(notFoundError(`action`, actionId));
   }
@@ -74,7 +74,7 @@ export let getActionWithType = <
   actionId: string
 ): ReturnType<typeof getAction<ConfigType, AuthType>> & { type: Type } => {
   let action = getAction(slate, actionId);
-  if (action.type != type) {
+  if (action.type !== type) {
     throw new ServiceError(
       badRequestError({
         message: `Action with ID ${actionId} is not of type ${type}`
@@ -86,7 +86,7 @@ export let getActionWithType = <
 };
 
 export let mapAction = <ConfigType extends {}, AuthType extends {}>(
-  slate: Slate<ConfigType, AuthType>,
+  _slate: Slate<ConfigType, AuthType>,
   a: ReturnType<typeof getAction<ConfigType, AuthType>>
 ): SlatesAction => {
   let base = {
@@ -102,7 +102,7 @@ export let mapAction = <ConfigType extends {}, AuthType extends {}>(
     outputSchema: toJsonSchema(a.outputSchema)
   };
 
-  if (a.type == 'tool') {
+  if (a.type === 'tool') {
     return {
       ...base,
       type: 'action.tool',
@@ -116,7 +116,7 @@ export let mapAction = <ConfigType extends {}, AuthType extends {}>(
     capabilities: {},
 
     invocation:
-      a.source == 'polling'
+      a.source === 'polling'
         ? {
             type: 'polling',
             intervalSeconds: a.polling.intervalInSeconds ?? SlateDefaultPollingIntervalSeconds

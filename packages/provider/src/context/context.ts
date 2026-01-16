@@ -1,5 +1,5 @@
-import { SlateLogger, SlateLogMessageInput } from '../logger';
-import { SlateSpecification } from '../specification/specification';
+import type { SlateLogger, SlateLogMessageInput } from '../logger';
+import type { SlateSpecification } from '../specification/specification';
 
 export class SlateContext<ConfigType extends {}, AuthType extends {}, InputType extends {}> {
   #config: ConfigType;

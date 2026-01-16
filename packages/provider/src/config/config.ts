@@ -1,4 +1,4 @@
-import z from 'zod';
+import type z from 'zod';
 
 export class SlateConfig<ConfigType extends {}> {
   #configSchema: z.ZodType<ConfigType>;
@@ -6,7 +6,7 @@ export class SlateConfig<ConfigType extends {}> {
     | ((params: {
         previousConfig: ConfigType | null;
         newConfig: ConfigType;
-      }) => { config: ConfigType | undefined } | void)
+      }) => { config: ConfigType | undefined } | undefined)
     | null = null;
   #getDefaultConfig: (() => ConfigType) | null = null;
 
@@ -29,7 +29,7 @@ export class SlateConfig<ConfigType extends {}> {
     handler: (params: {
       previousConfig: ConfigType | null;
       newConfig: ConfigType;
-    }) => { config: ConfigType | undefined } | void
+    }) => { config: ConfigType | undefined } | undefined
   ): SlateConfig<ConfigType> {
     this.#configChanged = handler;
     return this;
