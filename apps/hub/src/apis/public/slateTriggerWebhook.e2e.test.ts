@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { Tenant } from '../../../prisma/generated/client';
-import { SlateStatus } from '../../../prisma/generated/client';
+import {
+  SlateStatus,
+  SlateTriggerEventDeliveryStatus,
+  SlateTriggerEventInputStatus,
+  SlateTriggerReceiverStatus,
+  SlateTriggerReceiverTriggerSource,
+  type SlateTriggerDestinationType,
+  type Tenant
+} from '../../../prisma/generated/client';
 import { cleanDatabase, testDb } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
 
@@ -177,7 +184,7 @@ vi.mock('../../signal', async () => {
           name: string;
           description?: string;
           eventTypes?: string[] | null;
-          variant: { type: 'http_endpoint'; url: string; method: string };
+          variant: { type: SlateTriggerDestinationType; url: string; method: string };
         }) => {
           let destination = {
             id: signalState.nextId('dest'),
@@ -271,8 +278,8 @@ describe('slate:trigger webhook E2E', () => {
   });
 
   const setupWebhookScenario = async (options?: {
-    triggerInvocation?: 'webhook' | 'polling';
-    receiverStatus?: 'active' | 'paused';
+    triggerInvocation?: SlateTriggerReceiverTriggerSource;
+    receiverStatus?: SlateTriggerReceiverStatus;
     receiverEventTypes?: string[];
     specAuthMethods?: any[];
   }) => {
@@ -308,11 +315,14 @@ describe('slate:trigger webhook E2E', () => {
       identifier: 'trigger.test',
       key: 'trigger.test',
       actionOverrides:
-        options?.triggerInvocation === 'polling'
+        options?.triggerInvocation === SlateTriggerReceiverTriggerSource.polling
           ? {
               spec: {
                 type: 'action.trigger',
-                invocation: { type: 'polling', intervalSeconds: 60 }
+                invocation: {
+                  type: SlateTriggerReceiverTriggerSource.polling,
+                  intervalSeconds: 60
+                }
               }
             }
           : undefined
@@ -337,7 +347,10 @@ describe('slate:trigger webhook E2E', () => {
       }
     });
 
-    if (options?.receiverStatus && options.receiverStatus !== 'active') {
+    if (
+      options?.receiverStatus &&
+      options.receiverStatus !== SlateTriggerReceiverStatus.active
+    ) {
       await testDb.slateTriggerReceiver.update({
         where: { oid: receiver.oid },
         data: { status: options.receiverStatus }
@@ -549,7 +562,7 @@ describe('slate:trigger webhook E2E', () => {
 
   it('ignores webhook requests when receiver is paused', async () => {
     const { receiverTrigger } = await setupWebhookScenario({
-      receiverStatus: 'paused'
+      receiverStatus: SlateTriggerReceiverStatus.paused
     });
 
     const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
@@ -574,7 +587,7 @@ describe('slate:trigger webhook E2E', () => {
 
   it('ignores webhook requests when trigger source is polling', async () => {
     const { receiverTrigger } = await setupWebhookScenario({
-      triggerInvocation: 'polling'
+      triggerInvocation: SlateTriggerReceiverTriggerSource.polling
     });
 
     const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
@@ -684,7 +697,7 @@ describe('slate:trigger webhook E2E', () => {
     const updated = await testDb.slateTriggerEventInput.findFirst({
       where: { id: eventInput!.id }
     });
-    expect(updated?.status).toBe('retrying');
+    expect(updated?.status).toBe(SlateTriggerEventInputStatus.retrying);
     expect(queueMocks.processAdd).toHaveBeenCalled();
   });
 
@@ -749,7 +762,7 @@ describe('slate:trigger webhook E2E', () => {
       where: { receiverTriggerOid: receiverTrigger.oid }
     });
     expect(triggerEvent).toBeTruthy();
-    expect(triggerEvent?.deliveryStatus).toBe('skipped');
+    expect(triggerEvent?.deliveryStatus).toBe(SlateTriggerEventDeliveryStatus.skipped);
     expect(queueMocks.sendAdd).not.toHaveBeenCalled();
 
     const payload = JSON.parse(signalState.events[0].payloadJson);

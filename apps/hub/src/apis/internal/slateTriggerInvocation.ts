@@ -2,6 +2,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { slateTriggerInvocationPresenter } from '../../presenters';
 import { slateTriggerInvocationService } from '../../services';
+import { SlateTriggerInvocationType } from '../../../prisma/generated/client';
 import { app } from './_app';
 import { tenantApp } from './tenant';
 
@@ -29,11 +30,11 @@ export let slateTriggerInvocationController = app.controller({
           types: v.optional(
             v.array(
               v.enumOf([
-                'poll',
-                'webhook_handle',
-                'map_event',
-                'webhook_register',
-                'webhook_unregister'
+                SlateTriggerInvocationType.poll,
+                SlateTriggerInvocationType.webhook_handle,
+                SlateTriggerInvocationType.map_event,
+                SlateTriggerInvocationType.webhook_register,
+                SlateTriggerInvocationType.webhook_unregister
               ])
             )
           )

@@ -1,7 +1,7 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Tenant } from '../../prisma/generated/client';
+import type { SlateTriggerInvocationType, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
@@ -28,13 +28,7 @@ class slateTriggerInvocationServiceImpl {
     tenant: Tenant;
     receiverIds?: string[];
     receiverTriggerIds?: string[];
-    types?: (
-      | 'poll'
-      | 'webhook_handle'
-      | 'map_event'
-      | 'webhook_register'
-      | 'webhook_unregister'
-    )[];
+    types?: SlateTriggerInvocationType[];
   }) {
     let receivers = d.receiverIds
       ? await db.slateTriggerReceiver.findMany({

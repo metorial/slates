@@ -1,12 +1,13 @@
-import type {
-  Slate,
-  SlateAction,
-  SlateAuthConfig,
-  SlateInstance,
-  SlateTriggerDestination,
-  SlateTriggerReceiver,
-  SlateTriggerReceiverDestination,
-  SlateTriggerReceiverTrigger
+import {
+  SlateTriggerReceiverTriggerSource,
+  type Slate,
+  type SlateAction,
+  type SlateAuthConfig,
+  type SlateInstance,
+  type SlateTriggerDestination,
+  type SlateTriggerReceiver,
+  type SlateTriggerReceiverDestination,
+  type SlateTriggerReceiverTrigger
 } from '../../prisma/generated/client';
 import { getTriggerWebhookBaseUrl } from '../lib/triggerWebhook';
 
@@ -46,8 +47,14 @@ export let slateTriggerReceiverPresenter = (
     nextPollAt: trigger.nextPollAt,
     lastPolledAt: trigger.lastPolledAt,
 
-    webhookUrl: trigger.source === 'webhook' ? getTriggerWebhookBaseUrl(trigger.id) : null,
-    isWebhookRegistered: trigger.source === 'webhook' ? !!trigger.registrationDetails : null
+    webhookUrl:
+      trigger.source === SlateTriggerReceiverTriggerSource.webhook
+        ? getTriggerWebhookBaseUrl(trigger.id)
+        : null,
+    isWebhookRegistered:
+      trigger.source === SlateTriggerReceiverTriggerSource.webhook
+        ? !!trigger.registrationDetails
+        : null
   })),
 
   destinations: receiver.destinations.map(dest => ({

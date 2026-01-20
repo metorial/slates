@@ -1,7 +1,12 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { SlateTriggerDestination, Tenant } from '../../prisma/generated/client';
+import {
+  SlateTriggerDestinationStatus,
+  SlateTriggerDestinationType,
+  type SlateTriggerDestination,
+  type Tenant
+} from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId } from '../id';
 import { getTenantAndSenderForSignal, signal } from '../signal';
@@ -31,7 +36,7 @@ class slateTriggerDestinationServiceImpl {
       description: d.input.description,
       eventTypes: d.input.eventTypes?.length ? d.input.eventTypes : null,
       variant: {
-        type: 'http_endpoint',
+        type: SlateTriggerDestinationType.http_endpoint,
         url: d.input.url,
         method: d.input.method ?? 'POST'
       }
@@ -45,8 +50,8 @@ class slateTriggerDestinationServiceImpl {
 
         name: res.name,
         description: res.description ?? undefined,
-        type: 'http_endpoint',
-        status: 'active',
+        type: SlateTriggerDestinationType.http_endpoint,
+        status: SlateTriggerDestinationStatus.active,
 
         url: res.webhook?.url ?? d.input.url,
         method: res.webhook?.method ?? d.input.method ?? 'POST',
@@ -69,7 +74,7 @@ class slateTriggerDestinationServiceImpl {
       eventTypes?: string[];
     };
   }) {
-    if (d.destination.status === 'inactive') {
+    if (d.destination.status === SlateTriggerDestinationStatus.inactive) {
       throw new ServiceError(
         badRequestError({
           message: 'Cannot update an inactive trigger destination.'
@@ -93,7 +98,7 @@ class slateTriggerDestinationServiceImpl {
       variant:
         d.input.url || d.input.method
           ? {
-              type: 'http_endpoint',
+              type: SlateTriggerDestinationType.http_endpoint,
               url: d.input.url ?? d.destination.url,
               method: d.input.method ?? (d.destination.method as 'POST' | 'PUT' | 'PATCH')
             }
@@ -114,7 +119,7 @@ class slateTriggerDestinationServiceImpl {
   }
 
   async deleteTriggerDestination(d: { tenant: Tenant; destination: SlateTriggerDestination }) {
-    if (d.destination.status === 'inactive') {
+    if (d.destination.status === SlateTriggerDestinationStatus.inactive) {
       throw new ServiceError(
         badRequestError({
           message: 'Trigger destination is already inactive.'
@@ -132,7 +137,7 @@ class slateTriggerDestinationServiceImpl {
     await db.slateTriggerDestination.update({
       where: { oid: d.destination.oid },
       data: {
-        status: 'inactive'
+        status: SlateTriggerDestinationStatus.inactive
       }
     });
 
@@ -159,7 +164,7 @@ class slateTriggerDestinationServiceImpl {
             ...opts,
             where: {
               tenantOid: d.tenant.oid,
-              status: 'active'
+              status: SlateTriggerDestinationStatus.active
             },
             include
           })
