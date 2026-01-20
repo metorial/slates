@@ -270,6 +270,115 @@ describe('slate:trigger webhook E2E', () => {
     invocationMocks.invokeTriggerMapper.mockReset();
   });
 
+  const setupWebhookScenario = async (options?: {
+    triggerInvocation?: 'webhook' | 'polling';
+    receiverStatus?: 'active' | 'paused';
+    receiverEventTypes?: string[];
+    specAuthMethods?: any[];
+  }) => {
+    const tenant = await f.tenant.withIdentifier('tenant-slates');
+
+    const slate = await f.slate.complete({
+      slateStatus: SlateStatus.active,
+      specificationOverrides: options?.specAuthMethods
+        ? { authMethods: options.specAuthMethods }
+        : undefined
+    });
+
+    const provider = await f.deploymentProvider.functionBay();
+
+    const deployment = await f.slateDeployment.succeeded({
+      slateVersionOid: slate.currentVersion.oid,
+      slateOid: slate.oid,
+      providerOid: provider.oid,
+      functionId: 'fn_test'
+    });
+
+    const bucket = await f.storageBucket.default('test-invocations');
+
+    const { instance } = await f.slateInstance.withConfig({
+      slateOid: slate.oid,
+      tenantOid: tenant.oid,
+      specificationOid: slate.currentVersion.specification.oid
+    });
+
+    const triggerAction = await f.slateSpecification.withTriggerAction({
+      slateOid: slate.oid,
+      specificationOid: slate.currentVersion.specification.oid,
+      identifier: 'trigger.test',
+      key: 'trigger.test',
+      actionOverrides:
+        options?.triggerInvocation === 'polling'
+          ? {
+              spec: {
+                type: 'action.trigger',
+                invocation: { type: 'polling', intervalSeconds: 60 }
+              }
+            }
+          : undefined
+    });
+
+    const destination = await slateTriggerDestinationService.createTriggerDestination({
+      tenant,
+      input: {
+        name: 'Webhook Destination',
+        url: 'https://example.com/webhook',
+        method: 'POST'
+      }
+    });
+
+    const receiver = await slateTriggerReceiverService.createTriggerReceiver({
+      tenant,
+      input: {
+        slateInstanceId: instance.id,
+        destinations: [destination.id],
+        triggers: [{ triggerId: triggerAction.id }],
+        eventTypes: options?.receiverEventTypes
+      }
+    });
+
+    if (options?.receiverStatus && options.receiverStatus !== 'active') {
+      await testDb.slateTriggerReceiver.update({
+        where: { oid: receiver.oid },
+        data: { status: options.receiverStatus }
+      });
+    }
+
+    return {
+      tenant,
+      slate,
+      provider,
+      deployment,
+      bucket,
+      instance,
+      triggerAction,
+      destination,
+      receiver,
+      receiverTrigger: receiver.triggers[0]!
+    };
+  };
+
+  const postWebhook = async (receiverTriggerId: string, body?: Record<string, any>) => {
+    const res = await hubApp.fetch(
+      new Request(buildWebhookUrl(receiverTriggerId, 'events'), {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-test-header': 'present'
+        },
+        body: body ? JSON.stringify(body) : undefined
+      })
+    );
+
+    expect(res.status).toBe(200);
+
+    const requestRecord = await testDb.slateTriggerWebhookRequest.findFirst({
+      where: { receiverTriggerId }
+    });
+    expect(requestRecord).toBeTruthy();
+    return requestRecord!;
+  };
+
   it('creates a signal event and stores the signalEventId for webhook-triggered events', async () => {
     const tenant = await f.tenant.withIdentifier('tenant-slates');
 
@@ -436,5 +545,214 @@ describe('slate:trigger webhook E2E', () => {
 
     expect(record).toBeNull();
     expect(queueMocks.webhookAdd).not.toHaveBeenCalled();
+  });
+
+  it('ignores webhook requests when receiver is paused', async () => {
+    const { receiverTrigger } = await setupWebhookScenario({
+      receiverStatus: 'paused'
+    });
+
+    const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
+
+    await slateTriggerReceiverService.handleTriggerWebhook({
+      receiverTriggerId: receiverTrigger.id,
+      request: {
+        url: requestRecord.url,
+        method: requestRecord.method,
+        headers: requestRecord.headers as Record<string, string>,
+        body: requestRecord.body as { encoding: 'base64'; content: string } | null
+      }
+    });
+
+    expect(invocationMocks.handleWebhookRequest).not.toHaveBeenCalled();
+
+    const eventInput = await testDb.slateTriggerEventInput.findFirst({
+      where: { receiverTriggerOid: receiverTrigger.oid }
+    });
+    expect(eventInput).toBeNull();
+  });
+
+  it('ignores webhook requests when trigger source is polling', async () => {
+    const { receiverTrigger } = await setupWebhookScenario({
+      triggerInvocation: 'polling'
+    });
+
+    const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
+
+    await slateTriggerReceiverService.handleTriggerWebhook({
+      receiverTriggerId: receiverTrigger.id,
+      request: {
+        url: requestRecord.url,
+        method: requestRecord.method,
+        headers: requestRecord.headers as Record<string, string>,
+        body: requestRecord.body as { encoding: 'base64'; content: string } | null
+      }
+    });
+
+    expect(invocationMocks.handleWebhookRequest).not.toHaveBeenCalled();
+
+    const eventInput = await testDb.slateTriggerEventInput.findFirst({
+      where: { receiverTriggerOid: receiverTrigger.oid }
+    });
+    expect(eventInput).toBeNull();
+  });
+
+  it('does not enqueue inputs when webhook handler returns an error', async () => {
+    const { receiverTrigger, deployment, bucket } = await setupWebhookScenario();
+
+    const webhookInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_webhook_error'
+    });
+
+    invocationMocks.handleWebhookRequest.mockResolvedValueOnce({
+      status: 'error',
+      invocation: { oid: webhookInvocation.oid },
+      error: { code: 'webhook_error', message: 'Webhook failed' }
+    });
+
+    const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
+
+    await slateTriggerReceiverService.handleTriggerWebhook({
+      receiverTriggerId: receiverTrigger.id,
+      request: {
+        url: requestRecord.url,
+        method: requestRecord.method,
+        headers: requestRecord.headers as Record<string, string>,
+        body: requestRecord.body as { encoding: 'base64'; content: string } | null
+      }
+    });
+
+    const eventInput = await testDb.slateTriggerEventInput.findFirst({
+      where: { receiverTriggerOid: receiverTrigger.oid }
+    });
+    expect(eventInput).toBeNull();
+  });
+
+  it('retries event inputs when map_event returns an error', async () => {
+    const { receiverTrigger, deployment, bucket } = await setupWebhookScenario();
+
+    const webhookInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_webhook_success'
+    });
+
+    const mapInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_map_error'
+    });
+
+    invocationMocks.handleWebhookRequest.mockResolvedValueOnce({
+      status: 'success',
+      invocation: { oid: webhookInvocation.oid },
+      data: {
+        inputs: [{ payload: 'incoming' }],
+        updatedState: { cursor: 'next' }
+      }
+    });
+
+    invocationMocks.invokeTriggerMapper.mockResolvedValueOnce({
+      status: 'error',
+      invocation: { oid: mapInvocation.oid },
+      error: { code: 'map_error', message: 'Map failed' }
+    });
+
+    const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
+
+    await slateTriggerReceiverService.handleTriggerWebhook({
+      receiverTriggerId: receiverTrigger.id,
+      request: {
+        url: requestRecord.url,
+        method: requestRecord.method,
+        headers: requestRecord.headers as Record<string, string>,
+        body: requestRecord.body as { encoding: 'base64'; content: string } | null
+      }
+    });
+
+    const eventInput = await testDb.slateTriggerEventInput.findFirst({
+      where: { receiverTriggerOid: receiverTrigger.oid }
+    });
+    expect(eventInput).toBeTruthy();
+
+    await slateTriggerReceiverService.processTriggerEventInput({
+      eventInputId: eventInput!.id
+    });
+
+    const updated = await testDb.slateTriggerEventInput.findFirst({
+      where: { id: eventInput!.id }
+    });
+    expect(updated?.status).toBe('retrying');
+    expect(queueMocks.processAdd).toHaveBeenCalled();
+  });
+
+  it('skips delivery when receiver eventTypes exclude the event type', async () => {
+    const { receiverTrigger, deployment, bucket, receiver } = await setupWebhookScenario({
+      receiverEventTypes: ['allowed.event']
+    });
+
+    const webhookInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_webhook_success_types'
+    });
+
+    const mapInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_map_success_types'
+    });
+
+    invocationMocks.handleWebhookRequest.mockResolvedValueOnce({
+      status: 'success',
+      invocation: { oid: webhookInvocation.oid },
+      data: {
+        inputs: [{ payload: 'incoming' }],
+        updatedState: { cursor: 'next' }
+      }
+    });
+
+    invocationMocks.invokeTriggerMapper.mockResolvedValueOnce({
+      status: 'success',
+      invocation: { oid: mapInvocation.oid },
+      data: {
+        id: 'event-source-typed',
+        type: 'different.event',
+        output: { value: 456 }
+      }
+    });
+
+    const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
+
+    await slateTriggerReceiverService.handleTriggerWebhook({
+      receiverTriggerId: receiverTrigger.id,
+      request: {
+        url: requestRecord.url,
+        method: requestRecord.method,
+        headers: requestRecord.headers as Record<string, string>,
+        body: requestRecord.body as { encoding: 'base64'; content: string } | null
+      }
+    });
+
+    const eventInput = await testDb.slateTriggerEventInput.findFirst({
+      where: { receiverTriggerOid: receiverTrigger.oid }
+    });
+    expect(eventInput).toBeTruthy();
+
+    await slateTriggerReceiverService.processTriggerEventInput({
+      eventInputId: eventInput!.id
+    });
+
+    const triggerEvent = await testDb.slateTriggerEvent.findFirst({
+      where: { receiverTriggerOid: receiverTrigger.oid }
+    });
+    expect(triggerEvent).toBeTruthy();
+    expect(triggerEvent?.deliveryStatus).toBe('skipped');
+    expect(queueMocks.sendAdd).not.toHaveBeenCalled();
+
+    const payload = JSON.parse(signalState.events[0].payloadJson);
+    expect(payload.triggerReceiverId).toBe(receiver.id);
   });
 });
