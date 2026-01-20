@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { Tenant } from '../../../prisma/generated/client';
 import { SlateStatus } from '../../../prisma/generated/client';
 import { cleanDatabase, testDb } from '../../test/setup';
-import { getId, snowflake } from '../../id';
 import { fixtures } from '../../test/fixtures';
 
 const signalState = vi.hoisted(() => {
@@ -272,116 +271,34 @@ describe('slate:trigger webhook E2E', () => {
   });
 
   it('creates a signal event and stores the signalEventId for webhook-triggered events', async () => {
-    const tenant = await testDb.tenant.create({
-      data: {
-        ...getId('tenant'),
-        identifier: 'tenant-slates',
-        name: 'Tenant Slates'
-      }
-    });
+    const tenant = await f.tenant.withIdentifier('tenant-slates');
 
     const slate = await f.slate.complete({
       slateStatus: SlateStatus.active
     });
 
-    const provider = await testDb.deploymentProvider.create({
-      data: {
-        ...getId('deploymentProvider'),
-        name: 'Function Bay',
-        identifier: 'function-bay'
-      }
+    const provider = await f.deploymentProvider.functionBay();
+
+    const deployment = await f.slateDeployment.succeeded({
+      slateVersionOid: slate.currentVersion.oid,
+      slateOid: slate.oid,
+      providerOid: provider.oid,
+      functionId: 'fn_test'
     });
 
-    const deployment = await testDb.slateDeployment.create({
-      data: {
-        ...getId('slateDeployment'),
-        status: 'succeeded',
-        slateVersionOid: slate.currentVersion.oid,
-        slateOid: slate.oid,
-        providerOid: provider.oid,
-        providerDeploymentInfo: { functionId: 'fn_test' }
-      }
+    const bucket = await f.storageBucket.default('test-invocations');
+
+    const { instance } = await f.slateInstance.withConfig({
+      slateOid: slate.oid,
+      tenantOid: tenant.oid,
+      specificationOid: slate.currentVersion.specification.oid
     });
 
-    await testDb.slateVersion.update({
-      where: { oid: slate.currentVersion.oid },
-      data: {
-        activeDeploymentOid: deployment.oid,
-        providerDeploymentInfo: { functionId: 'fn_test' },
-        status: 'active'
-      }
-    });
-
-    const bucket = await testDb.slateInvocationStorageBucket.upsert({
-      where: { bucket: 'test-invocations' },
-      update: {},
-      create: {
-        oid: 1,
-        bucket: 'test-invocations'
-      }
-    });
-
-    const configSchema = await testDb.slateConfigSchema.create({
-      data: {
-        ...getId('slateConfigSchema'),
-        identifier: 'test-config-schema',
-        hash: 'schema_hash',
-        schema: {},
-        slateOid: slate.oid,
-        mostRecentSpecificationOid: slate.currentVersion.specification.oid
-      }
-    });
-
-    const instance = await testDb.slateInstance.create({
-      data: {
-        ...getId('slateInstance'),
-        slateOid: slate.oid,
-        tenantOid: tenant.oid
-      }
-    });
-
-    const instanceConfig = await testDb.slateInstanceConfig.create({
-      data: {
-        ...getId('slateInstanceConfig'),
-        instanceOid: instance.oid,
-        schemaOid: configSchema.oid,
-        tenantOid: tenant.oid,
-        value: {}
-      }
-    });
-
-    await testDb.slateInstance.update({
-      where: { oid: instance.oid },
-      data: { currentConfigOid: instanceConfig.oid }
-    });
-
-    const triggerAction = await testDb.slateAction.create({
-      data: {
-        ...getId('slateAction'),
-        type: 'trigger',
-        identifier: 'trigger.test',
-        hash: 'trigger_hash',
-        key: 'trigger.test',
-        name: 'Test Trigger',
-        spec: {
-          type: 'action.trigger',
-          invocation: {
-            type: 'webhook',
-            autoRegistration: false,
-            autoUnregistration: false
-          }
-        },
-        slateOid: slate.oid,
-        mostRecentSpecificationOid: slate.currentVersion.specification.oid
-      }
-    });
-
-    await testDb.slateSpecificationAction.create({
-      data: {
-        oid: snowflake.nextId(),
-        specificationOid: slate.currentVersion.specification.oid,
-        actionOid: triggerAction.oid
-      }
+    const triggerAction = await f.slateSpecification.withTriggerAction({
+      slateOid: slate.oid,
+      specificationOid: slate.currentVersion.specification.oid,
+      identifier: 'trigger.test',
+      key: 'trigger.test'
     });
 
     const destination = await slateTriggerDestinationService.createTriggerDestination({
@@ -405,28 +322,16 @@ describe('slate:trigger webhook E2E', () => {
     const receiverTriggerId = receiver.triggers[0]?.id;
     expect(receiverTriggerId).toBeDefined();
 
-    const webhookInvocation = await testDb.slateInvocation.create({
-      data: {
-        ...getId('slateInvocation'),
-        isPending: false,
-        hasResponseError: false,
-        hasInvocationError: false,
-        providerInvocationId: 'inv_webhook',
-        deploymentOid: deployment.oid,
-        bucketOid: bucket.oid
-      }
+    const webhookInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_webhook'
     });
 
-    const mapInvocation = await testDb.slateInvocation.create({
-      data: {
-        ...getId('slateInvocation'),
-        isPending: false,
-        hasResponseError: false,
-        hasInvocationError: false,
-        providerInvocationId: 'inv_map',
-        deploymentOid: deployment.oid,
-        bucketOid: bucket.oid
-      }
+    const mapInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_map'
     });
 
     invocationMocks.handleWebhookRequest.mockResolvedValueOnce({

@@ -19,6 +19,11 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/test/setup.ts'],
       testTimeout: 30000,
       hookTimeout: 30000,
+      sequence: {
+        concurrent: false
+      },
+      fileParallelism: false,
+      maxConcurrency: 1,
       env: {
         ...env,
         NODE_ENV: 'test'
