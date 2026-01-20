@@ -4,18 +4,15 @@ import { SlateFixtures } from './slateFixtures';
 import { SlateVersionFixtures } from './slateVersionFixtures';
 import { SlateSpecificationFixtures } from './slateSpecificationFixtures';
 import { TenantFixtures } from './tenantFixtures';
-import {
-  DeploymentProviderFixtures,
-  SlateDeploymentFixtures,
-} from './deploymentFixtures';
+import { DeploymentProviderFixtures, SlateDeploymentFixtures } from './deploymentFixtures';
 import {
   SlateConfigSchemaFixtures,
   SlateInstanceFixtures,
-  SlateInstanceConfigFixtures,
+  SlateInstanceConfigFixtures
 } from './instanceFixtures';
 import {
   SlateInvocationStorageBucketFixtures,
-  SlateInvocationFixtures,
+  SlateInvocationFixtures
 } from './invocationFixtures';
 
 export function fixtures(db: PrismaClient) {
@@ -31,7 +28,7 @@ export function fixtures(db: PrismaClient) {
     slateInstance: new SlateInstanceFixtures(db),
     slateInstanceConfig: new SlateInstanceConfigFixtures(db),
     storageBucket: new SlateInvocationStorageBucketFixtures(db),
-    slateInvocation: new SlateInvocationFixtures(db),
+    slateInvocation: new SlateInvocationFixtures(db)
   };
 }
 
@@ -47,5 +44,5 @@ export {
   SlateInstanceFixtures,
   SlateInstanceConfigFixtures,
   SlateInvocationStorageBucketFixtures,
-  SlateInvocationFixtures,
+  SlateInvocationFixtures
 };

@@ -1,7 +1,4 @@
-import type {
-  SlateVersion,
-  SlateSpecification,
-} from '../../../prisma/generated/client';
+import type { SlateVersion, SlateSpecification } from '../../../prisma/generated/client';
 import { SlateVersionStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
 import { BaseFixture } from './base';
@@ -32,8 +29,8 @@ export class SlateVersionFixtures extends BaseFixture {
         slateOid: data.slateOid,
         registryOid: data.registryOid,
         specificationOid: null,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -51,31 +48,31 @@ export class SlateVersionFixtures extends BaseFixture {
       slateOid: data.slateOid,
       registryOid: data.registryOid,
       version: data.version,
-      overrides: data.versionOverrides,
+      overrides: data.versionOverrides
     });
 
     const specFixtures = new SlateSpecificationFixtures(this.db);
     const specification = await specFixtures.default({
       slateOid: data.slateOid,
       versionOid: version.oid,
-      overrides: data.specificationOverrides,
+      overrides: data.specificationOverrides
     });
 
     await this.db.slateVersion.update({
       where: { oid: version.oid },
-      data: { specificationOid: specification.oid },
+      data: { specificationOid: specification.oid }
     });
 
     const versionWithSpec = await this.db.slateVersion.findUniqueOrThrow({
       where: { oid: version.oid },
-      include: { specification: true },
+      include: { specification: true }
     });
 
     return {
       version: versionWithSpec as SlateVersion & {
         specification: SlateSpecification;
       },
-      specification,
+      specification
     };
   }
 }

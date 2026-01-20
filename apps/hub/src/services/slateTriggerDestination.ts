@@ -49,7 +49,7 @@ class slateTriggerDestinationServiceImpl {
         status: 'active',
 
         url: res.webhook?.url ?? d.input.url,
-        method: res.webhook?.method ?? (d.input.method ?? 'POST'),
+        method: res.webhook?.method ?? d.input.method ?? 'POST',
         eventTypes: normalizeEventTypes(res.eventTypes ?? undefined),
 
         signalDestinationId: res.id

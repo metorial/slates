@@ -66,10 +66,7 @@ class slateTriggerDeliveryServiceImpl {
     return undefined;
   }
 
-  private async resolveSignalDestinationIds(d: {
-    tenant: Tenant;
-    destinationIds?: string[];
-  }) {
+  private async resolveSignalDestinationIds(d: { tenant: Tenant; destinationIds?: string[] }) {
     if (!d.destinationIds || d.destinationIds.length === 0) return undefined;
 
     let destinations = await db.slateTriggerDestination.findMany({

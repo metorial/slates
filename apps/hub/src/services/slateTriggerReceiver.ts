@@ -120,7 +120,8 @@ class slateTriggerReceiverServiceImpl {
       where: { id },
       include: receiverTriggerInclude
     });
-    if (!receiverTrigger) throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
+    if (!receiverTrigger)
+      throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
     return receiverTrigger as ReceiverTriggerWithRelations;
   }
 
@@ -202,7 +203,9 @@ class slateTriggerReceiverServiceImpl {
 
     let actionById = new Map(actions.map(action => [action.id, action] as const));
     let actionByKey = new Map(actions.map(action => [action.key, action] as const));
-    let actionByIdentifier = new Map(actions.map(action => [action.identifier, action] as const));
+    let actionByIdentifier = new Map(
+      actions.map(action => [action.identifier, action] as const)
+    );
 
     let seenActionIds = new Set<string>();
 
@@ -257,12 +260,10 @@ class slateTriggerReceiverServiceImpl {
       slateInstance: receiver.slateInstance
     });
 
-    let auth = null as
-      | {
-          authenticationMethodId: string;
-          data: Record<string, any>;
-        }
-      | null;
+    let auth = null as {
+      authenticationMethodId: string;
+      data: Record<string, any>;
+    } | null;
 
     let hasAuthMethods = (version.specification?.authMethods ?? []).length > 0;
     if (hasAuthMethods) {
@@ -313,12 +314,7 @@ class slateTriggerReceiverServiceImpl {
     receiver: ReceiverTriggerWithRelations['receiver'];
     receiverTrigger?: ReceiverTriggerWithRelations;
     eventOid?: bigint;
-    type:
-      | 'poll'
-      | 'webhook_handle'
-      | 'map_event'
-      | 'webhook_register'
-      | 'webhook_unregister';
+    type: 'poll' | 'webhook_handle' | 'map_event' | 'webhook_register' | 'webhook_unregister';
     invocation: { oid: bigint };
   }) {
     await db.slateTriggerInvocation.create({
@@ -397,7 +393,9 @@ class slateTriggerReceiverServiceImpl {
     };
     signalDestinationIds: string[];
   }) {
-    let { sender, tenant: signalTenant } = await getTenantAndSenderForSignal(d.receiver.tenant);
+    let { sender, tenant: signalTenant } = await getTenantAndSenderForSignal(
+      d.receiver.tenant
+    );
 
     let payload = {
       object: 'slate.trigger.event',
@@ -599,10 +597,7 @@ class slateTriggerReceiverServiceImpl {
 
       if (existing) {
         if (existing.deliveryStatus === 'pending') {
-          await slateTriggerEventSendQueue.add(
-            { eventId: existing.id },
-            { id: existing.id }
-          );
+          await slateTriggerEventSendQueue.add({ eventId: existing.id }, { id: existing.id });
         }
 
         await this.recordTriggerInvocation({
@@ -681,10 +676,7 @@ class slateTriggerReceiverServiceImpl {
       });
 
       if (targets.shouldDeliver) {
-        await slateTriggerEventSendQueue.add(
-          { eventId: event.id },
-          { id: event.id }
-        );
+        await slateTriggerEventSendQueue.add({ eventId: event.id }, { id: event.id });
       }
     } catch (error) {
       let status = attemptCount >= 5 ? 'failed' : 'retrying';
@@ -915,7 +907,8 @@ class slateTriggerReceiverServiceImpl {
     await db.slateTriggerReceiver.update({
       where: { oid: receiver.oid },
       data: {
-        authConfigOid: d.input.authConfigId !== undefined ? authConfig?.oid ?? null : undefined,
+        authConfigOid:
+          d.input.authConfigId !== undefined ? (authConfig?.oid ?? null) : undefined,
         name: d.input.name === null ? null : d.input.name,
         description: d.input.description === null ? null : d.input.description,
         eventTypes: d.input.eventTypes ? normalizeEventTypes(d.input.eventTypes) : undefined
@@ -945,7 +938,9 @@ class slateTriggerReceiverServiceImpl {
       );
       let incomingDestinationOids = new Set(destinations.map(dest => dest.oid));
 
-      let destinationsToAdd = destinations.filter(dest => !currentDestinationOids.has(dest.oid));
+      let destinationsToAdd = destinations.filter(
+        dest => !currentDestinationOids.has(dest.oid)
+      );
       let destinationsToRemove = receiver.destinations.filter(
         dest => !incomingDestinationOids.has(dest.destinationOid)
       );
@@ -1093,7 +1088,11 @@ class slateTriggerReceiverServiceImpl {
     return receiver;
   }
 
-  async listTriggerReceivers(d: { tenant: Tenant; slateIds?: string[]; slateInstanceIds?: string[] }) {
+  async listTriggerReceivers(d: {
+    tenant: Tenant;
+    slateIds?: string[];
+    slateInstanceIds?: string[];
+  }) {
     let slateInstances = d.slateInstanceIds
       ? await db.slateInstance.findMany({
           where: {
@@ -1249,7 +1248,8 @@ class slateTriggerReceiverServiceImpl {
       },
       include: receiverTriggerInclude
     });
-    if (!receiverTrigger) throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
+    if (!receiverTrigger)
+      throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
 
     if (receiverTrigger.source !== 'polling') return;
     if (receiverTrigger.receiver.status !== 'active') return;
@@ -1322,7 +1322,8 @@ class slateTriggerReceiverServiceImpl {
       },
       include: receiverTriggerInclude
     });
-    if (!receiverTrigger) throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
+    if (!receiverTrigger)
+      throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
 
     if (receiverTrigger.source !== 'webhook') return;
     if (receiverTrigger.receiver.status !== 'active') return;

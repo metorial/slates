@@ -12,22 +12,17 @@ export class RegistryFixtures extends BaseFixture {
       data: {
         oid,
         id,
-        identifier:
-          overrides?.identifier ||
-          `test-registry-${randomBytes(4).toString('hex')}`,
+        identifier: overrides?.identifier || `test-registry-${randomBytes(4).toString('hex')}`,
         name: 'Test Registry',
         url: 'http://localhost:52040',
         status: RegistryStatus.active,
         isPredefined: false,
-        ...overrides,
-      },
+        ...overrides
+      }
     });
   }
 
-  async withStatus(
-    status: RegistryStatus,
-    overrides?: Partial<Registry>
-  ): Promise<Registry> {
+  async withStatus(status: RegistryStatus, overrides?: Partial<Registry>): Promise<Registry> {
     return this.default({ ...overrides, status });
   }
 

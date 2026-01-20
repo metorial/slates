@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import type {
   SlateSpecification,
   SlateAction,
-  SlateSpecificationAction,
+  SlateSpecificationAction
 } from '../../../prisma/generated/client';
 import { getId, snowflake } from '../../id';
 import { BaseFixture } from './base';
@@ -15,8 +15,7 @@ export class SlateSpecificationFixtures extends BaseFixture {
     overrides?: Partial<SlateSpecification>;
   }): Promise<SlateSpecification> {
     const { oid, id } = getId('slateSpecification');
-    const identifier =
-      data.identifier || `spec-${randomBytes(4).toString('hex')}`;
+    const identifier = data.identifier || `spec-${randomBytes(4).toString('hex')}`;
 
     return this.db.slateSpecification.create({
       data: {
@@ -33,8 +32,8 @@ export class SlateSpecificationFixtures extends BaseFixture {
         actions: {},
         slateOid: data.slateOid,
         mostRecentVersionOid: data.versionOid,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -48,8 +47,7 @@ export class SlateSpecificationFixtures extends BaseFixture {
   }): Promise<SlateAction> {
     const { oid, id } = getId('slateAction');
     const type = data.type || 'tool';
-    const identifier =
-      data.identifier || `${type}.${randomBytes(4).toString('hex')}`;
+    const identifier = data.identifier || `${type}.${randomBytes(4).toString('hex')}`;
     const key = data.key || identifier;
 
     return this.db.slateAction.create({
@@ -64,8 +62,8 @@ export class SlateSpecificationFixtures extends BaseFixture {
         spec: {},
         slateOid: data.slateOid,
         mostRecentSpecificationOid: data.specificationOid,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -84,7 +82,7 @@ export class SlateSpecificationFixtures extends BaseFixture {
     const key = data.key || identifier;
     const webhookConfig = data.webhookConfig || {
       autoRegistration: false,
-      autoUnregistration: false,
+      autoUnregistration: false
     };
 
     return this.createAction({
@@ -98,11 +96,11 @@ export class SlateSpecificationFixtures extends BaseFixture {
           type: 'action.trigger',
           invocation: {
             type: 'webhook',
-            ...webhookConfig,
-          },
+            ...webhookConfig
+          }
         },
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -114,8 +112,8 @@ export class SlateSpecificationFixtures extends BaseFixture {
       data: {
         oid: snowflake.nextId(),
         specificationOid: data.specificationOid,
-        actionOid: data.actionOid,
-      },
+        actionOid: data.actionOid
+      }
     });
   }
 
@@ -136,12 +134,12 @@ export class SlateSpecificationFixtures extends BaseFixture {
       identifier: data.identifier,
       key: data.key,
       webhookConfig: data.webhookConfig,
-      overrides: data.actionOverrides,
+      overrides: data.actionOverrides
     });
 
     await this.linkAction({
       specificationOid: data.specificationOid,
-      actionOid: action.oid,
+      actionOid: action.oid
     });
 
     return action;

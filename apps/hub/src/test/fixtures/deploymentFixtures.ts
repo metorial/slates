@@ -1,8 +1,5 @@
 import { randomBytes } from 'crypto';
-import type {
-  DeploymentProvider,
-  SlateDeployment,
-} from '../../../prisma/generated/client';
+import type { DeploymentProvider, SlateDeployment } from '../../../prisma/generated/client';
 import { SlateDeploymentStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
 import { BaseFixture } from './base';
@@ -18,8 +15,8 @@ export class DeploymentProviderFixtures extends BaseFixture {
         id,
         name: `Test Provider ${identifier}`,
         identifier,
-        ...overrides,
-      },
+        ...overrides
+      }
     });
   }
 
@@ -27,7 +24,7 @@ export class DeploymentProviderFixtures extends BaseFixture {
     return this.default({
       name: 'Function Bay',
       identifier: 'function-bay',
-      ...overrides,
+      ...overrides
     });
   }
 }
@@ -51,8 +48,8 @@ export class SlateDeploymentFixtures extends BaseFixture {
         slateOid: data.slateOid,
         providerOid: data.providerOid,
         providerDeploymentInfo: {},
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -73,8 +70,8 @@ export class SlateDeploymentFixtures extends BaseFixture {
       status: SlateDeploymentStatus.succeeded,
       overrides: {
         providerDeploymentInfo,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
 
     await this.db.slateVersion.update({
@@ -82,8 +79,8 @@ export class SlateDeploymentFixtures extends BaseFixture {
       data: {
         activeDeploymentOid: deployment.oid,
         providerDeploymentInfo,
-        status: 'active',
-      },
+        status: 'active'
+      }
     });
 
     return deployment;

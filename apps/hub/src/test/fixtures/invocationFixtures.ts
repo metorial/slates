@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import type {
   SlateInvocationStorageBucket,
-  SlateInvocation,
+  SlateInvocation
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
 import { BaseFixture } from './base';
@@ -15,8 +15,8 @@ export class SlateInvocationStorageBucketFixtures extends BaseFixture {
       update: {},
       create: {
         oid: Math.floor(Math.random() * 1_000_000),
-        bucket: bucketName,
-      },
+        bucket: bucketName
+      }
     });
   }
 }
@@ -42,8 +42,8 @@ export class SlateInvocationFixtures extends BaseFixture {
         providerInvocationId,
         deploymentOid: data.deploymentOid,
         bucketOid: data.bucketOid,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -61,8 +61,8 @@ export class SlateInvocationFixtures extends BaseFixture {
         isPending: false,
         hasResponseError: false,
         hasInvocationError: false,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 }

@@ -5,7 +5,10 @@ import {
   slateTriggerPollingCron
 } from './poll';
 import { slateTriggerEventProcessQueueProcessor } from './process';
-import { slateTriggerWebhookRegisterQueueProcessor, slateTriggerWebhookUnregisterQueueProcessor } from './register';
+import {
+  slateTriggerWebhookRegisterQueueProcessor,
+  slateTriggerWebhookUnregisterQueueProcessor
+} from './register';
 import { slateTriggerEventSendQueueProcessor } from './send';
 import { slateTriggerWebhookQueueProcessor } from './webhook';
 

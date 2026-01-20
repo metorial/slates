@@ -8,8 +8,8 @@ const testDbUrl = process.env.DATABASE_URL ?? '';
 if (!testDbUrl.includes('slates-hub-test')) {
   throw new Error(
     `Tests must use slates-hub-test database. ` +
-    `Current DATABASE_URL: ${testDbUrl}. ` +
-    `Ensure .env.test is present and Vitest is loading it correctly.`
+      `Current DATABASE_URL: ${testDbUrl}. ` +
+      `Ensure .env.test is present and Vitest is loading it correctly.`
   );
 }
 
@@ -30,9 +30,7 @@ export async function cleanDatabase() {
     return;
   }
 
-  const tableNames = tables
-    .map(t => `"${t.tablename}"`)
-    .join(', ');
+  const tableNames = tables.map(t => `"${t.tablename}"`).join(', ');
 
   await testDb.$executeRawUnsafe(`TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE`);
 }

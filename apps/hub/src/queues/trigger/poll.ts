@@ -39,10 +39,7 @@ export let slateTriggerPollingBatchQueueProcessor = slateTriggerPollingBatchQueu
     if (triggers.length === 0) return;
 
     for (let trigger of triggers) {
-      await slateTriggerPollQueue.add(
-        { receiverTriggerId: trigger.id },
-        { id: trigger.id }
-      );
+      await slateTriggerPollQueue.add({ receiverTriggerId: trigger.id }, { id: trigger.id });
     }
 
     await slateTriggerPollingBatchQueue.add({

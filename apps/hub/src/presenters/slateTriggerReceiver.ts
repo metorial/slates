@@ -47,8 +47,7 @@ export let slateTriggerReceiverPresenter = (
     lastPolledAt: trigger.lastPolledAt,
 
     webhookUrl: trigger.source === 'webhook' ? getTriggerWebhookBaseUrl(trigger.id) : null,
-    isWebhookRegistered:
-      trigger.source === 'webhook' ? !!trigger.registrationDetails : null
+    isWebhookRegistered: trigger.source === 'webhook' ? !!trigger.registrationDetails : null
   })),
 
   destinations: receiver.destinations.map(dest => ({

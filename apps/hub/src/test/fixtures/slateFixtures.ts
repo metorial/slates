@@ -3,7 +3,7 @@ import type {
   Slate,
   Registry,
   SlateVersion,
-  SlateSpecification,
+  SlateSpecification
 } from '../../../prisma/generated/client';
 import { SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
@@ -19,8 +19,7 @@ export class SlateFixtures extends BaseFixture {
     overrides?: Partial<Slate>;
   }): Promise<Slate> {
     const { oid, id } = getId('slate');
-    const identifier =
-      data.identifier || `test-slate-${randomBytes(4).toString('hex')}`;
+    const identifier = data.identifier || `test-slate-${randomBytes(4).toString('hex')}`;
 
     return this.db.slate.create({
       data: {
@@ -36,8 +35,8 @@ export class SlateFixtures extends BaseFixture {
         slateFullIdentifierOnRegistry: `test-scope/${identifier}`,
         slateIdentifierOnRegistry: identifier,
         slateIdOnRegistry: `slate_${identifier}`,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -54,12 +53,12 @@ export class SlateFixtures extends BaseFixture {
       registryOid: registry.oid,
       identifier: data?.slateIdentifier,
       status: data?.slateStatus,
-      overrides: data?.slateOverrides,
+      overrides: data?.slateOverrides
     });
 
     return this.db.slate.findUniqueOrThrow({
       where: { id: slate.id },
-      include: { registry: true },
+      include: { registry: true }
     }) as Promise<Slate & { registry: Registry }>;
   }
 
@@ -80,7 +79,7 @@ export class SlateFixtures extends BaseFixture {
       registryOverrides: data?.registryOverrides,
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus,
-      slateOverrides: data?.slateOverrides,
+      slateOverrides: data?.slateOverrides
     });
 
     const versionFixtures = new SlateVersionFixtures(this.db);
@@ -88,12 +87,12 @@ export class SlateFixtures extends BaseFixture {
       slateOid: slateWithRegistry.oid,
       registryOid: slateWithRegistry.registryOid,
       versionOverrides: data?.versionOverrides,
-      specificationOverrides: data?.specificationOverrides,
+      specificationOverrides: data?.specificationOverrides
     });
 
     await this.db.slate.update({
       where: { oid: slateWithRegistry.oid },
-      data: { currentVersionOid: version.oid },
+      data: { currentVersionOid: version.oid }
     });
 
     return this.db.slate.findUniqueOrThrow({
@@ -101,9 +100,9 @@ export class SlateFixtures extends BaseFixture {
       include: {
         registry: true,
         currentVersion: {
-          include: { specification: true },
-        },
-      },
+          include: { specification: true }
+        }
+      }
     }) as Promise<
       Slate & {
         registry: Registry;
@@ -120,15 +119,15 @@ export class SlateFixtures extends BaseFixture {
     const slate = await this.withRegistry({
       registryOverrides: data?.registryOverrides,
       slateIdentifier: data?.slateIdentifier,
-      slateOverrides: data?.slateOverrides,
+      slateOverrides: data?.slateOverrides
     });
 
     return this.db.slate.findUniqueOrThrow({
       where: { id: slate.id },
       include: {
         registry: true,
-        currentVersion: true,
-      },
+        currentVersion: true
+      }
     }) as Promise<Slate & { registry: Registry; currentVersion: null }>;
   }
 }

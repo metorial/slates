@@ -28,7 +28,13 @@ class slateTriggerInvocationServiceImpl {
     tenant: Tenant;
     receiverIds?: string[];
     receiverTriggerIds?: string[];
-    types?: ('poll' | 'webhook_handle' | 'map_event' | 'webhook_register' | 'webhook_unregister')[];
+    types?: (
+      | 'poll'
+      | 'webhook_handle'
+      | 'map_event'
+      | 'webhook_register'
+      | 'webhook_unregister'
+    )[];
   }) {
     let receivers = d.receiverIds
       ? await db.slateTriggerReceiver.findMany({

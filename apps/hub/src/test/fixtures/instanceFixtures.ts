@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import type {
   SlateConfigSchema,
   SlateInstance,
-  SlateInstanceConfig,
+  SlateInstanceConfig
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
 import { BaseFixture } from './base';
@@ -25,8 +25,8 @@ export class SlateConfigSchemaFixtures extends BaseFixture {
         schema: {},
         slateOid: data.slateOid,
         mostRecentSpecificationOid: data.specificationOid,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 }
@@ -49,8 +49,8 @@ export class SlateInstanceConfigFixtures extends BaseFixture {
         schemaOid: data.schemaOid,
         tenantOid: data.tenantOid,
         value: data.value ?? {},
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 }
@@ -69,8 +69,8 @@ export class SlateInstanceFixtures extends BaseFixture {
         id,
         slateOid: data.slateOid,
         tenantOid: data.tenantOid,
-        ...data.overrides,
-      },
+        ...data.overrides
+      }
     });
   }
 
@@ -91,13 +91,13 @@ export class SlateInstanceFixtures extends BaseFixture {
     const configSchema = await configSchemaFixtures.default({
       slateOid: data.slateOid,
       specificationOid: data.specificationOid,
-      overrides: data.schemaOverrides,
+      overrides: data.schemaOverrides
     });
 
     const instance = await this.default({
       slateOid: data.slateOid,
       tenantOid: data.tenantOid,
-      overrides: data.instanceOverrides,
+      overrides: data.instanceOverrides
     });
 
     const instanceConfigFixtures = new SlateInstanceConfigFixtures(this.db);
@@ -106,22 +106,22 @@ export class SlateInstanceFixtures extends BaseFixture {
       schemaOid: configSchema.oid,
       tenantOid: data.tenantOid,
       value: data.configValue,
-      overrides: data.configOverrides,
+      overrides: data.configOverrides
     });
 
     await this.db.slateInstance.update({
       where: { oid: instance.oid },
-      data: { currentConfigOid: instanceConfig.oid },
+      data: { currentConfigOid: instanceConfig.oid }
     });
 
     const updatedInstance = await this.db.slateInstance.findUniqueOrThrow({
-      where: { oid: instance.oid },
+      where: { oid: instance.oid }
     });
 
     return {
       instance: updatedInstance,
       configSchema,
-      instanceConfig,
+      instanceConfig
     };
   }
 }

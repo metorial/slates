@@ -14,19 +14,16 @@ export class TenantFixtures extends BaseFixture {
         id,
         identifier,
         name: `Test Tenant ${identifier}`,
-        ...overrides,
-      },
+        ...overrides
+      }
     });
   }
 
-  async withIdentifier(
-    identifier: string,
-    overrides?: Partial<Tenant>
-  ): Promise<Tenant> {
+  async withIdentifier(identifier: string, overrides?: Partial<Tenant>): Promise<Tenant> {
     return this.default({
       identifier,
       name: `Tenant ${identifier}`,
-      ...overrides,
+      ...overrides
     });
   }
 }

@@ -14,7 +14,7 @@ describe('slate:list E2E', () => {
 
   it('returns active slates with nested data', async () => {
     const slate = await f.slate.complete({
-      slateStatus: SlateStatus.active,
+      slateStatus: SlateStatus.active
     });
 
     const result = await slatesHubClient.slate.list({ limit: 10 });
@@ -32,8 +32,8 @@ describe('slate:list E2E', () => {
       registryId: slate.registry.id,
       currentVersion: {
         version: '1.0.0',
-        specification: expect.anything(),
-      },
+        specification: expect.anything()
+      }
     });
   });
 
@@ -43,19 +43,19 @@ describe('slate:list E2E', () => {
     await f.slate.complete({
       slateStatus: SlateStatus.active,
       slateIdentifier: 'active-slate',
-      slateOverrides: { registryOid: registry.oid },
+      slateOverrides: { registryOid: registry.oid }
     });
 
     await f.slate.complete({
       slateStatus: SlateStatus.inactive,
       slateIdentifier: 'inactive-slate',
-      slateOverrides: { registryOid: registry.oid },
+      slateOverrides: { registryOid: registry.oid }
     });
 
     const result = await slatesHubClient.slate.list({ limit: 10 });
 
     expect(result).toMatchObject({
-      items: [{ identifier: 'active-slate' }],
+      items: [{ identifier: 'active-slate' }]
     });
   });
 
@@ -63,11 +63,11 @@ describe('slate:list E2E', () => {
     const registry = await f.registry.default();
 
     await Promise.all(
-      _.times(10, (i) =>
+      _.times(10, i =>
         f.slate.complete({
           slateIdentifier: `slate-${i}`,
           slateStatus: SlateStatus.active,
-          slateOverrides: { registryOid: registry.oid },
+          slateOverrides: { registryOid: registry.oid }
         })
       )
     );
@@ -75,30 +75,28 @@ describe('slate:list E2E', () => {
     const firstPage = await slatesHubClient.slate.list({ limit: 4 });
     expect(firstPage.items).toHaveLength(4);
     expect(firstPage.pagination).toMatchObject({
-      has_more_after: true,
+      has_more_after: true
     });
 
     const lastItemId = firstPage?.items?.[firstPage.items.length - 1]?.id;
     const secondPage = await slatesHubClient.slate.list({
       limit: 4,
-      after: lastItemId,
+      after: lastItemId
     });
     expect(secondPage.items).toHaveLength(4);
     expect(secondPage.pagination).toMatchObject({
-      has_more_after: true,
+      has_more_after: true
     });
 
     const firstPageIds = firstPage.items.map((s: any) => s.id);
     const secondPageIds = secondPage.items.map((s: any) => s.id);
-    const intersection = firstPageIds.filter((id) =>
-      secondPageIds.includes(id)
-    );
+    const intersection = firstPageIds.filter(id => secondPageIds.includes(id));
     expect(intersection).toHaveLength(0);
   });
 
   it('presenter formats all fields correctly', async () => {
     const slate = await f.slate.complete({
-      slateStatus: SlateStatus.active,
+      slateStatus: SlateStatus.active
     });
 
     const result = await slatesHubClient.slate.list({ limit: 10 });
@@ -115,17 +113,17 @@ describe('slate:list E2E', () => {
         object: 'slate.registry_scope',
         registryId: slate.registry.id,
         id: slate.slateScopeIdOnRegistry,
-        identifier: slate.slateScopeIdentifierOnRegistry,
+        identifier: slate.slateScopeIdentifierOnRegistry
       },
       slate: {
         object: 'slate.registry_slate',
         registryId: slate.registry.id,
         id: slate.slateIdOnRegistry,
         identifier: slate.slateIdentifierOnRegistry,
-        fullIdentifier: slate.slateFullIdentifierOnRegistry,
+        fullIdentifier: slate.slateFullIdentifierOnRegistry
       },
       createdAt: expect.any(Date),
-      updatedAt: expect.any(Date),
+      updatedAt: expect.any(Date)
     });
   });
 });
