@@ -26,10 +26,10 @@ export class SlateSpecificationFixtures extends BaseFixture {
         name: 'Test Spec',
         key: 'test-spec',
         protocolVersion: '1.0',
-        providerInfo: {},
+        providerInfo: { type: 'provider' as const, id: 'test-provider', name: 'Test Provider' },
         configSchema: {},
-        authMethods: {},
-        actions: {},
+        authMethods: [],
+        actions: [],
         slateOid: data.slateOid,
         mostRecentVersionOid: data.versionOid,
         ...data.overrides
@@ -50,6 +50,26 @@ export class SlateSpecificationFixtures extends BaseFixture {
     const identifier = data.identifier || `${type}.${randomBytes(4).toString('hex')}`;
     const key = data.key || identifier;
 
+    const baseSpec = {
+      id: identifier,
+      name: `Test ${type} ${identifier}`,
+      inputSchema: {},
+      outputSchema: {},
+      capabilities: {}
+    };
+
+    const spec =
+      type === 'trigger'
+        ? {
+            ...baseSpec,
+            type: 'action.trigger' as const,
+            invocation: { type: 'webhook' as const, autoRegistration: false, autoUnregistration: false }
+          }
+        : {
+            ...baseSpec,
+            type: 'action.tool' as const
+          };
+
     return this.db.slateAction.create({
       data: {
         oid,
@@ -59,7 +79,7 @@ export class SlateSpecificationFixtures extends BaseFixture {
         key,
         hash: `hash_${randomBytes(8).toString('hex')}`,
         name: `Test ${type} ${identifier}`,
-        spec: {},
+        spec,
         slateOid: data.slateOid,
         mostRecentSpecificationOid: data.specificationOid,
         ...data.overrides
@@ -85,20 +105,33 @@ export class SlateSpecificationFixtures extends BaseFixture {
       autoUnregistration: false
     };
 
-    return this.createAction({
-      slateOid: data.slateOid,
-      specificationOid: data.specificationOid,
-      type: 'trigger',
-      identifier,
-      key,
-      overrides: {
-        spec: {
-          type: 'action.trigger',
-          invocation: {
-            type: 'webhook',
-            ...webhookConfig
-          }
-        },
+    const { oid, id } = getId('slateAction');
+    const triggerSpec = {
+      id: identifier,
+      name: `Test trigger ${identifier}`,
+      type: 'action.trigger' as const,
+      inputSchema: {},
+      outputSchema: {},
+      capabilities: {},
+      invocation: {
+        type: 'webhook' as const,
+        autoRegistration: webhookConfig.autoRegistration ?? false,
+        autoUnregistration: webhookConfig.autoUnregistration ?? false
+      }
+    };
+
+    return this.db.slateAction.create({
+      data: {
+        oid,
+        id,
+        type: 'trigger',
+        identifier,
+        key,
+        hash: `hash_${randomBytes(8).toString('hex')}`,
+        name: `Test trigger ${identifier}`,
+        spec: triggerSpec,
+        slateOid: data.slateOid,
+        mostRecentSpecificationOid: data.specificationOid,
         ...data.overrides
       }
     });

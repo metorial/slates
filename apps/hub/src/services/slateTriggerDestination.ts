@@ -86,7 +86,7 @@ class slateTriggerDestinationServiceImpl {
 
     let res = await signal.eventDestination.update({
       tenantId: signalTenant.id,
-      eventDestinationId: d.destination.signalDestinationId,
+      eventDestinationId: d.destination.signalDestinationId!,
       name: d.input.name,
       description: d.input.description,
       eventTypes:
@@ -131,7 +131,7 @@ class slateTriggerDestinationServiceImpl {
 
     await signal.eventDestination.delete({
       tenantId: signalTenant.id,
-      eventDestinationId: d.destination.signalDestinationId
+      eventDestinationId: d.destination.signalDestinationId!
     });
 
     await db.slateTriggerDestination.update({

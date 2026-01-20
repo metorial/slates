@@ -313,20 +313,29 @@ describe('slate:trigger webhook E2E', () => {
       slateOid: slate.oid,
       specificationOid: slate.currentVersion.specification.oid,
       identifier: 'trigger.test',
-      key: 'trigger.test',
-      actionOverrides:
-        options?.triggerInvocation === SlateTriggerReceiverTriggerSource.polling
-          ? {
-              spec: {
-                type: 'action.trigger',
-                invocation: {
-                  type: SlateTriggerReceiverTriggerSource.polling,
-                  intervalSeconds: 60
-                }
-              }
-            }
-          : undefined
+      key: 'trigger.test'
     });
+
+    // Update to polling if requested
+    if (options?.triggerInvocation === SlateTriggerReceiverTriggerSource.polling) {
+      await testDb.slateAction.update({
+        where: { oid: triggerAction.oid },
+        data: {
+          spec: {
+            id: 'trigger.test',
+            name: 'Test trigger trigger.test',
+            type: 'action.trigger',
+            inputSchema: {},
+            outputSchema: {},
+            capabilities: {},
+            invocation: {
+              type: 'polling',
+              intervalSeconds: 60
+            }
+          }
+        }
+      });
+    }
 
     const destination = await slateTriggerDestinationService.createTriggerDestination({
       tenant,
@@ -441,8 +450,9 @@ describe('slate:trigger webhook E2E', () => {
       }
     });
 
-    const receiverTriggerId = receiver.triggers[0]?.id;
-    expect(receiverTriggerId).toBeDefined();
+    expect(receiver.triggers[0]).toBeDefined();
+    const receiverTrigger = receiver.triggers[0]!;
+    const receiverTriggerId = receiverTrigger.id;
 
     const webhookInvocation = await f.slateInvocation.succeeded({
       deploymentOid: deployment.oid,
@@ -511,7 +521,7 @@ describe('slate:trigger webhook E2E', () => {
     });
 
     const eventInput = await testDb.slateTriggerEventInput.findFirst({
-      where: { receiverTriggerOid: receiver.triggers[0].oid }
+      where: { receiverTriggerOid: receiverTrigger.oid }
     });
     expect(eventInput).toBeTruthy();
 
@@ -520,17 +530,17 @@ describe('slate:trigger webhook E2E', () => {
     });
 
     const triggerEvent = await testDb.slateTriggerEvent.findFirst({
-      where: { receiverTriggerOid: receiver.triggers[0].oid }
+      where: { receiverTriggerOid: receiverTrigger.oid }
     });
     expect(triggerEvent).toBeTruthy();
 
     expect(signalState.events).toHaveLength(1);
-    expect(triggerEvent?.signalEventId).toBe(signalState.events[0].id);
-    expect(signalState.events[0].onlyForDestinations).toEqual([
+    expect(triggerEvent?.signalEventId).toBe(signalState.events[0]!.id);
+    expect(signalState.events[0]!.onlyForDestinations).toEqual([
       destination.signalDestinationId
     ]);
 
-    const payload = JSON.parse(signalState.events[0].payloadJson);
+    const payload = JSON.parse(signalState.events[0]!.payloadJson);
     expect(payload).toMatchObject({
       object: 'slate.trigger.event',
       triggerReceiverId: receiver.id,
@@ -765,7 +775,7 @@ describe('slate:trigger webhook E2E', () => {
     expect(triggerEvent?.deliveryStatus).toBe(SlateTriggerEventDeliveryStatus.skipped);
     expect(queueMocks.sendAdd).not.toHaveBeenCalled();
 
-    const payload = JSON.parse(signalState.events[0].payloadJson);
+    const payload = JSON.parse(signalState.events[0]!.payloadJson);
     expect(payload.triggerReceiverId).toBe(receiver.id);
   });
 });

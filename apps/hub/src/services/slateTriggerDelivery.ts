@@ -42,7 +42,9 @@ class slateTriggerDeliveryServiceImpl {
         select: { signalEventId: true }
       });
 
-      return events.map(event => event.signalEventId);
+      return events
+        .map(event => event.signalEventId)
+        .filter((id): id is string => id !== null);
     }
 
     if (d.triggerReceiverId) {
@@ -60,7 +62,9 @@ class slateTriggerDeliveryServiceImpl {
         select: { signalEventId: true }
       });
 
-      return events.map(event => event.signalEventId);
+      return events
+        .map(event => event.signalEventId)
+        .filter((id): id is string => id !== null);
     }
 
     return undefined;
@@ -77,7 +81,9 @@ class slateTriggerDeliveryServiceImpl {
       select: { signalDestinationId: true }
     });
 
-    return destinations.map(dest => dest.signalDestinationId);
+    return destinations
+      .map(dest => dest.signalDestinationId)
+      .filter((id): id is string => id !== null);
   }
 
   async listTriggerDeliveries(d: { tenant: Tenant; input: DeliveryListInput }) {

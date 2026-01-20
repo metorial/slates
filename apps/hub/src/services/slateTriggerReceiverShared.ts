@@ -3,6 +3,7 @@ import type {
   SlateTriggerReceiverTriggerSource,
   Slate,
   SlateAction,
+  SlateAuthConfig,
   SlateInstance,
   SlateInstanceConfig,
   SlateTriggerDestination,
@@ -42,6 +43,7 @@ export type ReceiverTriggerWithRelations = SlateTriggerReceiverTrigger & {
     destinations: (SlateTriggerReceiverDestination & {
       destination: SlateTriggerDestination;
     })[];
+    authConfig: SlateAuthConfig | null;
   };
 };
 

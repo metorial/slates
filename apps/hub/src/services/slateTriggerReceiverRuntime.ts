@@ -44,13 +44,11 @@ export class SlateTriggerReceiverRuntime {
     });
     if (!eventInput) throw new ServiceError(notFoundError('slate.trigger.event_input'));
 
-    if (
-      ![
-        SlateTriggerEventInputStatus.pending,
-        SlateTriggerEventInputStatus.retrying
-      ].includes(eventInput.status)
-    )
-      return;
+    let validStatuses: SlateTriggerEventInputStatus[] = [
+      SlateTriggerEventInputStatus.pending,
+      SlateTriggerEventInputStatus.retrying
+    ];
+    if (!validStatuses.includes(eventInput.status)) return;
     if (eventInput.receiverTrigger.receiver.status !== SlateTriggerReceiverStatus.active) {
       await db.slateTriggerEventInput.update({
         where: { oid: eventInput.oid },

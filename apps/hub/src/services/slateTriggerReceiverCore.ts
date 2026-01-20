@@ -193,7 +193,7 @@ export class SlateTriggerReceiverCore {
       let authRes = await slateAuthHandlerService.getSlateInstanceAuth({
         tenant: receiver.tenant,
         slateInstance: receiver.slateInstance,
-        authConfigId: receiver.authConfigOid,
+        authConfigId: receiver.authConfig!.id,
         minExpirationBuffer: 30 * 1000
       });
 
@@ -290,7 +290,7 @@ export class SlateTriggerReceiverCore {
       destinations,
       shouldDeliver,
       signalDestinationIds: shouldDeliver
-        ? destinations.map(dest => dest.signalDestinationId)
+        ? destinations.map(dest => dest.signalDestinationId!)
         : []
     };
   }

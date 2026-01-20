@@ -28,7 +28,7 @@ export let getTenantAndSenderForSignal = async (tenant: Tenant) => {
   return {
     sender: signalTriggerSender,
     tenant: {
-      id: tenant.signalTenantId,
+      id: tenant.signalTenantId!,
       identifier: tenant.identifier
     }
   };

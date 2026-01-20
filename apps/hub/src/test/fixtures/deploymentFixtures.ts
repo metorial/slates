@@ -47,7 +47,7 @@ export class SlateDeploymentFixtures extends BaseFixture {
         slateVersionOid: data.slateVersionOid,
         slateOid: data.slateOid,
         providerOid: data.providerOid,
-        providerDeploymentInfo: {},
+        providerDeploymentInfo: null,
         ...data.overrides
       }
     });
@@ -61,7 +61,8 @@ export class SlateDeploymentFixtures extends BaseFixture {
     overrides?: Partial<SlateDeployment>;
   }): Promise<SlateDeployment> {
     const functionId = data.functionId || `fn_${randomBytes(4).toString('hex')}`;
-    const providerDeploymentInfo = { functionId };
+    const functionDeploymentId = `dep_${randomBytes(4).toString('hex')}`;
+    const providerDeploymentInfo = { functionId, functionDeploymentId };
 
     const deployment = await this.default({
       slateVersionOid: data.slateVersionOid,

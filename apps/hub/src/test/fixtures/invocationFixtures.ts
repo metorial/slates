@@ -24,7 +24,7 @@ export class SlateInvocationStorageBucketFixtures extends BaseFixture {
 export class SlateInvocationFixtures extends BaseFixture {
   async default(data: {
     deploymentOid: bigint;
-    bucketOid: bigint;
+    bucketOid: number;
     providerInvocationId?: string;
     overrides?: Partial<SlateInvocation>;
   }): Promise<SlateInvocation> {
@@ -49,7 +49,7 @@ export class SlateInvocationFixtures extends BaseFixture {
 
   async succeeded(data: {
     deploymentOid: bigint;
-    bucketOid: bigint;
+    bucketOid: number;
     providerInvocationId?: string;
     overrides?: Partial<SlateInvocation>;
   }): Promise<SlateInvocation> {

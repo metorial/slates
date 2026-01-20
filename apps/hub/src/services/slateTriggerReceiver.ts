@@ -155,8 +155,10 @@ class slateTriggerReceiverServiceImpl {
 
     let receiverTriggers = await Promise.all(
       triggerActions.map(async trigger => {
-        let isPolling = trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling;
-        let pollIntervalSeconds = isPolling ? trigger.invocation.intervalSeconds : null;
+        let pollIntervalSeconds: number | null = null;
+        if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
+          pollIntervalSeconds = trigger.invocation.intervalSeconds;
+        }
 
         return await db.slateTriggerReceiverTrigger.create({
           data: {
@@ -336,8 +338,10 @@ class slateTriggerReceiverServiceImpl {
 
       let createdTriggers = await Promise.all(
         toAdd.map(async trigger => {
-          let isPolling = trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling;
-          let pollIntervalSeconds = isPolling ? trigger.invocation.intervalSeconds : null;
+          let pollIntervalSeconds: number | null = null;
+          if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
+            pollIntervalSeconds = trigger.invocation.intervalSeconds;
+          }
 
           return await db.slateTriggerReceiverTrigger.create({
             data: {
