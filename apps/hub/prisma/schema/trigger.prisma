@@ -204,6 +204,8 @@ model SlateTriggerEventInput {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([status])
 }
 
 model SlateTriggerEvent {

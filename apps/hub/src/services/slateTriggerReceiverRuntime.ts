@@ -26,6 +26,8 @@ import {
 } from './slateTriggerReceiverShared';
 import type { SlateTriggerReceiverCore } from './slateTriggerReceiverCore';
 
+const MAX_TRIGGER_EVENT_INPUT_ATTEMPTS = 5;
+
 export class SlateTriggerReceiverRuntime {
   private readonly core: SlateTriggerReceiverCore;
 
@@ -96,7 +98,7 @@ export class SlateTriggerReceiverRuntime {
         });
 
         let status =
-          attemptCount >= 5
+          attemptCount >= MAX_TRIGGER_EVENT_INPUT_ATTEMPTS
             ? SlateTriggerEventInputStatus.failed
             : SlateTriggerEventInputStatus.retrying;
         await db.slateTriggerEventInput.update({
@@ -212,7 +214,7 @@ export class SlateTriggerReceiverRuntime {
       }
     } catch (error) {
       let status =
-        attemptCount >= 5
+        attemptCount >= MAX_TRIGGER_EVENT_INPUT_ATTEMPTS
           ? SlateTriggerEventInputStatus.failed
           : SlateTriggerEventInputStatus.retrying;
       let errorMessage =
@@ -320,6 +322,10 @@ export class SlateTriggerReceiverRuntime {
     });
 
     if (res.status === 'error') {
+      console.error('Failed to register trigger webhook:', {
+        receiverTriggerId: receiverTrigger.id,
+        error: res.error
+      });
       return;
     }
 
@@ -382,6 +388,10 @@ export class SlateTriggerReceiverRuntime {
     });
 
     if (res.status === 'error') {
+      console.error('Failed to unregister trigger webhook:', {
+        receiverTriggerId: receiverTrigger.id,
+        error: res.error
+      });
       return;
     }
 
@@ -440,6 +450,10 @@ export class SlateTriggerReceiverRuntime {
       : null;
 
     if (pollRes.status === 'error') {
+      console.error('Failed to poll trigger receiver:', {
+        receiverTriggerId: receiverTrigger.id,
+        error: pollRes.error
+      });
       await db.slateTriggerReceiverTrigger.update({
         where: { oid: receiverTrigger.oid },
         data: {
@@ -513,6 +527,10 @@ export class SlateTriggerReceiverRuntime {
     });
 
     if (res.status === 'error') {
+      console.error('Failed to handle trigger webhook:', {
+        receiverTriggerId: receiverTrigger.id,
+        error: res.error
+      });
       return;
     }
 

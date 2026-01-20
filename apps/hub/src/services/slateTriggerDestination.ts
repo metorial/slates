@@ -9,6 +9,7 @@ import {
 } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId } from '../id';
+import { assertPublicHttpUrl } from '../lib/validateHttpUrl';
 import { getTenantAndSenderForSignal, signal } from '../signal';
 
 let include = {};
@@ -27,6 +28,8 @@ class slateTriggerDestinationServiceImpl {
       eventTypes?: string[];
     };
   }) {
+    await assertPublicHttpUrl(d.input.url);
+
     let { sender, tenant: signalTenant } = await getTenantAndSenderForSignal(d.tenant);
 
     let res = await signal.eventDestination.create({
@@ -80,6 +83,10 @@ class slateTriggerDestinationServiceImpl {
           message: 'Cannot update an inactive trigger destination.'
         })
       );
+    }
+
+    if (d.input.url) {
+      await assertPublicHttpUrl(d.input.url);
     }
 
     let { tenant: signalTenant } = await getTenantAndSenderForSignal(d.tenant);

@@ -38,7 +38,10 @@ class slateTriggerEventServiceImpl {
 
     let receiverTriggers = d.receiverTriggerIds
       ? await db.slateTriggerReceiverTrigger.findMany({
-          where: { id: { in: d.receiverTriggerIds } }
+          where: {
+            id: { in: d.receiverTriggerIds },
+            receiver: { tenantOid: d.tenant.oid }
+          }
         })
       : undefined;
 

@@ -1,3 +1,4 @@
+import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Service } from '@lowerdeck/service';
 import { db } from '../db';
 import { getId } from '../id';
@@ -9,6 +10,14 @@ class slateTriggerWebhookRequestServiceImpl {
     receiverTriggerId: string;
     request: TriggerWebhookRequestPayload;
   }) {
+    let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
+      where: { id: d.receiverTriggerId },
+      select: { id: true }
+    });
+    if (!receiverTrigger) {
+      throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
+    }
+
     let record = await db.slateTriggerWebhookRequest.create({
       data: {
         ...getId('slateTriggerWebhookRequest'),
