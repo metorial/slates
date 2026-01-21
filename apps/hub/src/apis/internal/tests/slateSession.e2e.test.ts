@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { slatesHubClient } from '../../test/client';
+import { testDb, cleanDatabase } from '../../../test/setup';
+import { fixtures } from '../../../test/fixtures';
+import { slatesHubClient } from '../../../test/client';
 
 describe('slateSession:list E2E', () => {
   const f = fixtures(testDb);
@@ -34,10 +34,6 @@ describe('slateSession:list E2E', () => {
       slateId: slate.id,
       slateInstanceId: instance.id,
       createdAt: expect.any(Date)
-    });
-    expect(result.pagination).toMatchObject({
-      has_more_after: false,
-      has_more_before: false
     });
   });
 

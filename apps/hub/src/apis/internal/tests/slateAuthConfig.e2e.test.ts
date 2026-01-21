@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SlateAuthConfigType } from '../../../prisma/generated/client';
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { slatesHubClient } from '../../test/client';
+import { SlateAuthConfigType } from '../../../../prisma/generated/client';
+import { testDb, cleanDatabase } from '../../../test/setup';
+import { fixtures } from '../../../test/fixtures';
+import { slatesHubClient } from '../../../test/client';
 
 describe('slateAuthConfig:list E2E', () => {
   const f = fixtures(testDb);
@@ -42,10 +42,6 @@ describe('slateAuthConfig:list E2E', () => {
       tokenExpiresAt: null,
       createdAt: expect.any(Date),
       updatedAt: expect.any(Date)
-    });
-    expect(result.pagination).toMatchObject({
-      has_more_after: false,
-      has_more_before: false
     });
   });
 

@@ -7,9 +7,9 @@ import {
   SlateTriggerReceiverTriggerSource,
   type SlateTriggerDestinationType,
   type Tenant
-} from '../../../prisma/generated/client';
-import { cleanDatabase, testDb } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
+} from '../../../../prisma/generated/client';
+import { cleanDatabase, testDb } from '../../../test/setup';
+import { fixtures } from '../../../test/fixtures';
 
 const signalState = vi.hoisted(() => {
   let seq = 0;
@@ -54,7 +54,7 @@ const invocationMocks = vi.hoisted(() => ({
   unregisterWebhook: vi.fn()
 }));
 
-vi.mock('../../queues/trigger/eventQueues', () => ({
+vi.mock('../../../queues/trigger/eventQueues', () => ({
   slateTriggerEventProcessQueue: {
     addManyWithOps: queueMocks.processAddMany,
     add: queueMocks.processAdd
@@ -70,13 +70,13 @@ vi.mock('../../queues/trigger/eventQueues', () => ({
   }
 }));
 
-vi.mock('../../queues/trigger/webhook', () => ({
+vi.mock('../../../queues/trigger/webhook', () => ({
   slateTriggerWebhookQueue: {
     add: queueMocks.webhookAdd
   }
 }));
 
-vi.mock('../../services/slateInvocation', () => ({
+vi.mock('../../../services/slateInvocation', () => ({
   slateInvocationService: {
     createInvocationWithState: vi.fn(async () => ({ invoke: vi.fn() })),
     handleWebhookRequest: invocationMocks.handleWebhookRequest,
@@ -86,13 +86,13 @@ vi.mock('../../services/slateInvocation', () => ({
   }
 }));
 
-vi.mock('../../registry', () => ({
+vi.mock('../../../registry', () => ({
   getRegistryClient: vi.fn(async () => {
     throw new Error('Registry client not available in trigger webhook tests');
   })
 }));
 
-vi.mock('../../functionBay', () => ({
+vi.mock('../../../functionBay', () => ({
   functionBay: {
     tenant: {
       upsert: vi.fn(async () => ({ id: 'fb-tenant' }))
@@ -108,8 +108,8 @@ vi.mock('../../functionBay', () => ({
   functionBayProvider: { oid: BigInt(1) }
 }));
 
-vi.mock('../../signal', async () => {
-  const { db } = await import('../../db');
+vi.mock('../../../signal', async () => {
+  const { db } = await import('../../../db');
 
   const ensureSender = async () => {
     let existing = signalState.senders.get('slates-trigger-sender');
@@ -250,9 +250,9 @@ vi.mock('../../signal', async () => {
   };
 });
 
-import { hubApp } from './index';
-import { slateTriggerDestinationService } from '../../services/slateTriggerDestination';
-import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
+import { hubApp } from '../index';
+import { slateTriggerDestinationService } from '../../../services/slateTriggerDestination';
+import { slateTriggerReceiverService } from '../../../services/slateTriggerReceiver';
 
 const buildWebhookUrl = (receiverTriggerId: string, suffix?: string) =>
   `http://slates-hub.test/slates-hub/triggers/webhook/${receiverTriggerId}${

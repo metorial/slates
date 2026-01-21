@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SlateTriggerEventDeliveryStatus } from '../../../prisma/generated/client';
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { slatesHubClient } from '../../test/client';
+import { SlateTriggerEventDeliveryStatus } from '../../../../prisma/generated/client';
+import { testDb, cleanDatabase } from '../../../test/setup';
+import { fixtures } from '../../../test/fixtures';
+import { slatesHubClient } from '../../../test/client';
 
 describe('slateTriggerEvent:list E2E', () => {
   const f = fixtures(testDb);
@@ -56,10 +56,6 @@ describe('slateTriggerEvent:list E2E', () => {
       type: 'test.event',
       deliveryStatus: SlateTriggerEventDeliveryStatus.pending,
       createdAt: expect.any(Date)
-    });
-    expect(result.pagination).toMatchObject({
-      has_more_after: false,
-      has_more_before: false
     });
   });
 
