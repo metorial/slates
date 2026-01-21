@@ -20,6 +20,9 @@ import { slateTriggerEventController } from './slateTriggerEvent';
 import { slateTriggerInvocationController } from './slateTriggerInvocation';
 import { slateTriggerReceiverController } from './slateTriggerReceiver';
 import { slateVersionController } from './slateVersion';
+import { slateVersionDiscoveryController } from './slateVersionDiscovery';
+import { slateEventController } from './slateEvent';
+import { slateSpecificationChangeController } from './slateSpecificationChange';
 import { tenantController } from './tenant';
 
 export let rootController = app.controller({
@@ -46,7 +49,10 @@ export let rootController = app.controller({
   slateTriggerReceiver: slateTriggerReceiverController,
   slateTriggerEvent: slateTriggerEventController,
   slateTriggerInvocation: slateTriggerInvocationController,
-  slateTriggerDelivery: slateTriggerDeliveryController
+  slateTriggerDelivery: slateTriggerDeliveryController,
+  slateVersionDiscovery: slateVersionDiscoveryController,
+  slateEvent: slateEventController,
+  slateSpecificationChange: slateSpecificationChangeController
 });
 
 export let slatesHubRPC = createServer({})(rootController);
