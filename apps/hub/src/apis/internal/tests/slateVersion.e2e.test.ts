@@ -16,7 +16,6 @@ describe('slateVersion:list E2E', () => {
       slateStatus: SlateStatus.active
     });
 
-    // Create additional version for pagination testing
     await f.slateVersion.withSpecification({
       slateOid: slate.oid,
       registryOid: slate.registry.oid,

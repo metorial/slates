@@ -12,10 +12,9 @@ describe('slateSpecificationChange:list E2E', () => {
   });
 
   it('returns specification changes', async () => {
-    const { change, slate: _slate, fromVersion, toVersion } =
+    const { change, fromVersion, toVersion } =
       await f.slateSpecificationChange.withVersions();
 
-    // Create additional change for pagination testing
     await f.slateSpecificationChange.withVersions();
 
     const result = await slatesHubClient.slateSpecificationChange.list({
@@ -49,7 +48,7 @@ describe('slateSpecificationChange:list E2E', () => {
   });
 
   it('filters by versionIds', async () => {
-    const { change, fromVersion, toVersion: _toVersion } = await f.slateSpecificationChange.withVersions();
+    const { change, fromVersion } = await f.slateSpecificationChange.withVersions();
 
     const result = await slatesHubClient.slateSpecificationChange.list({
       versionIds: [fromVersion.id],

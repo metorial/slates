@@ -14,7 +14,6 @@ describe('slateAuthConfig:list E2E', () => {
   it('returns auth configs for a tenant', async () => {
     const { config, authMethod, tenant, slate } = await f.slateAuthConfig.complete();
 
-    // Create additional config for pagination testing
     await f.slateAuthConfig.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,

@@ -16,7 +16,6 @@ describe('changeNotification:list E2E', () => {
       type: ChangeNotificationType.slate_version_created
     });
 
-    // Create additional notification for pagination testing
     await f.changeNotification.withSlate();
 
     const result = await slatesHubClient.changeNotification.list({

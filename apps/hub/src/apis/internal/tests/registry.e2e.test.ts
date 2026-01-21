@@ -13,14 +13,12 @@ describe('registry:list E2E', () => {
 
   it('returns registries', async () => {
     const registry = await f.registry.default();
-
-    // Create additional registry for pagination testing
     await f.registry.default();
 
     const result = await slatesHubClient.registry.list({ limit: 10 });
 
-    expect(result.items.length).toBeGreaterThanOrEqual(2);
-    expect(result.items.find((r: any) => r.id === registry.id)).toMatchObject({
+    expect(result.items.length).toHaveLength(2);
+    expect(result.items[0]).toMatchObject({
       object: 'registry',
       id: registry.id,
       status: registry.status,

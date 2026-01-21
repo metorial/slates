@@ -21,7 +21,6 @@ describe('slateInstance:list E2E', () => {
       tenantOid: tenant.oid
     });
 
-    // Create additional instance for pagination testing
     await f.slateInstance.default({
       slateOid: slate.oid,
       tenantOid: tenant.oid

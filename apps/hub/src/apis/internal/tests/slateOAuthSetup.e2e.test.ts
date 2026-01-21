@@ -14,7 +14,6 @@ describe('slateOAuthSetup:list E2E', () => {
   it('returns OAuth setups for a tenant', async () => {
     const { setup, tenant, slate, credentials, authMethod } = await f.slateOAuthSetup.complete();
 
-    // Create additional setup for pagination testing
     await f.slateOAuthSetup.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,
@@ -52,7 +51,7 @@ describe('slateOAuthSetup:list E2E', () => {
       slateIdentifier: 'slate-1'
     });
 
-    const { setup: _setup2, slate: _slate2 } = await f.slateOAuthSetup.complete({
+    await f.slateOAuthSetup.complete({
       slateIdentifier: 'slate-2'
     });
 

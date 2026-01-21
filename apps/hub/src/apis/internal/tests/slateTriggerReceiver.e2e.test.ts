@@ -14,7 +14,6 @@ describe('slateTriggerReceiver:list E2E', () => {
   it('returns trigger receivers for a tenant', async () => {
     const { receiver, tenant, slate, instance } = await f.slateTriggerReceiver.complete();
 
-    // Create additional receiver for pagination testing
     await f.slateTriggerReceiver.withInstance({
       tenantOid: tenant.oid,
       slateOid: slate.oid

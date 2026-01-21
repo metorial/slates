@@ -16,15 +16,14 @@ describe('slateSpecification:list E2E', () => {
       slateStatus: SlateStatus.active
     });
 
-    // Create additional specification for pagination testing
     await f.slate.complete();
 
     const result = await slatesHubClient.slateSpecification.list({
       limit: 10
     });
 
-    expect(result.items.length).toBeGreaterThanOrEqual(2);
-    expect(result.items.find((s: any) => s.id === slate.currentVersion.specification.id)).toMatchObject({
+    expect(result.items.length).toHaveLength(2);
+    expect(result.items[0]).toMatchObject({
       object: 'slate.specification',
       id: slate.currentVersion.specification.id
     });

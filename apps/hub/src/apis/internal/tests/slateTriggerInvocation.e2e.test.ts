@@ -15,8 +15,6 @@ describe('slateTriggerInvocation:list E2E', () => {
     const { triggerInvocation, tenant, receiver, receiverTrigger, invocation } =
       await f.slateTriggerInvocation.complete();
 
-    // Create additional trigger invocation for pagination testing - must use same tenant
-    // Need a new invocation since invocationOid has unique constraint
     const invocation2 = await f.slateInvocation.succeeded({
       deploymentOid: invocation.deploymentOid
     });

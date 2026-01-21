@@ -14,7 +14,6 @@ describe('slateSession:list E2E', () => {
   it('returns sessions for a tenant', async () => {
     const { session, instance, tenant, slate } = await f.slateSession.complete();
 
-    // Create additional session for pagination testing
     await f.slateSession.default({
       slateOid: slate.oid,
       tenantOid: tenant.oid,

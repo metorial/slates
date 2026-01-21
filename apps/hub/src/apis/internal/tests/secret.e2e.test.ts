@@ -16,7 +16,6 @@ describe('secret:list E2E', () => {
       type: SecretType.slate_authentication_configuration
     });
 
-    // Create additional secret for pagination testing
     await f.secret.default({ tenantOid: secret.tenant.oid });
 
     const result = await slatesHubClient.secret.list({

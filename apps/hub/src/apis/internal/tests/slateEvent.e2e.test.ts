@@ -16,7 +16,6 @@ describe('slateEvent:list E2E', () => {
       type: SlateEventType.version_pulled
     });
 
-    // Create additional event for pagination testing
     await f.slateEvent.default({
       slateOid: slate.oid,
       slateVersionOid: slate.currentVersion.oid

@@ -59,7 +59,7 @@ describe('slateSessionToolCall:get E2E', () => {
   });
 
   it('returns a single tool call by ID', async () => {
-    const { toolCall, tenant, action: _action } = await f.slateSessionToolCall.complete({
+    const { toolCall, tenant } = await f.slateSessionToolCall.complete({
       status: SlateSessionToolCallStatus.succeeded
     });
 

@@ -13,7 +13,6 @@ describe('slateOAuthCredentials:list E2E', () => {
   it('returns OAuth credentials for a tenant', async () => {
     const { credentials, tenant, slate } = await f.slateOAuthCredentials.complete();
 
-    // Create additional credentials for pagination testing
     await f.slateOAuthCredentials.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid

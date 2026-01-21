@@ -14,7 +14,6 @@ describe('slateTriggerDestination:list E2E', () => {
   it('returns trigger destinations for a tenant', async () => {
     const { destination, tenant } = await f.slateTriggerDestination.withTenant();
 
-    // Create additional destination for pagination testing
     await f.slateTriggerDestination.default({ tenantOid: tenant.oid });
 
     const result = await slatesHubClient.slateTriggerDestination.list({

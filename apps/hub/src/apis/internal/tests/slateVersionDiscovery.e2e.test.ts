@@ -16,7 +16,6 @@ describe('slateVersionDiscovery:list E2E', () => {
       status: SlateVersionDiscoveryStatus.succeeded
     });
 
-    // Create additional discovery for pagination testing
     await f.slateVersionDiscovery.default({
       slateVersionOid: slate.currentVersion.oid,
       specificationOid: slate.currentVersion.specification.oid

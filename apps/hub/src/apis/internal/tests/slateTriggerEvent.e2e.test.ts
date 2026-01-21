@@ -15,33 +15,11 @@ describe('slateTriggerEvent:list E2E', () => {
     const { event, tenant, receiver, receiverTrigger, triggerAction } =
       await f.slateTriggerEvent.complete();
 
-    // Create additional event for pagination testing
-    const { slate, instance, invocation } = await (async () => {
-      const provider = await f.deploymentProvider.default();
-      const slate = await f.slate.complete();
-      const deployment = await f.slateDeployment.default({
-        slateOid: slate.oid,
-        slateVersionOid: slate.currentVersion.oid,
-        providerOid: provider.oid
-      });
-      const bucket = await f.storageBucket.default();
-      const instance = await f.slateInstance.default({
-        slateOid: slate.oid,
-        tenantOid: tenant.oid
-      });
-      const invocation = await f.slateInvocation.default({
-        deploymentOid: deployment.oid,
-        bucketOid: bucket.oid
-      });
-      return { slate, instance, invocation };
-    })();
-    await f.slateTriggerEvent.default({
+    await f.slateTriggerEvent.completeForReceiver({
       receiverOid: receiver.oid,
       receiverTriggerOid: receiverTrigger.oid,
       actionOid: triggerAction.oid,
-      slateOid: slate.oid,
-      instanceOid: instance.oid,
-      invocationOid: invocation.oid
+      tenantOid: tenant.oid
     });
 
     const result = await slatesHubClient.slateTriggerEvent.list({

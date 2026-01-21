@@ -52,6 +52,62 @@ export class SlateTriggerEventFixtures extends BaseFixture {
     });
   }
 
+  async completeForReceiver(data: {
+    receiverOid: bigint;
+    receiverTriggerOid: bigint;
+    actionOid: bigint;
+    tenantOid: bigint;
+    eventOverrides?: Partial<SlateTriggerEvent>;
+  }): Promise<{
+    event: SlateTriggerEvent;
+    slate: Slate & { currentVersion: SlateVersion & { specification: SlateSpecification } };
+    instance: SlateInstance;
+    invocation: SlateInvocation;
+  }> {
+    const { SlateFixtures } = await import('./slateFixtures');
+    const { SlateInstanceFixtures } = await import('./instanceFixtures');
+
+    const providerFixtures = new DeploymentProviderFixtures(this.db);
+    const provider = await providerFixtures.default();
+
+    const slateFixtures = new SlateFixtures(this.db);
+    const slate = await slateFixtures.complete();
+
+    const deploymentFixtures = new SlateDeploymentFixtures(this.db);
+    const deployment = await deploymentFixtures.default({
+      slateOid: slate.oid,
+      slateVersionOid: slate.currentVersion.oid,
+      providerOid: provider.oid
+    });
+
+    const bucketFixtures = new SlateInvocationStorageBucketFixtures(this.db);
+    const bucket = await bucketFixtures.default();
+
+    const instanceFixtures = new SlateInstanceFixtures(this.db);
+    const instance = await instanceFixtures.default({
+      slateOid: slate.oid,
+      tenantOid: data.tenantOid
+    });
+
+    const invocationFixtures = new SlateInvocationFixtures(this.db);
+    const invocation = await invocationFixtures.default({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid
+    });
+
+    const event = await this.default({
+      receiverOid: data.receiverOid,
+      receiverTriggerOid: data.receiverTriggerOid,
+      actionOid: data.actionOid,
+      slateOid: slate.oid,
+      instanceOid: instance.oid,
+      invocationOid: invocation.oid,
+      overrides: data.eventOverrides
+    });
+
+    return { event, slate, instance, invocation };
+  }
+
   async complete(data?: {
     eventOverrides?: Partial<SlateTriggerEvent>;
   }): Promise<{
