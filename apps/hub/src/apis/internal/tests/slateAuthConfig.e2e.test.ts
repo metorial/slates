@@ -15,7 +15,7 @@ describe('slateAuthConfig:list E2E', () => {
     const { config, authMethod, tenant, slate } = await f.slateAuthConfig.complete();
 
     // Create additional config for pagination testing
-    await f.slateAuthConfig.forGetMany({
+    await f.slateAuthConfig.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,
       authMethodOid: authMethod.oid
@@ -108,12 +108,12 @@ describe('slateAuthConfig:getMany E2E', () => {
     const tenant = await f.tenant.default();
     const { authMethod, slate } = await f.slateAuthMethod.withSlate();
 
-    const config1 = await f.slateAuthConfig.forGetMany({
+    const config1 = await f.slateAuthConfig.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,
       authMethodOid: authMethod.oid
     });
-    const config2 = await f.slateAuthConfig.forGetMany({
+    const config2 = await f.slateAuthConfig.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,
       authMethodOid: authMethod.oid

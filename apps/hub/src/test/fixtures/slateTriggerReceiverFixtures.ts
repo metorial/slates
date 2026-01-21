@@ -68,7 +68,7 @@ export class SlateTriggerReceiverFixtures extends BaseFixture {
     });
   }
 
-  async forGetMany(data: {
+  async withInstance(data: {
     tenantOid: bigint;
     slateOid: bigint;
   }): Promise<SlateTriggerReceiver> {

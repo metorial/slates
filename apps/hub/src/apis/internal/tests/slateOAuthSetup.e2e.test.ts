@@ -15,7 +15,7 @@ describe('slateOAuthSetup:list E2E', () => {
     const { setup, tenant, slate, credentials, authMethod } = await f.slateOAuthSetup.complete();
 
     // Create additional setup for pagination testing
-    await f.slateOAuthSetup.forGetMany({
+    await f.slateOAuthSetup.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,
       slateVersionOid: slate.currentVersion.oid,
@@ -139,14 +139,14 @@ describe('slateOAuthSetup:getMany E2E', () => {
       secretOid: credsSecret.oid
     });
 
-    const setup1 = await f.slateOAuthSetup.forGetMany({
+    const setup1 = await f.slateOAuthSetup.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,
       slateVersionOid: slate.currentVersion.oid,
       authMethodOid: authMethod.oid,
       oauthCredentialsOid: credentials.oid
     });
-    const setup2 = await f.slateOAuthSetup.forGetMany({
+    const setup2 = await f.slateOAuthSetup.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid,
       slateVersionOid: slate.currentVersion.oid,

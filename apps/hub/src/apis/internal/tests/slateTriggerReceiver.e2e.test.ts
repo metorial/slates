@@ -15,7 +15,7 @@ describe('slateTriggerReceiver:list E2E', () => {
     const { receiver, tenant, slate, instance } = await f.slateTriggerReceiver.complete();
 
     // Create additional receiver for pagination testing
-    await f.slateTriggerReceiver.forGetMany({
+    await f.slateTriggerReceiver.withInstance({
       tenantOid: tenant.oid,
       slateOid: slate.oid
     });
@@ -130,11 +130,11 @@ describe('slateTriggerReceiver:getMany E2E', () => {
     const tenant = await f.tenant.default();
     const slate = await f.slate.complete();
 
-    const receiver1 = await f.slateTriggerReceiver.forGetMany({
+    const receiver1 = await f.slateTriggerReceiver.withInstance({
       tenantOid: tenant.oid,
       slateOid: slate.oid
     });
-    const receiver2 = await f.slateTriggerReceiver.forGetMany({
+    const receiver2 = await f.slateTriggerReceiver.withInstance({
       tenantOid: tenant.oid,
       slateOid: slate.oid
     });

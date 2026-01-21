@@ -50,7 +50,7 @@ export class SlateOAuthSetupFixtures extends BaseFixture {
     });
   }
 
-  async forGetMany(data: {
+  async withSecret(data: {
     tenantOid: bigint;
     slateOid: bigint;
     slateVersionOid: bigint;

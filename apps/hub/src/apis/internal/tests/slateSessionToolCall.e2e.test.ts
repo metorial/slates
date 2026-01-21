@@ -150,14 +150,14 @@ describe('slateSessionToolCall:getMany E2E', () => {
     });
     const bucket = await f.storageBucket.default();
 
-    const call1 = await f.slateSessionToolCall.forGetMany({
+    const call1 = await f.slateSessionToolCall.withInvocation({
       sessionOid: session.oid,
       actionOid: action.oid,
       deploymentOid: deployment.oid,
       bucketOid: bucket.oid,
       versionOid: version.oid
     });
-    const call2 = await f.slateSessionToolCall.forGetMany({
+    const call2 = await f.slateSessionToolCall.withInvocation({
       sessionOid: session.oid,
       actionOid: action.oid,
       deploymentOid: deployment.oid,

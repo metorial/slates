@@ -35,7 +35,7 @@ export class SlateOAuthCredentialsFixtures extends BaseFixture {
     });
   }
 
-  async forGetMany(data: {
+  async withSecret(data: {
     tenantOid: bigint;
     slateOid: bigint;
   }): Promise<SlateOAuthCredentials> {

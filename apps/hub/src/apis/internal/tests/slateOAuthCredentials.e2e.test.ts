@@ -14,7 +14,7 @@ describe('slateOAuthCredentials:list E2E', () => {
     const { credentials, tenant, slate } = await f.slateOAuthCredentials.complete();
 
     // Create additional credentials for pagination testing
-    await f.slateOAuthCredentials.forGetMany({
+    await f.slateOAuthCredentials.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid
     });
@@ -94,11 +94,11 @@ describe('slateOAuthCredentials:getMany E2E', () => {
     const tenant = await f.tenant.default();
     const slate = await f.slate.complete();
 
-    const creds1 = await f.slateOAuthCredentials.forGetMany({
+    const creds1 = await f.slateOAuthCredentials.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid
     });
-    const creds2 = await f.slateOAuthCredentials.forGetMany({
+    const creds2 = await f.slateOAuthCredentials.withSecret({
       tenantOid: tenant.oid,
       slateOid: slate.oid
     });

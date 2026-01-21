@@ -42,7 +42,7 @@ export class SlateSessionToolCallFixtures extends BaseFixture {
     });
   }
 
-  async forGetMany(data: {
+  async withInvocation(data: {
     sessionOid: bigint;
     actionOid: bigint;
     deploymentOid: bigint;
