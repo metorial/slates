@@ -22,7 +22,7 @@ describe('slateSpecification:list E2E', () => {
       limit: 10
     });
 
-    expect(result.items.length).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
     expect(result.items[0]).toMatchObject({
       object: 'slate.specification',
       id: slate.currentVersion.specification.id

@@ -17,7 +17,7 @@ describe('registry:list E2E', () => {
 
     const result = await slatesHubClient.registry.list({ limit: 10 });
 
-    expect(result.items.length).toHaveLength(2);
+    expect(result.items).toHaveLength(2);
     expect(result.items[0]).toMatchObject({
       object: 'registry',
       id: registry.id,
