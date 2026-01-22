@@ -14,7 +14,15 @@ import { slateOAuthSetupController } from './slateOAuthSetup';
 import { slateSessionController } from './slateSession';
 import { slateSessionToolCallController } from './slateSessionToolCall';
 import { slateSpecificationController } from './slateSpecification';
+import { slateTriggerDeliveryController } from './slateTriggerDelivery';
+import { slateTriggerDestinationController } from './slateTriggerDestination';
+import { slateTriggerEventController } from './slateTriggerEvent';
+import { slateTriggerInvocationController } from './slateTriggerInvocation';
+import { slateTriggerReceiverController } from './slateTriggerReceiver';
 import { slateVersionController } from './slateVersion';
+import { slateVersionDiscoveryController } from './slateVersionDiscovery';
+import { slateEventController } from './slateEvent';
+import { slateSpecificationChangeController } from './slateSpecificationChange';
 import { tenantController } from './tenant';
 
 export let rootController = app.controller({
@@ -35,7 +43,16 @@ export let rootController = app.controller({
   slateOAuthSetup: slateOAuthSetupController,
   slateAuthConfig: slateAuthConfigController,
   slateSession: slateSessionController,
-  slateSessionToolCall: slateSessionToolCallController
+  slateSessionToolCall: slateSessionToolCallController,
+
+  slateTriggerDestination: slateTriggerDestinationController,
+  slateTriggerReceiver: slateTriggerReceiverController,
+  slateTriggerEvent: slateTriggerEventController,
+  slateTriggerInvocation: slateTriggerInvocationController,
+  slateTriggerDelivery: slateTriggerDeliveryController,
+  slateVersionDiscovery: slateVersionDiscoveryController,
+  slateEvent: slateEventController,
+  slateSpecificationChange: slateSpecificationChangeController
 });
 
 export let slatesHubRPC = createServer({})(rootController);

@@ -3,6 +3,7 @@ import { createHono } from '@lowerdeck/hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { env } from '../../env';
 import { slateOAuthHandlerService } from '../../services/slateOAuthHandler';
+import { slateTriggerWebhookRequestService } from '../../services/slateTriggerWebhookRequest';
 
 let SETUP_COOKIE_NAME = 'slates_hub_oauth_setup_id';
 
@@ -72,6 +73,32 @@ export let hubApp = createHono()
     });
 
     return c.redirect(res.redirectUrl);
+  })
+  .post('/slates-hub/triggers/webhook/:receiverTriggerId/:key*?', async c => {
+    let receiverTriggerId = c.req.param('receiverTriggerId');
+    if (!receiverTriggerId) return c.text('Missing trigger receiver ID', 400);
+
+    let headers = Object.fromEntries(c.req.raw.headers.entries());
+    let bodyBuffer = await c.req.arrayBuffer();
+    let body =
+      bodyBuffer.byteLength > 0
+        ? {
+            encoding: 'base64' as const,
+            content: Buffer.from(bodyBuffer).toString('base64')
+          }
+        : null;
+
+    let requestRecord = await slateTriggerWebhookRequestService.createWebhookRequest({
+      receiverTriggerId,
+      request: {
+        url: c.req.url,
+        method: c.req.method,
+        headers,
+        body
+      }
+    });
+
+    return c.json({ status: 'queued', webhookRequestId: requestRecord.id });
   })
   .options('*', c => c.text(''))
   .get('/ping', c => c.text('OK'));

@@ -5,7 +5,7 @@ export let slateEventPresenter = (
     slateVersion: SlateVersion;
   }
 ) => ({
-  object: 'slate.specification',
+  object: 'slate.event',
 
   id: evt.id,
   type: evt.type,

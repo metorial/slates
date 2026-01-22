@@ -17,6 +17,7 @@ export let slateActionPresenter = (
   type: method.type,
 
   capabilities: method.spec.capabilities,
+  invocation: method.spec.type === 'action.trigger' ? method.spec.invocation : undefined,
   inputSchema: method.spec.inputSchema,
   outputSchema: method.spec.outputSchema,
   constraints: method.spec.constraints,
