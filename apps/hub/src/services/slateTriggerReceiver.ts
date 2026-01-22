@@ -77,6 +77,52 @@ class slateTriggerReceiverServiceImpl {
     return this.runtime.handleTriggerWebhook(d);
   }
 
+  private validateAuthConfig(d: {
+    tenant: Tenant;
+    slate: Slate;
+    slateInstance: SlateInstance;
+    authConfig: SlateAuthConfig | null;
+    hasAuthMethods: boolean;
+  }) {
+    let hasAuthConfig = d.authConfig != null;
+    if (!d.hasAuthMethods && hasAuthConfig) {
+      throw new ServiceError(
+        badRequestError({
+          code: 'authentication_not_supported',
+          message: 'Provider does not have any authentication methods configured.'
+        })
+      );
+    }
+    if (d.hasAuthMethods && !hasAuthConfig) {
+      throw new ServiceError(
+        badRequestError({
+          code: 'authentication_required',
+          message: 'Authentication method is required for this provider.'
+        })
+      );
+    }
+    if (
+      d.authConfig &&
+      (d.authConfig.tenantOid !== d.tenant.oid || d.authConfig.slateOid !== d.slate.oid)
+    ) {
+      throw new ServiceError(
+        badRequestError({
+          code: 'invalid_auth_config',
+          message: 'Authentication configuration is not valid for this tenant or provider.'
+        })
+      );
+    }
+    if (d.authConfig?.instanceOid && d.authConfig.instanceOid !== d.slateInstance.oid) {
+      throw new ServiceError(
+        badRequestError({
+          message: 'This authentication configuration is not valid for the selected provider.'
+        })
+      );
+    }
+
+    return d.authConfig;
+  }
+
   async createTriggerReceiver(d: {
     tenant: Tenant;
     slateInstance: SlateInstance & {
@@ -105,12 +151,13 @@ class slateTriggerReceiverServiceImpl {
     let slate = slateInstance.slate;
     let version = await slateSessionService.getSessionVersion({ slate, slateInstance });
 
-    let authConfig = await this.core.resolveAuthConfig({
+    let hasAuthMethods = (version.specification?.authMethods ?? []).length > 0;
+    let authConfig = this.validateAuthConfig({
       tenant: d.tenant,
       slate,
       slateInstance,
-      authConfig: d.authConfig ?? undefined,
-      hasAuthMethods: (version.specification?.authMethods ?? []).length > 0
+      authConfig: d.authConfig ?? null,
+      hasAuthMethods
     });
 
     let destinations = await db.slateTriggerDestination.findMany({
@@ -227,11 +274,11 @@ class slateTriggerReceiverServiceImpl {
 
     let authConfig = receiver.authConfig as SlateAuthConfig | null;
     if (d.input.authConfig !== undefined) {
-      authConfig = await this.core.resolveAuthConfig({
+      authConfig = this.validateAuthConfig({
         tenant: d.tenant,
         slate,
         slateInstance: receiver.slateInstance,
-        authConfig: d.input.authConfig ?? undefined,
+        authConfig: d.input.authConfig ?? null,
         hasAuthMethods: (version.specification?.authMethods ?? []).length > 0
       });
     }

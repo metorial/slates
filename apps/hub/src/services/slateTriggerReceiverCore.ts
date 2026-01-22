@@ -4,7 +4,6 @@ import {
   SlateTriggerEventDeliveryStatus,
   type Slate,
   type SlateAction,
-  type SlateAuthConfig,
   type SlateInstance,
   type SlateTriggerInvocationType,
   type Tenant
@@ -32,80 +31,6 @@ export class SlateTriggerReceiverCore {
     if (!receiverTrigger)
       throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
     return receiverTrigger as ReceiverTriggerWithRelations;
-  }
-
-  async resolveAuthConfig(d: {
-    tenant: Tenant;
-    slate: Slate;
-    slateInstance: SlateInstance;
-    authConfig?: SlateAuthConfig | null;
-    authConfigId?: string;
-    hasAuthMethods: boolean;
-  }) {
-    let hasAuthConfig = !!d.authConfigId || !!d.authConfig;
-
-    if (!d.hasAuthMethods && hasAuthConfig) {
-      throw new ServiceError(
-        badRequestError({
-          code: 'authentication_not_supported',
-          message: 'Provider does not have any authentication methods configured.'
-        })
-      );
-    }
-
-    if (d.hasAuthMethods && !hasAuthConfig) {
-      throw new ServiceError(
-        badRequestError({
-          code: 'authentication_required',
-          message: 'Authentication method is required for this provider.'
-        })
-      );
-    }
-
-    if (!hasAuthConfig) return null;
-
-    let authConfig = d.authConfig ?? null;
-
-    if (authConfig) {
-      if (authConfig.tenantOid !== d.tenant.oid || authConfig.slateOid !== d.slate.oid) {
-        throw new ServiceError(
-          badRequestError({
-            code: 'invalid_auth_config',
-            message: 'Authentication configuration is not valid for this tenant or provider.'
-          })
-        );
-      }
-    }
-
-    if (!authConfig && d.authConfigId) {
-      authConfig = await db.slateAuthConfig.findFirst({
-        where: {
-          id: d.authConfigId,
-          tenantOid: d.tenant.oid,
-          slateOid: d.slate.oid
-        },
-        include: {
-          authMethod: true
-        }
-      });
-      if (!authConfig) {
-        throw new ServiceError(notFoundError('slate.auth_config'));
-      }
-    }
-
-    if (!authConfig) {
-      throw new ServiceError(notFoundError('slate.auth_config'));
-    }
-
-    if (authConfig.instanceOid && authConfig.instanceOid !== d.slateInstance.oid) {
-      throw new ServiceError(
-        badRequestError({
-          message: 'This authentication configuration is not valid for the selected provider.'
-        })
-      );
-    }
-
-    return authConfig;
   }
 
   async resolveActionsForTriggers(d: {
