@@ -44,7 +44,8 @@ const queueMocks = vi.hoisted(() => ({
   processAdd: vi.fn(),
   sendAdd: vi.fn(),
   registerAddMany: vi.fn(),
-  webhookAdd: vi.fn()
+  webhookAdd: vi.fn(),
+  archiveAdd: vi.fn()
 }));
 
 const invocationMocks = vi.hoisted(() => ({
@@ -61,6 +62,9 @@ vi.mock('../../queues/trigger/eventQueues', () => ({
   },
   slateTriggerEventSendQueue: {
     add: queueMocks.sendAdd
+  },
+  slateTriggerEventInputArchiveQueue: {
+    add: queueMocks.archiveAdd
   },
   slateTriggerWebhookRegisterQueue: {
     addManyWithOps: queueMocks.registerAddMany
@@ -273,6 +277,7 @@ describe('slate:trigger webhook E2E', () => {
     queueMocks.sendAdd.mockClear();
     queueMocks.registerAddMany.mockClear();
     queueMocks.webhookAdd.mockClear();
+    queueMocks.archiveAdd.mockClear();
     invocationMocks.handleWebhookRequest.mockReset();
     invocationMocks.invokeTriggerMapper.mockReset();
   });
@@ -307,6 +312,13 @@ describe('slate:trigger webhook E2E', () => {
       slateOid: slate.oid,
       tenantOid: tenant.oid,
       specificationOid: slate.currentVersion.specification.oid
+    });
+    const slateInstance = await testDb.slateInstance.findUniqueOrThrow({
+      where: { oid: instance.oid },
+      include: {
+        slate: true,
+        currentConfig: true
+      }
     });
 
     const triggerAction = await f.slateSpecification.withTriggerAction({
@@ -348,8 +360,8 @@ describe('slate:trigger webhook E2E', () => {
 
     const receiver = await slateTriggerReceiverService.createTriggerReceiver({
       tenant,
+      slateInstance,
       input: {
-        slateInstanceId: instance.id,
         destinations: [destination.id],
         triggers: [{ triggerId: triggerAction.id }],
         eventTypes: options?.receiverEventTypes
@@ -424,6 +436,13 @@ describe('slate:trigger webhook E2E', () => {
       tenantOid: tenant.oid,
       specificationOid: slate.currentVersion.specification.oid
     });
+    const slateInstance = await testDb.slateInstance.findUniqueOrThrow({
+      where: { oid: instance.oid },
+      include: {
+        slate: true,
+        currentConfig: true
+      }
+    });
 
     const triggerAction = await f.slateSpecification.withTriggerAction({
       slateOid: slate.oid,
@@ -443,8 +462,8 @@ describe('slate:trigger webhook E2E', () => {
 
     const receiver = await slateTriggerReceiverService.createTriggerReceiver({
       tenant,
+      slateInstance,
       input: {
-        slateInstanceId: instance.id,
         destinations: [destination.id],
         triggers: [{ triggerId: triggerAction.id }]
       }
@@ -510,13 +529,6 @@ describe('slate:trigger webhook E2E', () => {
         method: requestRecord!.method,
         headers: requestRecord!.headers as Record<string, string>,
         body: requestRecord!.body as { encoding: 'base64'; content: string } | null
-      },
-      requestLog: {
-        id: requestRecord!.id,
-        url: requestRecord!.url,
-        method: requestRecord!.method,
-        headers: requestRecord!.headers as Record<string, string>,
-        bodyStorageKey: null
       }
     });
 
@@ -524,10 +536,15 @@ describe('slate:trigger webhook E2E', () => {
       where: { receiverTriggerOid: receiverTrigger.oid }
     });
     expect(eventInput).toBeTruthy();
+    expect(eventInput?.input).toMatchObject({ payload: 'incoming' });
 
     await slateTriggerReceiverService.processTriggerEventInput({
       eventInputId: eventInput!.id
     });
+    expect(queueMocks.archiveAdd).toHaveBeenCalledWith(
+      { eventInputId: eventInput!.id },
+      { id: eventInput!.id }
+    );
 
     const triggerEvent = await testDb.slateTriggerEvent.findFirst({
       where: { receiverTriggerOid: receiverTrigger.oid }

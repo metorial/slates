@@ -25,6 +25,18 @@ export let slateTriggerEventSendQueue = createQueue<{ eventId: string }>({
   }
 });
 
+export let slateTriggerEventInputArchiveQueue = createQueue<{ eventInputId: string }>({
+  name: 'shub/trg/evt/inp/arc',
+  redisUrl: env.service.REDIS_URL,
+  workerOpts: {
+    concurrency: 10,
+    limiter: {
+      max: 50,
+      duration: 10_000
+    }
+  }
+});
+
 export let slateTriggerWebhookRegisterQueue = createQueue<{ receiverTriggerId: string }>({
   name: 'shub/trg/reg',
   redisUrl: env.service.REDIS_URL,

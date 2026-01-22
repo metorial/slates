@@ -4,16 +4,13 @@ import {
   SlateTriggerEventDeliveryStatus,
   type Slate,
   type SlateAction,
+  type SlateAuthConfig,
   type SlateInstance,
   type SlateTriggerInvocationType,
   type Tenant
 } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId } from '../id';
-import type {
-  TriggerWebhookRequestLog,
-  TriggerWebhookRequestPayload
-} from '../lib/triggerWebhook';
 import { slateTriggerEventProcessQueue } from '../queues/trigger/eventQueues';
 import { getTenantAndSenderForSignal, signal } from '../signal';
 import { slateAuthHandlerService } from './slateInstanceAuthHandler';
@@ -41,10 +38,13 @@ export class SlateTriggerReceiverCore {
     tenant: Tenant;
     slate: Slate;
     slateInstance: SlateInstance;
+    authConfig?: SlateAuthConfig | null;
     authConfigId?: string;
     hasAuthMethods: boolean;
   }) {
-    if (!d.hasAuthMethods && d.authConfigId) {
+    let hasAuthConfig = !!d.authConfigId || !!d.authConfig;
+
+    if (!d.hasAuthMethods && hasAuthConfig) {
       throw new ServiceError(
         badRequestError({
           code: 'authentication_not_supported',
@@ -53,7 +53,7 @@ export class SlateTriggerReceiverCore {
       );
     }
 
-    if (d.hasAuthMethods && !d.authConfigId) {
+    if (d.hasAuthMethods && !hasAuthConfig) {
       throw new ServiceError(
         badRequestError({
           code: 'authentication_required',
@@ -62,18 +62,37 @@ export class SlateTriggerReceiverCore {
       );
     }
 
-    if (!d.authConfigId) return null;
+    if (!hasAuthConfig) return null;
 
-    let authConfig = await db.slateAuthConfig.findFirst({
-      where: {
-        id: d.authConfigId,
-        tenantOid: d.tenant.oid,
-        slateOid: d.slate.oid
-      },
-      include: {
-        authMethod: true
+    let authConfig = d.authConfig ?? null;
+
+    if (authConfig) {
+      if (authConfig.tenantOid !== d.tenant.oid || authConfig.slateOid !== d.slate.oid) {
+        throw new ServiceError(
+          badRequestError({
+            code: 'invalid_auth_config',
+            message: 'Authentication configuration is not valid for this tenant or provider.'
+          })
+        );
       }
-    });
+    }
+
+    if (!authConfig && d.authConfigId) {
+      authConfig = await db.slateAuthConfig.findFirst({
+        where: {
+          id: d.authConfigId,
+          tenantOid: d.tenant.oid,
+          slateOid: d.slate.oid
+        },
+        include: {
+          authMethod: true
+        }
+      });
+      if (!authConfig) {
+        throw new ServiceError(notFoundError('slate.auth_config'));
+      }
+    }
+
     if (!authConfig) {
       throw new ServiceError(notFoundError('slate.auth_config'));
     }
@@ -246,7 +265,6 @@ export class SlateTriggerReceiverCore {
   async enqueueTriggerEventInputs(d: {
     receiverTrigger: ReceiverTriggerWithRelations;
     inputs: Record<string, any>[];
-    request?: TriggerWebhookRequestLog | TriggerWebhookRequestPayload | null;
   }) {
     if (d.inputs.length === 0) return;
 
@@ -257,8 +275,7 @@ export class SlateTriggerReceiverCore {
       actionOid: d.receiverTrigger.actionOid,
       slateOid: d.receiverTrigger.receiver.slate.oid,
       slateInstanceOid: d.receiverTrigger.receiver.slateInstance.oid,
-      input,
-      request: d.request ?? null
+      input
     }));
 
     await db.slateTriggerEventInput.createMany({
@@ -341,13 +358,12 @@ export class SlateTriggerReceiverCore {
       eventType: d.event.type,
       payloadJson: JSON.stringify(payload),
       headers: {
-        'content-type': 'application/json',
-        'x-slates-trigger-event-id': d.event.id,
-        'x-slates-trigger-event-type': d.event.type,
-        'x-slates-slate-id': d.receiver.slate.id,
-        'x-slates-slate-instance-id': d.receiver.slateInstance.id,
-        'x-slates-trigger-receiver-id': d.receiver.id,
-        'x-slates-trigger-id': d.action.id
+        'metorial-trigger-event-id': d.event.id,
+        'metorial-trigger-event-type': d.event.type,
+        'metorial-slate-id': d.receiver.slate.id,
+        'metorial-slate-instance-id': d.receiver.slateInstance.id,
+        'metorial-trigger-receiver-id': d.receiver.id,
+        'metorial-trigger-id': d.action.id
       },
       onlyForDestinations: d.signalDestinationIds
     });
@@ -375,11 +391,9 @@ export class SlateTriggerReceiverCore {
     });
 
     if (!targets.shouldDeliver) {
-      await db.$transaction(async prisma => {
-        await prisma.slateTriggerEvent.update({
-          where: { oid: d.event.oid },
-          data: { deliveryStatus: SlateTriggerEventDeliveryStatus.skipped }
-        });
+      await db.slateTriggerEvent.update({
+        where: { oid: d.event.oid },
+        data: { deliveryStatus: SlateTriggerEventDeliveryStatus.skipped }
       });
       return;
     }

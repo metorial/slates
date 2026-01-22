@@ -78,11 +78,7 @@ export let hubApp = createHono()
     let receiverTriggerId = c.req.param('receiverTriggerId');
     if (!receiverTriggerId) return c.text('Missing trigger receiver ID', 400);
 
-    let headers: Record<string, string> = {};
-    c.req.raw.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-
+    let headers = Object.fromEntries(c.req.raw.headers.entries());
     let bodyBuffer = await c.req.arrayBuffer();
     let body =
       bodyBuffer.byteLength > 0

@@ -57,7 +57,7 @@ model SlateTriggerDestination {
   method     String
   eventTypes String[]
 
-  signalDestinationId String  @unique
+  signalDestinationId String @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -65,7 +65,6 @@ model SlateTriggerDestination {
   receivers  SlateTriggerReceiverDestination[]
   deliveries SlateTriggerDelivery[]
 
-  @@index([tenantOid])
   @@index([tenantOid, status])
 }
 
@@ -144,8 +143,8 @@ model SlateTriggerReceiverTrigger {
   eventInputs SlateTriggerEventInput[]
   invocations SlateTriggerInvocation[]
 
-  @@index([source, nextPollAt])
   @@unique([receiverOid, actionOid])
+  @@index([source, nextPollAt])
 }
 
 model SlateTriggerInvocation {
@@ -167,9 +166,6 @@ model SlateTriggerInvocation {
   invocation    SlateInvocation @relation(fields: [invocationOid], references: [oid], onDelete: Cascade)
 
   createdAt DateTime @default(now())
-
-  @@index([receiverOid])
-  @@index([receiverTriggerOid])
 }
 
 model SlateTriggerEventInput {
@@ -192,12 +188,13 @@ model SlateTriggerEventInput {
   slateInstance    SlateInstance @relation(fields: [slateInstanceOid], references: [oid], onDelete: Cascade)
 
   status       SlateTriggerEventInputStatus @default(pending)
-  attemptCount Int                        @default(0)
+  attemptCount Int                          @default(0)
   errorCode    String?
   errorMessage String?
 
-  input   Json
-  request Json? @default("null")
+  input             Json?     @default("null")
+  payloadStorageKey String?
+  payloadStoredAt   DateTime?
 
   eventOid BigInt?
   event    SlateTriggerEvent? @relation(fields: [eventOid], references: [oid], onDelete: SetNull)
@@ -246,8 +243,8 @@ model SlateTriggerEvent {
   invocations SlateTriggerInvocation[]
   eventInputs SlateTriggerEventInput[]
 
-  @@index([receiverOid, createdAt])
   @@unique([receiverTriggerOid, sourceId])
+  @@index([receiverOid, createdAt])
 }
 
 model SlateTriggerDelivery {

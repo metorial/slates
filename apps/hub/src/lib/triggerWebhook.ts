@@ -7,14 +7,6 @@ export type TriggerWebhookRequestPayload = {
   body: { encoding: 'base64'; content: string } | null;
 };
 
-export type TriggerWebhookRequestLog = {
-  id: string;
-  url: string;
-  method: string;
-  headers: Record<string, string>;
-  bodyStorageKey: string | null;
-};
-
 export let getTriggerWebhookBaseUrl = (receiverTriggerId: string) => {
   let base = env.service.SERVICE_PUBLIC_URL.replace(/\/$/, '');
   return `${base}/slates-hub/triggers/webhook/${receiverTriggerId}`;

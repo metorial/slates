@@ -4,7 +4,6 @@ import { db } from '../../db';
 import { env } from '../../env';
 import {
   getTriggerWebhookRequestStorageKey,
-  type TriggerWebhookRequestLog,
   type TriggerWebhookRequestPayload
 } from '../../lib/triggerWebhook';
 import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
@@ -82,14 +81,6 @@ export let slateTriggerWebhookQueueProcessor = slateTriggerWebhookQueue.process(
     let body = request.body as TriggerWebhookBody;
     let bodyStorageKey = body ? getTriggerWebhookRequestStorageKey(request.id) : null;
 
-    let requestLog: TriggerWebhookRequestLog = {
-      id: request.id,
-      url: request.url,
-      method: request.method,
-      headers,
-      bodyStorageKey
-    };
-
     let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
       where: { id: request.receiverTriggerId },
       select: { id: true }
@@ -118,8 +109,7 @@ export let slateTriggerWebhookQueueProcessor = slateTriggerWebhookQueue.process(
           method: request.method,
           headers,
           body
-        },
-        requestLog
+        }
       });
 
       await finalizeWebhookRequest({
