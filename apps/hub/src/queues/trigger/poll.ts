@@ -39,9 +39,9 @@ export let slateTriggerPollingBatchQueueProcessor = slateTriggerPollingBatchQueu
       });
       if (triggers.length === 0) return;
 
-      for (let trigger of triggers) {
-        await slateTriggerPollQueue.add({ receiverTriggerId: trigger.id }, { id: trigger.id });
-      }
+      await slateTriggerPollQueue.addMany(
+        triggers.map(trigger => ({ receiverTriggerId: trigger.id }))
+      );
 
       await slateTriggerPollingBatchQueue.add({
         cursor: triggers[triggers.length - 1]!.id

@@ -5,6 +5,9 @@ import {
   SlateTriggerDestinationStatus,
   SlateTriggerReceiverTriggerSource,
   type SlateAuthConfig,
+  type SlateInstance,
+  type SlateInstanceConfig,
+  type Slate,
   type Tenant
 } from '../../prisma/generated/client';
 import { db } from '../db';
@@ -74,11 +77,60 @@ class slateTriggerReceiverServiceImpl {
     return this.runtime.handleTriggerWebhook(d);
   }
 
+  private validateAuthConfig(d: {
+    tenant: Tenant;
+    slate: Slate;
+    slateInstance: SlateInstance;
+    authConfig: SlateAuthConfig | null;
+    hasAuthMethods: boolean;
+  }) {
+    let hasAuthConfig = d.authConfig != null;
+    if (!d.hasAuthMethods && hasAuthConfig) {
+      throw new ServiceError(
+        badRequestError({
+          code: 'authentication_not_supported',
+          message: 'Provider does not have any authentication methods configured.'
+        })
+      );
+    }
+    if (d.hasAuthMethods && !hasAuthConfig) {
+      throw new ServiceError(
+        badRequestError({
+          code: 'authentication_required',
+          message: 'Authentication method is required for this provider.'
+        })
+      );
+    }
+    if (
+      d.authConfig &&
+      (d.authConfig.tenantOid !== d.tenant.oid || d.authConfig.slateOid !== d.slate.oid)
+    ) {
+      throw new ServiceError(
+        badRequestError({
+          code: 'invalid_auth_config',
+          message: 'Authentication configuration is not valid for this tenant or provider.'
+        })
+      );
+    }
+    if (d.authConfig?.instanceOid && d.authConfig.instanceOid !== d.slateInstance.oid) {
+      throw new ServiceError(
+        badRequestError({
+          message: 'This authentication configuration is not valid for the selected provider.'
+        })
+      );
+    }
+
+    return d.authConfig;
+  }
+
   async createTriggerReceiver(d: {
     tenant: Tenant;
+    slateInstance: SlateInstance & {
+      slate: Slate;
+      currentConfig: SlateInstanceConfig | null;
+    };
+    authConfig?: SlateAuthConfig | null;
     input: {
-      slateInstanceId: string;
-      authConfigId?: string;
       name?: string;
       description?: string;
       eventTypes?: string[];
@@ -86,17 +138,7 @@ class slateTriggerReceiverServiceImpl {
       triggers: { triggerId: string; state?: Record<string, any> | null }[];
     };
   }) {
-    let slateInstance = await db.slateInstance.findFirst({
-      where: {
-        id: d.input.slateInstanceId,
-        tenantOid: d.tenant.oid
-      },
-      include: {
-        slate: true,
-        currentConfig: true
-      }
-    });
-    if (!slateInstance) throw new ServiceError(notFoundError('slate.instance'));
+    let slateInstance = d.slateInstance;
 
     if (!slateInstance.currentConfig) {
       throw new ServiceError(
@@ -109,12 +151,13 @@ class slateTriggerReceiverServiceImpl {
     let slate = slateInstance.slate;
     let version = await slateSessionService.getSessionVersion({ slate, slateInstance });
 
-    let authConfig = await this.core.resolveAuthConfig({
+    let hasAuthMethods = (version.specification?.authMethods ?? []).length > 0;
+    let authConfig = this.validateAuthConfig({
       tenant: d.tenant,
       slate,
       slateInstance,
-      authConfigId: d.input.authConfigId,
-      hasAuthMethods: (version.specification?.authMethods ?? []).length > 0
+      authConfig: d.authConfig ?? null,
+      hasAuthMethods
     });
 
     let destinations = await db.slateTriggerDestination.findMany({
@@ -140,49 +183,53 @@ class slateTriggerReceiverServiceImpl {
       triggers: d.input.triggers
     });
 
-    let receiver = await db.slateTriggerReceiver.create({
-      data: {
-        ...getId('slateTriggerReceiver'),
-        tenantOid: d.tenant.oid,
-        slateOid: slate.oid,
-        slateInstanceOid: slateInstance.oid,
-        authConfigOid: authConfig?.oid ?? null,
-        name: d.input.name,
-        description: d.input.description,
-        eventTypes: normalizeEventTypes(d.input.eventTypes)
-      }
-    });
-
-    let receiverTriggers = await Promise.all(
-      triggerActions.map(async trigger => {
-        let pollIntervalSeconds: number | null = null;
-        if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
-          pollIntervalSeconds = trigger.invocation.intervalSeconds;
+    let { receiver, receiverTriggers } = await db.$transaction(async prisma => {
+      let receiver = await prisma.slateTriggerReceiver.create({
+        data: {
+          ...getId('slateTriggerReceiver'),
+          tenantOid: d.tenant.oid,
+          slateOid: slate.oid,
+          slateInstanceOid: slateInstance.oid,
+          authConfigOid: authConfig?.oid ?? null,
+          name: d.input.name,
+          description: d.input.description,
+          eventTypes: normalizeEventTypes(d.input.eventTypes)
         }
+      });
 
-        return await db.slateTriggerReceiverTrigger.create({
-          data: {
-            ...getId('slateTriggerReceiverTrigger'),
-            receiverOid: receiver.oid,
-            actionOid: trigger.action.oid,
-            source: trigger.invocation.type,
-            pollIntervalSeconds,
-            nextPollAt: pollIntervalSeconds ? new Date() : null,
-            state: trigger.state ?? null,
-            registrationDetails: null
-          },
-          include: receiverTriggerInclude
-        });
-      })
-    );
+      let receiverTriggers = await Promise.all(
+        triggerActions.map(async trigger => {
+          let pollIntervalSeconds: number | null = null;
+          if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
+            pollIntervalSeconds = trigger.invocation.intervalSeconds;
+          }
 
-    await db.slateTriggerReceiverDestination.createMany({
-      skipDuplicates: true,
-      data: destinations.map(destination => ({
-        oid: snowflake.nextId(),
-        receiverOid: receiver.oid,
-        destinationOid: destination.oid
-      }))
+          return await prisma.slateTriggerReceiverTrigger.create({
+            data: {
+              ...getId('slateTriggerReceiverTrigger'),
+              receiverOid: receiver.oid,
+              actionOid: trigger.action.oid,
+              source: trigger.invocation.type,
+              pollIntervalSeconds,
+              nextPollAt: pollIntervalSeconds ? new Date() : null,
+              state: trigger.state ?? null,
+              registrationDetails: null
+            },
+            select: { id: true }
+          });
+        })
+      );
+
+      await prisma.slateTriggerReceiverDestination.createMany({
+        skipDuplicates: true,
+        data: destinations.map(destination => ({
+          oid: snowflake.nextId(),
+          receiverOid: receiver.oid,
+          destinationOid: destination.oid
+        }))
+      });
+
+      return { receiver, receiverTriggers };
     });
 
     await slateTriggerWebhookRegisterQueue.addManyWithOps(
@@ -202,7 +249,7 @@ class slateTriggerReceiverServiceImpl {
     tenant: Tenant;
     receiverId: string;
     input: {
-      authConfigId?: string | null;
+      authConfig?: SlateAuthConfig | null;
       name?: string | null;
       description?: string | null;
       eventTypes?: string[];
@@ -226,12 +273,12 @@ class slateTriggerReceiverServiceImpl {
     });
 
     let authConfig = receiver.authConfig as SlateAuthConfig | null;
-    if (d.input.authConfigId !== undefined) {
-      authConfig = await this.core.resolveAuthConfig({
+    if (d.input.authConfig !== undefined) {
+      authConfig = this.validateAuthConfig({
         tenant: d.tenant,
         slate,
         slateInstance: receiver.slateInstance,
-        authConfigId: d.input.authConfigId ?? undefined,
+        authConfig: d.input.authConfig ?? null,
         hasAuthMethods: (version.specification?.authMethods ?? []).length > 0
       });
     }
@@ -240,7 +287,7 @@ class slateTriggerReceiverServiceImpl {
       where: { oid: receiver.oid },
       data: {
         authConfigOid:
-          d.input.authConfigId !== undefined ? (authConfig?.oid ?? null) : undefined,
+          d.input.authConfig !== undefined ? (authConfig?.oid ?? null) : undefined,
         name: d.input.name === null ? null : d.input.name,
         description: d.input.description === null ? null : d.input.description,
         eventTypes: d.input.eventTypes ? normalizeEventTypes(d.input.eventTypes) : undefined

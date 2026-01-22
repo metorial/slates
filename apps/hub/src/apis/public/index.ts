@@ -78,11 +78,7 @@ export let hubApp = createHono()
     let receiverTriggerId = c.req.param('receiverTriggerId');
     if (!receiverTriggerId) return c.text('Missing trigger receiver ID', 400);
 
-    let headers: Record<string, string> = {};
-    c.req.raw.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-
+    let headers = Object.fromEntries(c.req.raw.headers.entries());
     let bodyBuffer = await c.req.arrayBuffer();
     let body =
       bodyBuffer.byteLength > 0
@@ -92,7 +88,7 @@ export let hubApp = createHono()
           }
         : null;
 
-    await slateTriggerWebhookRequestService.createWebhookRequest({
+    let requestRecord = await slateTriggerWebhookRequestService.createWebhookRequest({
       receiverTriggerId,
       request: {
         url: c.req.url,
@@ -102,7 +98,7 @@ export let hubApp = createHono()
       }
     });
 
-    return c.json({ status: 'queued' });
+    return c.json({ status: 'queued', webhookRequestId: requestRecord.id });
   })
   .options('*', c => c.text(''))
   .get('/ping', c => c.text('OK'));

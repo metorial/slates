@@ -11,12 +11,12 @@ import { db } from '../db';
 import { getId } from '../id';
 import {
   getTriggerWebhookBaseUrl,
-  type TriggerWebhookRequestLog,
   type TriggerWebhookRequestPayload
 } from '../lib/triggerWebhook';
 import {
   slateTriggerEventProcessQueue,
-  slateTriggerEventSendQueue
+  slateTriggerEventSendQueue,
+  slateTriggerEventInputArchiveQueue
 } from '../queues/trigger/eventQueues';
 import { slateInvocationService } from './slateInvocation';
 import {
@@ -27,6 +27,11 @@ import {
 import type { SlateTriggerReceiverCore } from './slateTriggerReceiverCore';
 
 const MAX_TRIGGER_EVENT_INPUT_ATTEMPTS = 5;
+const ARCHIVE_INPUT_STATUSES = new Set<SlateTriggerEventInputStatus>([
+  SlateTriggerEventInputStatus.succeeded,
+  SlateTriggerEventInputStatus.failed,
+  SlateTriggerEventInputStatus.skipped
+]);
 
 export class SlateTriggerReceiverRuntime {
   private readonly core: SlateTriggerReceiverCore;
@@ -51,9 +56,20 @@ export class SlateTriggerReceiverRuntime {
       SlateTriggerEventInputStatus.retrying
     ];
     if (!validStatuses.includes(eventInput.status)) return;
+    if (eventInput.input == null) {
+      await this.updateEventInputStatus({
+        eventInput,
+        data: {
+          status: SlateTriggerEventInputStatus.failed,
+          errorCode: 'missing_input',
+          errorMessage: 'Event input payload is missing.'
+        }
+      });
+      return;
+    }
     if (eventInput.receiverTrigger.receiver.status !== SlateTriggerReceiverStatus.active) {
-      await db.slateTriggerEventInput.update({
-        where: { oid: eventInput.oid },
+      await this.updateEventInputStatus({
+        eventInput,
         data: { status: SlateTriggerEventInputStatus.skipped }
       });
       return;
@@ -101,8 +117,8 @@ export class SlateTriggerReceiverRuntime {
           attemptCount >= MAX_TRIGGER_EVENT_INPUT_ATTEMPTS
             ? SlateTriggerEventInputStatus.failed
             : SlateTriggerEventInputStatus.retrying;
-        await db.slateTriggerEventInput.update({
-          where: { oid: eventInput.oid },
+        await this.updateEventInputStatus({
+          eventInput,
           data: {
             status,
             errorCode: mapRes.error.code,
@@ -140,8 +156,8 @@ export class SlateTriggerReceiverRuntime {
           invocation: mapRes.invocation
         });
 
-        await db.slateTriggerEventInput.update({
-          where: { oid: eventInput.oid },
+        await this.updateEventInputStatus({
+          eventInput,
           data: {
             status: SlateTriggerEventInputStatus.skipped,
             eventOid: existing.oid
@@ -201,8 +217,8 @@ export class SlateTriggerReceiverRuntime {
         invocation: mapRes.invocation
       });
 
-      await db.slateTriggerEventInput.update({
-        where: { oid: eventInput.oid },
+      await this.updateEventInputStatus({
+        eventInput,
         data: {
           status: SlateTriggerEventInputStatus.succeeded,
           eventOid: event.oid
@@ -227,8 +243,8 @@ export class SlateTriggerReceiverRuntime {
         }
       }
 
-      await db.slateTriggerEventInput.update({
-        where: { oid: eventInput.oid },
+      await this.updateEventInputStatus({
+        eventInput,
         data: {
           status,
           errorCode,
@@ -242,6 +258,39 @@ export class SlateTriggerReceiverRuntime {
           { delay: Math.min(30_000, 1000 * 2 ** attemptCount) }
         );
       }
+    }
+  }
+
+  private async updateEventInputStatus(d: {
+    eventInput: { oid: bigint; id: string };
+    data: {
+      status: SlateTriggerEventInputStatus;
+      errorCode?: string | null;
+      errorMessage?: string | null;
+      eventOid?: bigint | null;
+    };
+  }) {
+    await db.slateTriggerEventInput.update({
+      where: { oid: d.eventInput.oid },
+      data: d.data
+    });
+
+    if (ARCHIVE_INPUT_STATUSES.has(d.data.status)) {
+      await this.enqueueEventInputArchive(d.eventInput.id);
+    }
+  }
+
+  private async enqueueEventInputArchive(eventInputId: string) {
+    try {
+      await slateTriggerEventInputArchiveQueue.add(
+        { eventInputId },
+        { id: eventInputId }
+      );
+    } catch (error) {
+      console.error('Failed to enqueue trigger event input archive:', {
+        eventInputId,
+        error
+      });
     }
   }
 
@@ -485,7 +534,6 @@ export class SlateTriggerReceiverRuntime {
   async handleTriggerWebhook(d: {
     receiverTriggerId: string;
     request: TriggerWebhookRequestPayload;
-    requestLog?: TriggerWebhookRequestLog | null;
   }) {
     let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
       where: {
@@ -544,8 +592,7 @@ export class SlateTriggerReceiverRuntime {
 
     await this.core.enqueueTriggerEventInputs({
       receiverTrigger,
-      inputs: res.data.inputs,
-      request: d.requestLog ?? d.request
+      inputs: res.data.inputs
     });
   }
 }

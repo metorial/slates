@@ -11,6 +11,7 @@ import {
 } from './register';
 import { slateTriggerEventSendQueueProcessor } from './send';
 import { slateTriggerWebhookQueueProcessor } from './webhook';
+import { slateTriggerEventInputArchiveQueueProcessor } from './archive';
 
 export let triggerQueues = combineQueueProcessors([
   slateTriggerPollingCron,
@@ -19,6 +20,7 @@ export let triggerQueues = combineQueueProcessors([
   slateTriggerWebhookQueueProcessor,
   slateTriggerEventProcessQueueProcessor,
   slateTriggerEventSendQueueProcessor,
+  slateTriggerEventInputArchiveQueueProcessor,
   slateTriggerWebhookRegisterQueueProcessor,
   slateTriggerWebhookUnregisterQueueProcessor
 ]);

@@ -1,9 +1,27 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { slateTriggerReceiverPresenter } from '../../presenters';
-import { slateTriggerReceiverService } from '../../services';
+import type { Tenant } from '../../prisma/generated/client';
+import {
+  slateAuthConfigService,
+  slateInstanceService,
+  slateTriggerReceiverService
+} from '../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
+
+const resolveAuthConfig = async (
+  tenant: Tenant,
+  authConfigId?: string | null
+) => {
+  if (authConfigId === undefined) return undefined;
+  if (authConfigId === null) return null;
+
+  return await slateAuthConfigService.getSlateAuthConfigById({
+    tenant,
+    id: authConfigId
+  });
+};
 
 export let slateTriggerReceiverApp = tenantApp.use(async ctx => {
   let slateTriggerReceiverId = ctx.body.slateTriggerReceiverId;
@@ -63,11 +81,22 @@ export let slateTriggerReceiverController = app.controller({
       )
     )
     .do(async ctx => {
+      let slateInstance = await slateInstanceService.getSlateInstanceById({
+        tenant: ctx.tenant,
+        id: ctx.input.slateInstanceId
+      });
+      let authConfig = ctx.input.authConfigId
+        ? await slateAuthConfigService.getSlateAuthConfigById({
+            tenant: ctx.tenant,
+            id: ctx.input.authConfigId
+          })
+        : null;
+
       let receiver = await slateTriggerReceiverService.createTriggerReceiver({
         tenant: ctx.tenant,
+        slateInstance,
+        authConfig,
         input: {
-          slateInstanceId: ctx.input.slateInstanceId,
-          authConfigId: ctx.input.authConfigId,
           name: ctx.input.name,
           description: ctx.input.description,
           eventTypes: ctx.input.eventTypes,
@@ -111,11 +140,12 @@ export let slateTriggerReceiverController = app.controller({
       })
     )
     .do(async ctx => {
+      let authConfig = await resolveAuthConfig(ctx.tenant, ctx.input.authConfigId);
       let receiver = await slateTriggerReceiverService.updateTriggerReceiver({
         tenant: ctx.tenant,
         receiverId: ctx.input.slateTriggerReceiverId,
         input: {
-          authConfigId: ctx.input.authConfigId,
+          authConfig,
           name: ctx.input.name,
           description: ctx.input.description,
           eventTypes: ctx.input.eventTypes,
