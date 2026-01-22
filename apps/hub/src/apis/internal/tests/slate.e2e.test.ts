@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SlateStatus } from '../../../prisma/generated/client';
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { slatesHubClient } from '../../test/client';
+import { SlateStatus } from '../../../../prisma/generated/client';
+import { testDb, cleanDatabase } from '../../../test/setup';
+import { fixtures } from '../../../test/fixtures';
+import { slatesHubClient } from '../../../test/client';
 import _ from 'lodash';
 
 describe('slate:list E2E', () => {

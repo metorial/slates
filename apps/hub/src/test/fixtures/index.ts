@@ -14,6 +14,22 @@ import {
   SlateInvocationStorageBucketFixtures,
   SlateInvocationFixtures
 } from './invocationFixtures';
+import { SecretFixtures } from './secretFixtures';
+import { SlateSessionFixtures } from './slateSessionFixtures';
+import { SlateEventFixtures } from './slateEventFixtures';
+import { ChangeNotificationFixtures } from './changeNotificationFixtures';
+import { SlateSpecificationChangeFixtures } from './slateSpecificationChangeFixtures';
+import { SlateVersionDiscoveryFixtures } from './slateVersionDiscoveryFixtures';
+import { SlateAuthMethodFixtures } from './slateAuthMethodFixtures';
+import { SlateOAuthCredentialsFixtures } from './slateOAuthCredentialsFixtures';
+import { SlateAuthConfigFixtures } from './slateAuthConfigFixtures';
+import { SlateOAuthSetupFixtures } from './slateOAuthSetupFixtures';
+import { SlateTriggerDestinationFixtures } from './slateTriggerDestinationFixtures';
+import { SlateTriggerReceiverFixtures } from './slateTriggerReceiverFixtures';
+import { SlateTriggerEventFixtures } from './slateTriggerEventFixtures';
+import { SlateTriggerInvocationFixtures } from './slateTriggerInvocationFixtures';
+import { SlateTriggerDeliveryFixtures } from './slateTriggerDeliveryFixtures';
+import { SlateSessionToolCallFixtures } from './slateSessionToolCallFixtures';
 
 export function fixtures(db: PrismaClient) {
   return {
@@ -28,7 +44,23 @@ export function fixtures(db: PrismaClient) {
     slateInstance: new SlateInstanceFixtures(db),
     slateInstanceConfig: new SlateInstanceConfigFixtures(db),
     storageBucket: new SlateInvocationStorageBucketFixtures(db),
-    slateInvocation: new SlateInvocationFixtures(db)
+    slateInvocation: new SlateInvocationFixtures(db),
+    secret: new SecretFixtures(db),
+    slateSession: new SlateSessionFixtures(db),
+    slateEvent: new SlateEventFixtures(db),
+    changeNotification: new ChangeNotificationFixtures(db),
+    slateSpecificationChange: new SlateSpecificationChangeFixtures(db),
+    slateVersionDiscovery: new SlateVersionDiscoveryFixtures(db),
+    slateAuthMethod: new SlateAuthMethodFixtures(db),
+    slateOAuthCredentials: new SlateOAuthCredentialsFixtures(db),
+    slateAuthConfig: new SlateAuthConfigFixtures(db),
+    slateOAuthSetup: new SlateOAuthSetupFixtures(db),
+    slateTriggerDestination: new SlateTriggerDestinationFixtures(db),
+    slateTriggerReceiver: new SlateTriggerReceiverFixtures(db),
+    slateTriggerEvent: new SlateTriggerEventFixtures(db),
+    slateTriggerInvocation: new SlateTriggerInvocationFixtures(db),
+    slateTriggerDelivery: new SlateTriggerDeliveryFixtures(db),
+    slateSessionToolCall: new SlateSessionToolCallFixtures(db)
   };
 }
 
@@ -44,5 +76,21 @@ export {
   SlateInstanceFixtures,
   SlateInstanceConfigFixtures,
   SlateInvocationStorageBucketFixtures,
-  SlateInvocationFixtures
+  SlateInvocationFixtures,
+  SecretFixtures,
+  SlateSessionFixtures,
+  SlateEventFixtures,
+  ChangeNotificationFixtures,
+  SlateSpecificationChangeFixtures,
+  SlateVersionDiscoveryFixtures,
+  SlateAuthMethodFixtures,
+  SlateOAuthCredentialsFixtures,
+  SlateAuthConfigFixtures,
+  SlateOAuthSetupFixtures,
+  SlateTriggerDestinationFixtures,
+  SlateTriggerReceiverFixtures,
+  SlateTriggerEventFixtures,
+  SlateTriggerInvocationFixtures,
+  SlateTriggerDeliveryFixtures,
+  SlateSessionToolCallFixtures
 };
