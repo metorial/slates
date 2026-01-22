@@ -88,7 +88,7 @@ export let hubApp = createHono()
           }
         : null;
 
-    await slateTriggerWebhookRequestService.createWebhookRequest({
+    let requestRecord = await slateTriggerWebhookRequestService.createWebhookRequest({
       receiverTriggerId,
       request: {
         url: c.req.url,
@@ -98,7 +98,7 @@ export let hubApp = createHono()
       }
     });
 
-    return c.json({ status: 'queued' });
+    return c.json({ status: 'queued', webhookRequestId: requestRecord.id });
   })
   .options('*', c => c.text(''))
   .get('/ping', c => c.text('OK'));
