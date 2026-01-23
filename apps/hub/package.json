@@ -6,10 +6,10 @@
   "scripts": {
     "start": "bun ./src/server.ts",
     "start:watch": "bun --watch ./src/server.ts",
-    "dev": "docker compose -p slates-hub -f ./docker-compose.yml up -d",
-    "dev:stop": "docker compose -p slates-hub -f ./docker-compose.yml down",
-    "dev:logs": "docker compose -p slates-hub -f ./docker-compose.yml logs -f",
-    "dev:restart": "docker compose -p slates-hub -f ./docker-compose.yml restart",
+    "dev": "docker compose -p slates-hub -f ./docker-compose.yml --profile infra up -d",
+    "dev:stop": "docker compose -p slates-hub -f ./docker-compose.yml --profile infra down",
+    "dev:logs": "docker compose -p slates-hub -f ./docker-compose.yml --profile infra logs -f",
+    "dev:restart": "docker compose -p slates-hub -f ./docker-compose.yml --profile infra restart",
     "test": "bunx vitest run --passWithNoTests",
     "test:watch": "bunx vitest watch",
     "typecheck": "tsc --noEmit"

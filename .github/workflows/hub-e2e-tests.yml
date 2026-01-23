@@ -32,7 +32,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           cd apps/hub
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci --profile hub up -d --build
+          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci --profile hub --profile infra up -d --build
 
       - name: Wait for services to be healthy
         env:

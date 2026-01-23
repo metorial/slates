@@ -35,6 +35,7 @@ services:
       - slates-hub-network
 
   object-storage:
+    profiles: ['infra']
     image: ghcr.io/metorial/object-storage:latest
     container_name: slates-hub-object-storage
     restart: unless-stopped
@@ -49,7 +50,8 @@ services:
       AWS_REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
       OBJECT_STORE__SERVER__HOST: 0.0.0.0
       OBJECT_STORE__SERVER__PORT: 52010
-      OBJECT_STORE__BACKEND__TYPE: s3
+      OBJECT_STORE__BACKEND__TYPE: ${OBJECT_STORAGE_BACKEND_TYPE:-local}
+      OBJECT_STORE__BACKEND__ROOT_PATH: ${OBJECT_STORAGE_BACKEND_ROOT_PATH:-/app/data}
       OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
       OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET:-slates-hub-ci}
     healthcheck:
@@ -61,6 +63,7 @@ services:
       - slates-hub-network
 
   forge:
+    profiles: ['infra']
     image: ghcr.io/metorial/forge:latest
     container_name: slates-hub-forge
     restart: unless-stopped
@@ -95,6 +98,7 @@ services:
       - slates-hub-network
 
   function-bay:
+    profiles: ['infra']
     image: ghcr.io/metorial/function-bay:latest
     container_name: slates-hub-function-bay
     restart: unless-stopped
@@ -130,6 +134,7 @@ services:
       - slates-hub-network
 
   signal:
+    profiles: ['infra']
     image: ghcr.io/metorial/signal:latest
     container_name: slates-hub-signal
     restart: unless-stopped
@@ -156,6 +161,7 @@ services:
       - slates-hub-network
 
   slates-registry:
+    profiles: ['infra']
     build:
       context: ../registry
       dockerfile: ../registry/dev.Dockerfile
@@ -216,16 +222,6 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      object-storage:
-        condition: service_healthy
-      forge:
-        condition: service_healthy
-      function-bay:
-        condition: service_healthy
-      signal:
-        condition: service_healthy
-      slates-registry:
         condition: service_healthy
     networks:
       - slates-hub-network
