@@ -25,7 +25,7 @@ services:
     container_name: slates-hub-redis
     restart: unless-stopped
     ports:
-      - '46379:6379' # Non-standard port to avoid conflicts
+      - '46379:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -44,14 +44,14 @@ services:
       - object-store-data:/app/data
     environment:
       RUST_LOG: info
-      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ${OBJECT_STORAGE_AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY:-test}
+      AWS_REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
       OBJECT_STORE__SERVER__HOST: 0.0.0.0
       OBJECT_STORE__SERVER__PORT: 52010
       OBJECT_STORE__BACKEND__TYPE: s3
-      OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION}
-      OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET}
+      OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
+      OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET:-slates-hub-ci}
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:52010/health || exit 1']
       interval: 5s
@@ -69,14 +69,14 @@ services:
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/forge
       REDIS_URL: redis://redis:6379/0
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-ShZrQyLmQjBuAPo5NGmjkbHzkFq67bLcwrGs4ZN9}
       DEFAULT_PROVIDER: aws.code-build
       OBJECT_STORAGE_URL: http://object-storage:52010
       LOG_BUCKET_NAME: logs
       ARTIFACT_BUCKET_NAME: artifacts
-      CODE_BUILD_AWS_REGION: ${CODE_BUILD_AWS_REGION:-}
-      CODE_BUILD_AWS_ACCESS_KEY_ID: ${CODE_BUILD_AWS_ACCESS_KEY_ID:-}
-      CODE_BUILD_AWS_SECRET_ACCESS_KEY: ${CODE_BUILD_AWS_SECRET_ACCESS_KEY:-}
+      CODE_BUILD_AWS_REGION: ${CODE_BUILD_AWS_REGION:-us-east-1}
+      CODE_BUILD_AWS_ACCESS_KEY_ID: ${CODE_BUILD_AWS_ACCESS_KEY_ID:-test}
+      CODE_BUILD_AWS_SECRET_ACCESS_KEY: ${CODE_BUILD_AWS_SECRET_ACCESS_KEY:-test}
       CODE_BUILD_PROJECT_NAME: ${CODE_BUILD_PROJECT_NAME:-}
       CODE_BUILD_ROLE_ARN: ${CODE_BUILD_ROLE_ARN:-}
     depends_on:
@@ -103,14 +103,14 @@ services:
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/function-bay
       REDIS_URL: redis://redis:6379/0
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-ShZrQyLmQjBuAPo5NGmjkbHzkFq67bLcwrGs4ZN9}
+      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER:-aws.lambda}
       OBJECT_STORAGE_URL: http://object-storage:52010
       BUNDLE_BUCKET_NAME: bundles
       FORGE_API_URL: http://forge:52020/metorial-forge
-      LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-}
-      LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-}
-      LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-}
+      LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-us-east-1}
+      LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-test}
+      LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-test}
       LAMBDA_ROLE_ARN: ${LAMBDA_ROLE_ARN:-}
     depends_on:
       postgres:
@@ -183,6 +183,50 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - slates-hub-network
+
+  slates-hub:
+    profiles: ['hub']
+    build:
+      context: ../../
+      dockerfile: ./apps/hub/compose.Dockerfile
+    container_name: slates-hub-service
+    restart: unless-stopped
+    ports:
+      - '52045:52045'
+      - '52046:52046'
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      METORIAL_ENV: ${METORIAL_ENV:-development}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FUNCTION_BAY_API_URL: ${FUNCTION_BAY_API_URL}
+      FUNCTION_BAY_TENANT_IDENTIFIER: ${FUNCTION_BAY_TENANT_IDENTIFIER}
+      FUNCTION_BAY_DEFAULT_MEMORY_MB: ${FUNCTION_BAY_DEFAULT_MEMORY_MB}
+      FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS: ${FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS}
+      OBJECT_STORAGE_URL: ${OBJECT_STORAGE_URL}
+      INVOCATIONS_BUCKET_NAME: ${INVOCATIONS_BUCKET_NAME}
+      INITIAL_REGISTRIES: ${INITIAL_REGISTRIES}
+      SIGNAL_API_URL: ${SIGNAL_API_URL}
+      SIGNAL_SENDER_IDENTIFIER: ${SIGNAL_SENDER_IDENTIFIER}
+      SLATES_HUB_INSTANCE_IDENTIFIER: ${SLATES_HUB_INSTANCE_IDENTIFIER}
+      SERVICE_PUBLIC_URL: ${SERVICE_PUBLIC_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      object-storage:
+        condition: service_healthy
+      forge:
+        condition: service_healthy
+      function-bay:
+        condition: service_healthy
+      signal:
+        condition: service_healthy
+      slates-registry:
+        condition: service_healthy
     networks:
       - slates-hub-network
 
