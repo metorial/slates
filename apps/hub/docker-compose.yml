@@ -72,7 +72,7 @@ services:
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/forge
       REDIS_URL: redis://redis:6379/0
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-ShZrQyLmQjBuAPo5NGmjkbHzkFq67bLcwrGs4ZN9}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DEFAULT_PROVIDER: aws.code-build
       OBJECT_STORAGE_URL: http://object-storage:52010
       LOG_BUCKET_NAME: logs
@@ -107,7 +107,7 @@ services:
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/function-bay
       REDIS_URL: redis://redis:6379/0
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-ShZrQyLmQjBuAPo5NGmjkbHzkFq67bLcwrGs4ZN9}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DEFAULT_PROVIDER: ${DEFAULT_PROVIDER:-aws.lambda}
       OBJECT_STORAGE_URL: http://object-storage:52010
       BUNDLE_BUCKET_NAME: bundles
