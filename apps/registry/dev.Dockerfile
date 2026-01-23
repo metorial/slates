@@ -11,6 +11,9 @@ RUN bun install
 # Copy source code
 COPY . .
 
+# Generate Prisma client
+RUN bun prisma generate
+
 # Expose port
 EXPOSE 51001
 
