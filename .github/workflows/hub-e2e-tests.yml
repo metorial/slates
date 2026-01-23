@@ -66,6 +66,14 @@ jobs:
           if [ "$all_healthy" != true ]; then
             echo "Timed out waiting for services to be healthy."
             docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci ps
+            echo "=== Unhealthy Service Logs ==="
+            for service in "${services[@]}"; do
+              status=$(docker inspect -f '{{.State.Health.Status}}' "$service" 2>/dev/null || echo "missing")
+              if [ "$status" != "healthy" ]; then
+                echo "--- $service ($status) ---"
+                docker logs "$service" --tail=200 || true
+              fi
+            done
             exit 1
           fi
           echo "Services are healthy!"
