@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: slates-hub
       POSTGRES_DB: slates-hub
     volumes:
-      - postgres_data2:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./init-test-db.sh:/docker-entrypoint-initdb.d/init-test-db.sh
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U slates-hub']
@@ -185,7 +185,11 @@ services:
       object-storage:
         condition: service_healthy
     healthcheck:
-      test: ['CMD-SHELL', 'curl -s http://localhost:52040/ping > /dev/null || exit 1']
+      test:
+        [
+          'CMD-SHELL',
+          "bun -e \"fetch('http://localhost:52040/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -223,16 +227,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -s http://localhost:52045/ping > /dev/null || exit 1']
-      interval: 10s
-      timeout: 5s
-      retries: 10
     networks:
       - slates-hub-network
 
 volumes:
-  postgres_data2:
+  postgres_data:
     driver: local
   object-store-data:
     driver: local
