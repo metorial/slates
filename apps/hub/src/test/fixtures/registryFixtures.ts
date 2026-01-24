@@ -1,32 +1,46 @@
 import { randomBytes } from 'crypto';
-import type { Registry } from '../../../prisma/generated/client';
+import type { PrismaClient, Registry } from '../../../prisma/generated/client';
 import { RegistryStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@metorial/testing';
 
-export class RegistryFixtures extends BaseFixture {
-  async default(overrides?: Partial<Registry>): Promise<Registry> {
+export const RegistryFixtures = (db: PrismaClient) => {
+  const defaultRegistry = async (
+    overrides: Partial<Registry> = {}
+  ): Promise<Registry> => {
     const { oid, id } = getId('registry');
+    const identifier =
+      overrides.identifier ?? `test-registry-${randomBytes(4).toString('hex')}`;
 
-    return this.db.registry.create({
-      data: {
+    const factory = defineFactory<Registry>(
+      {
         oid,
         id,
-        identifier: overrides?.identifier || `test-registry-${randomBytes(4).toString('hex')}`,
-        name: 'Test Registry',
-        url: 'http://localhost:52040',
-        status: RegistryStatus.active,
-        isPredefined: false,
-        ...overrides
+        identifier,
+        name: overrides.name ?? 'Test Registry',
+        url: overrides.url ?? 'http://localhost:52040',
+        status: overrides.status ?? RegistryStatus.active,
+        isPredefined: overrides.isPredefined ?? false
+      } as Registry,
+      {
+        persist: value => db.registry.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withStatus(status: RegistryStatus, overrides?: Partial<Registry>): Promise<Registry> {
-    return this.default({ ...overrides, status });
-  }
+    return factory.create(overrides);
+  };
 
-  async disabled(overrides?: Partial<Registry>): Promise<Registry> {
-    return this.withStatus(RegistryStatus.disabled, overrides);
-  }
-}
+  const withStatus = async (
+    status: RegistryStatus,
+    overrides: Partial<Registry> = {}
+  ): Promise<Registry> => defaultRegistry({ ...overrides, status });
+
+  const disabled = async (overrides: Partial<Registry> = {}): Promise<Registry> =>
+    withStatus(RegistryStatus.disabled, overrides);
+
+  return {
+    default: defaultRegistry,
+    withStatus,
+    disabled
+  };
+};

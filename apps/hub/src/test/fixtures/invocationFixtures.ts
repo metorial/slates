@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import type {
+  PrismaClient,
   SlateInvocationStorageBucket,
   SlateInvocation
 } from '../../../prisma/generated/client';
@@ -8,13 +9,13 @@ import { storage } from '../../storage';
 import { env } from '../../env';
 import { getStoredInvocationStorageKey } from '../../lib/invocation/store';
 import type { StoredSlateInvocation } from '../../lib/invocation/types';
-import { BaseFixture } from './base';
+import { defineFactory } from '@metorial/testing';
 
-export class SlateInvocationStorageBucketFixtures extends BaseFixture {
-  async default(bucket?: string): Promise<SlateInvocationStorageBucket> {
+export const SlateInvocationStorageBucketFixtures = (db: PrismaClient) => {
+  const defaultBucket = async (bucket?: string): Promise<SlateInvocationStorageBucket> => {
     const bucketName = bucket || `bucket-${randomBytes(4).toString('hex')}`;
 
-    return this.db.slateInvocationStorageBucket.upsert({
+    return db.slateInvocationStorageBucket.upsert({
       where: { bucket: bucketName },
       update: {},
       create: {
@@ -22,22 +23,26 @@ export class SlateInvocationStorageBucketFixtures extends BaseFixture {
         bucket: bucketName
       }
     });
-  }
-}
+  };
 
-export class SlateInvocationFixtures extends BaseFixture {
-  async default(data: {
+  return {
+    default: defaultBucket
+  };
+};
+
+export const SlateInvocationFixtures = (db: PrismaClient) => {
+  const defaultInvocation = async (data: {
     deploymentOid: bigint;
     bucketOid: number;
     providerInvocationId?: string;
     overrides?: Partial<SlateInvocation>;
-  }): Promise<SlateInvocation> {
+  }): Promise<SlateInvocation> => {
     const { oid, id } = getId('slateInvocation');
     const providerInvocationId =
       data.providerInvocationId || `inv_${randomBytes(4).toString('hex')}`;
 
-    return this.db.slateInvocation.create({
-      data: {
+    const factory = defineFactory<SlateInvocation>(
+      {
         oid,
         id,
         isPending: true,
@@ -47,22 +52,27 @@ export class SlateInvocationFixtures extends BaseFixture {
         deploymentOid: data.deploymentOid,
         bucketOid: data.bucketOid,
         ...data.overrides
+      } as SlateInvocation,
+      {
+        persist: value => db.slateInvocation.create({ data: value })
       }
-    });
-  }
+    );
 
-  async succeeded(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const succeeded = async (data: {
     deploymentOid: bigint;
     bucketOid?: number;
     providerInvocationId?: string;
     overrides?: Partial<SlateInvocation>;
-  }): Promise<SlateInvocation> {
+  }): Promise<SlateInvocation> => {
     // Get or create the invocations bucket using upsert with race condition handling
     // Prisma's upsert isn't truly atomic in PostgreSQL, so concurrent calls can still race
     const bucketName = env.storage.INVOCATIONS_BUCKET_NAME;
     let testBucket: SlateInvocationStorageBucket;
     try {
-      testBucket = await this.db.slateInvocationStorageBucket.upsert({
+      testBucket = await db.slateInvocationStorageBucket.upsert({
         where: { bucket: bucketName },
         update: {},
         create: {
@@ -73,7 +83,7 @@ export class SlateInvocationFixtures extends BaseFixture {
     } catch (err: any) {
       // Handle race condition - another concurrent call may have created it
       if (err.code === 'P2002') {
-        testBucket = await this.db.slateInvocationStorageBucket.findFirstOrThrow({
+        testBucket = await db.slateInvocationStorageBucket.findFirstOrThrow({
           where: { bucket: bucketName }
         });
       } else {
@@ -81,7 +91,7 @@ export class SlateInvocationFixtures extends BaseFixture {
       }
     }
 
-    const invocation = await this.default({
+    const invocation = await defaultInvocation({
       deploymentOid: data.deploymentOid,
       bucketOid: data.bucketOid ?? testBucket.oid,
       providerInvocationId: data.providerInvocationId,
@@ -118,5 +128,10 @@ export class SlateInvocationFixtures extends BaseFixture {
     );
 
     return invocation;
-  }
-}
+  };
+
+  return {
+    default: defaultInvocation,
+    succeeded
+  };
+};

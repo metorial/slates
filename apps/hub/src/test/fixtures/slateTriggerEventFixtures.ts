@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import type {
+  PrismaClient,
   SlateTriggerEvent,
   SlateTriggerReceiver,
   SlateTriggerReceiverTrigger,
@@ -13,13 +14,13 @@ import type {
 } from '../../../prisma/generated/client';
 import { SlateTriggerEventDeliveryStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@metorial/testing';
 import { SlateTriggerReceiverFixtures } from './slateTriggerReceiverFixtures';
 import { SlateInvocationFixtures, SlateInvocationStorageBucketFixtures } from './invocationFixtures';
 import { DeploymentProviderFixtures, SlateDeploymentFixtures } from './deploymentFixtures';
 
-export class SlateTriggerEventFixtures extends BaseFixture {
-  async default(data: {
+export const SlateTriggerEventFixtures = (db: PrismaClient) => {
+  const defaultEvent = async (data: {
     receiverOid: bigint;
     receiverTriggerOid: bigint;
     actionOid: bigint;
@@ -27,12 +28,12 @@ export class SlateTriggerEventFixtures extends BaseFixture {
     instanceOid: bigint;
     invocationOid: bigint;
     overrides?: Partial<SlateTriggerEvent>;
-  }): Promise<SlateTriggerEvent> {
+  }): Promise<SlateTriggerEvent> => {
     const { oid, id } = getId('slateTriggerEvent');
     const sourceId = `event_${randomBytes(8).toString('hex')}`;
 
-    return this.db.slateTriggerEvent.create({
-      data: {
+    const factory = defineFactory<SlateTriggerEvent>(
+      {
         oid,
         id,
         receiverOid: data.receiverOid,
@@ -48,11 +49,16 @@ export class SlateTriggerEventFixtures extends BaseFixture {
         deliveryStatus: SlateTriggerEventDeliveryStatus.pending,
         signalEventId: `signal_${randomBytes(8).toString('hex')}`,
         ...data.overrides
+      } as SlateTriggerEvent,
+      {
+        persist: value => db.slateTriggerEvent.create({ data: value })
       }
-    });
-  }
+    );
 
-  async completeForReceiver(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const completeForReceiver = async (data: {
     receiverOid: bigint;
     receiverTriggerOid: bigint;
     actionOid: bigint;
@@ -63,39 +69,39 @@ export class SlateTriggerEventFixtures extends BaseFixture {
     slate: Slate & { currentVersion: SlateVersion & { specification: SlateSpecification } };
     instance: SlateInstance;
     invocation: SlateInvocation;
-  }> {
+  }> => {
     const { SlateFixtures } = await import('./slateFixtures');
     const { SlateInstanceFixtures } = await import('./instanceFixtures');
 
-    const providerFixtures = new DeploymentProviderFixtures(this.db);
+    const providerFixtures = DeploymentProviderFixtures(db);
     const provider = await providerFixtures.default();
 
-    const slateFixtures = new SlateFixtures(this.db);
+    const slateFixtures = SlateFixtures(db);
     const slate = await slateFixtures.complete();
 
-    const deploymentFixtures = new SlateDeploymentFixtures(this.db);
+    const deploymentFixtures = SlateDeploymentFixtures(db);
     const deployment = await deploymentFixtures.default({
       slateOid: slate.oid,
       slateVersionOid: slate.currentVersion.oid,
       providerOid: provider.oid
     });
 
-    const bucketFixtures = new SlateInvocationStorageBucketFixtures(this.db);
+    const bucketFixtures = SlateInvocationStorageBucketFixtures(db);
     const bucket = await bucketFixtures.default();
 
-    const instanceFixtures = new SlateInstanceFixtures(this.db);
+    const instanceFixtures = SlateInstanceFixtures(db);
     const instance = await instanceFixtures.default({
       slateOid: slate.oid,
       tenantOid: data.tenantOid
     });
 
-    const invocationFixtures = new SlateInvocationFixtures(this.db);
+    const invocationFixtures = SlateInvocationFixtures(db);
     const invocation = await invocationFixtures.default({
       deploymentOid: deployment.oid,
       bucketOid: bucket.oid
     });
 
-    const event = await this.default({
+    const event = await defaultEvent({
       receiverOid: data.receiverOid,
       receiverTriggerOid: data.receiverTriggerOid,
       actionOid: data.actionOid,
@@ -106,9 +112,9 @@ export class SlateTriggerEventFixtures extends BaseFixture {
     });
 
     return { event, slate, instance, invocation };
-  }
+  };
 
-  async complete(data?: {
+  const complete = async (data?: {
     eventOverrides?: Partial<SlateTriggerEvent>;
   }): Promise<{
     event: SlateTriggerEvent;
@@ -119,31 +125,31 @@ export class SlateTriggerEventFixtures extends BaseFixture {
     instance: SlateInstance;
     invocation: SlateInvocation;
     tenant: Tenant;
-  }> {
-    const receiverFixtures = new SlateTriggerReceiverFixtures(this.db);
+  }> => {
+    const receiverFixtures = SlateTriggerReceiverFixtures(db);
     const { receiver, receiverTrigger, triggerAction, slate, instance, tenant } =
       await receiverFixtures.complete();
 
-    const providerFixtures = new DeploymentProviderFixtures(this.db);
+    const providerFixtures = DeploymentProviderFixtures(db);
     const provider = await providerFixtures.default();
 
-    const deploymentFixtures = new SlateDeploymentFixtures(this.db);
+    const deploymentFixtures = SlateDeploymentFixtures(db);
     const deployment = await deploymentFixtures.default({
       slateOid: slate.oid,
       slateVersionOid: slate.currentVersion.oid,
       providerOid: provider.oid
     });
 
-    const bucketFixtures = new SlateInvocationStorageBucketFixtures(this.db);
+    const bucketFixtures = SlateInvocationStorageBucketFixtures(db);
     const bucket = await bucketFixtures.default();
 
-    const invocationFixtures = new SlateInvocationFixtures(this.db);
+    const invocationFixtures = SlateInvocationFixtures(db);
     const invocation = await invocationFixtures.default({
       deploymentOid: deployment.oid,
       bucketOid: bucket.oid
     });
 
-    const event = await this.default({
+    const event = await defaultEvent({
       receiverOid: receiver.oid,
       receiverTriggerOid: receiverTrigger.oid,
       actionOid: triggerAction.oid,
@@ -163,5 +169,11 @@ export class SlateTriggerEventFixtures extends BaseFixture {
       invocation,
       tenant
     };
-  }
-}
+  };
+
+  return {
+    default: defaultEvent,
+    completeForReceiver,
+    complete
+  };
+};

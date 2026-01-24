@@ -1,4 +1,5 @@
 import type {
+  PrismaClient,
   SlateAuthConfig,
   SlateAuthMethod,
   Slate,
@@ -8,25 +9,25 @@ import type {
 } from '../../../prisma/generated/client';
 import { SlateAuthConfigType, SecretType, type SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@metorial/testing';
 
 import { TenantFixtures } from './tenantFixtures';
 import { SecretFixtures } from './secretFixtures';
 import { SlateAuthMethodFixtures } from './slateAuthMethodFixtures';
 
-export class SlateAuthConfigFixtures extends BaseFixture {
-  async default(data: {
+export const SlateAuthConfigFixtures = (db: PrismaClient) => {
+  const defaultConfig = async (data: {
     slateOid: bigint;
     tenantOid: bigint;
     authMethodOid: bigint;
     secretOid: bigint;
     type?: SlateAuthConfigType;
     overrides?: Omit<Partial<Prisma.SlateAuthConfigUncheckedCreateInput>, 'oid' | 'id'>;
-  }): Promise<SlateAuthConfig> {
+  }): Promise<SlateAuthConfig> => {
     const { oid, id } = getId('slateAuthConfig');
 
-    return this.db.slateAuthConfig.create({
-      data: {
+    const factory = defineFactory<SlateAuthConfig>(
+      {
         oid,
         id,
         type: data.type ?? SlateAuthConfigType.manual,
@@ -36,29 +37,34 @@ export class SlateAuthConfigFixtures extends BaseFixture {
         authMethodOid: data.authMethodOid,
         secretOid: data.secretOid,
         ...data.overrides
+      } as SlateAuthConfig,
+      {
+        persist: value => db.slateAuthConfig.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withSecret(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withSecret = async (data: {
     tenantOid: bigint;
     slateOid: bigint;
     authMethodOid: bigint;
-  }): Promise<SlateAuthConfig> {
-    const secretFixtures = new SecretFixtures(this.db);
+  }): Promise<SlateAuthConfig> => {
+    const secretFixtures = SecretFixtures(db);
     const secret = await secretFixtures.default({
       tenantOid: data.tenantOid,
       type: SecretType.slate_authentication_configuration
     });
-    return this.default({
+    return defaultConfig({
       slateOid: data.slateOid,
       tenantOid: data.tenantOid,
       authMethodOid: data.authMethodOid,
       secretOid: secret.oid
     });
-  }
+  };
 
-  async complete(data?: {
+  const complete = async (data?: {
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
     type?: SlateAuthConfigType;
@@ -69,23 +75,23 @@ export class SlateAuthConfigFixtures extends BaseFixture {
     slate: Slate;
     tenant: Tenant;
     secret: Secret;
-  }> {
-    const tenantFixtures = new TenantFixtures(this.db);
+  }> => {
+    const tenantFixtures = TenantFixtures(db);
     const tenant = await tenantFixtures.default();
 
-    const authMethodFixtures = new SlateAuthMethodFixtures(this.db);
+    const authMethodFixtures = SlateAuthMethodFixtures(db);
     const { authMethod, slate } = await authMethodFixtures.withSlate({
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus
     });
 
-    const secretFixtures = new SecretFixtures(this.db);
+    const secretFixtures = SecretFixtures(db);
     const secret = await secretFixtures.default({
       tenantOid: tenant.oid,
       type: SecretType.slate_authentication_configuration
     });
 
-    const config = await this.default({
+    const config = await defaultConfig({
       slateOid: slate.oid,
       tenantOid: tenant.oid,
       authMethodOid: authMethod.oid,
@@ -95,5 +101,11 @@ export class SlateAuthConfigFixtures extends BaseFixture {
     });
 
     return { config, authMethod, slate, tenant, secret };
-  }
-}
+  };
+
+  return {
+    default: defaultConfig,
+    withSecret,
+    complete
+  };
+};

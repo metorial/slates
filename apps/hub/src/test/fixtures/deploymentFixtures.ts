@@ -1,46 +1,63 @@
 import { randomBytes } from 'crypto';
-import type { DeploymentProvider, SlateDeployment } from '../../../prisma/generated/client';
+import type {
+  PrismaClient,
+  DeploymentProvider,
+  SlateDeployment
+} from '../../../prisma/generated/client';
 import { SlateDeploymentStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@metorial/testing';
 
-export class DeploymentProviderFixtures extends BaseFixture {
-  async default(overrides?: Partial<DeploymentProvider>): Promise<DeploymentProvider> {
+export const DeploymentProviderFixtures = (db: PrismaClient) => {
+  const defaultProvider = async (
+    overrides: Partial<DeploymentProvider> = {}
+  ): Promise<DeploymentProvider> => {
     const { oid, id } = getId('deploymentProvider');
-    const identifier = `provider-${randomBytes(4).toString('hex')}`;
+    const identifier =
+      overrides.identifier ?? `provider-${randomBytes(4).toString('hex')}`;
 
-    return this.db.deploymentProvider.create({
-      data: {
+    const factory = defineFactory<DeploymentProvider>(
+      {
         oid,
         id,
-        name: `Test Provider ${identifier}`,
-        identifier,
-        ...overrides
+        name: overrides.name ?? `Test Provider ${identifier}`,
+        identifier
+      } as DeploymentProvider,
+      {
+        persist: value => db.deploymentProvider.create({ data: value })
       }
-    });
-  }
+    );
 
-  async functionBay(overrides?: Partial<DeploymentProvider>): Promise<DeploymentProvider> {
-    return this.default({
+    return factory.create(overrides);
+  };
+
+  const functionBay = async (
+    overrides: Partial<DeploymentProvider> = {}
+  ): Promise<DeploymentProvider> =>
+    defaultProvider({
       name: 'Function Bay',
       identifier: 'function-bay',
       ...overrides
     });
-  }
-}
 
-export class SlateDeploymentFixtures extends BaseFixture {
-  async default(data: {
+  return {
+    default: defaultProvider,
+    functionBay
+  };
+};
+
+export const SlateDeploymentFixtures = (db: PrismaClient) => {
+  const defaultDeployment = async (data: {
     slateVersionOid: bigint;
     slateOid: bigint;
     providerOid: bigint;
     status?: SlateDeploymentStatus;
     overrides?: Partial<SlateDeployment>;
-  }): Promise<SlateDeployment> {
+  }): Promise<SlateDeployment> => {
     const { oid, id } = getId('slateDeployment');
 
-    return this.db.slateDeployment.create({
-      data: {
+    const factory = defineFactory<SlateDeployment>(
+      {
         oid,
         id,
         status: data.status || SlateDeploymentStatus.pending,
@@ -49,22 +66,27 @@ export class SlateDeploymentFixtures extends BaseFixture {
         providerOid: data.providerOid,
         providerDeploymentInfo: null,
         ...data.overrides
+      } as SlateDeployment,
+      {
+        persist: value => db.slateDeployment.create({ data: value })
       }
-    });
-  }
+    );
 
-  async succeeded(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const succeeded = async (data: {
     slateVersionOid: bigint;
     slateOid: bigint;
     providerOid: bigint;
     functionId?: string;
     overrides?: Partial<SlateDeployment>;
-  }): Promise<SlateDeployment> {
+  }): Promise<SlateDeployment> => {
     const functionId = data.functionId || `fn_${randomBytes(4).toString('hex')}`;
     const functionDeploymentId = `dep_${randomBytes(4).toString('hex')}`;
     const providerDeploymentInfo = { functionId, functionDeploymentId };
 
-    const deployment = await this.default({
+    const deployment = await defaultDeployment({
       slateVersionOid: data.slateVersionOid,
       slateOid: data.slateOid,
       providerOid: data.providerOid,
@@ -75,7 +97,7 @@ export class SlateDeploymentFixtures extends BaseFixture {
       }
     });
 
-    await this.db.slateVersion.update({
+    await db.slateVersion.update({
       where: { oid: data.slateVersionOid },
       data: {
         activeDeploymentOid: deployment.oid,
@@ -85,5 +107,10 @@ export class SlateDeploymentFixtures extends BaseFixture {
     });
 
     return deployment;
-  }
-}
+  };
+
+  return {
+    default: defaultDeployment,
+    succeeded
+  };
+};

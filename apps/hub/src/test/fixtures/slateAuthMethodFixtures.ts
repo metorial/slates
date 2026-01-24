@@ -1,29 +1,30 @@
 import { randomBytes } from 'crypto';
 import type {
+  PrismaClient,
   SlateAuthMethod,
   Slate,
   SlateSpecification
 } from '../../../prisma/generated/client';
 import { SlateAuthMethodType, SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@metorial/testing';
 import { SlateFixtures } from './slateFixtures';
 
-export class SlateAuthMethodFixtures extends BaseFixture {
-  async default(data: {
+export const SlateAuthMethodFixtures = (db: PrismaClient) => {
+  const defaultAuthMethod = async (data: {
     slateOid: bigint;
     specificationOid: bigint;
     type?: SlateAuthMethodType;
     overrides?: Partial<SlateAuthMethod>;
-  }): Promise<SlateAuthMethod> {
+  }): Promise<SlateAuthMethod> => {
     const { oid, id } = getId('slateAuthMethod');
     const key = `auth-method-${randomBytes(4).toString('hex')}`;
 
     const authType = data.type ?? SlateAuthMethodType.oauth;
     const specType = `auth.${authType}` as const;
 
-    return this.db.slateAuthMethod.create({
-      data: {
+    const factory = defineFactory<SlateAuthMethod>(
+      {
         oid,
         id,
         type: authType,
@@ -42,11 +43,16 @@ export class SlateAuthMethodFixtures extends BaseFixture {
         slateOid: data.slateOid,
         mostRecentSpecificationOid: data.specificationOid,
         ...data.overrides
+      } as SlateAuthMethod,
+      {
+        persist: value => db.slateAuthMethod.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withSlate(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withSlate = async (data?: {
     type?: SlateAuthMethodType;
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
@@ -54,14 +60,14 @@ export class SlateAuthMethodFixtures extends BaseFixture {
   }): Promise<{
     authMethod: SlateAuthMethod;
     slate: Slate & { currentVersion: { specification: SlateSpecification } };
-  }> {
-    const slateFixtures = new SlateFixtures(this.db);
+  }> => {
+    const slateFixtures = SlateFixtures(db);
     const slate = await slateFixtures.complete({
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus ?? SlateStatus.active
     });
 
-    const authMethod = await this.default({
+    const authMethod = await defaultAuthMethod({
       slateOid: slate.oid,
       specificationOid: slate.currentVersion.specification.oid,
       type: data?.type,
@@ -69,5 +75,10 @@ export class SlateAuthMethodFixtures extends BaseFixture {
     });
 
     return { authMethod, slate };
-  }
-}
+  };
+
+  return {
+    default: defaultAuthMethod,
+    withSlate
+  };
+};

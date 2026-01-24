@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import type {
+  PrismaClient,
   Slate,
   Registry,
   SlateVersion,
@@ -7,22 +8,22 @@ import type {
 } from '../../../prisma/generated/client';
 import { SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@metorial/testing';
 import { RegistryFixtures } from './registryFixtures';
 import { SlateVersionFixtures } from './slateVersionFixtures';
 
-export class SlateFixtures extends BaseFixture {
-  async default(data: {
+export const SlateFixtures = (db: PrismaClient) => {
+  const defaultSlate = async (data: {
     registryOid: bigint;
     identifier?: string;
     status?: SlateStatus;
     overrides?: Partial<Slate>;
-  }): Promise<Slate> {
+  }): Promise<Slate> => {
     const { oid, id } = getId('slate');
     const identifier = data.identifier || `test-slate-${randomBytes(4).toString('hex')}`;
 
-    return this.db.slate.create({
-      data: {
+    const factory = defineFactory<Slate>(
+      {
         oid,
         id,
         status: data.status || SlateStatus.active,
@@ -36,33 +37,38 @@ export class SlateFixtures extends BaseFixture {
         slateIdentifierOnRegistry: identifier,
         slateIdOnRegistry: `slate_${identifier}`,
         ...data.overrides
+      } as Slate,
+      {
+        persist: value => db.slate.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withRegistry(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withRegistry = async (data?: {
     registryOverrides?: Partial<Registry>;
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
     slateOverrides?: Partial<Slate>;
-  }): Promise<Slate & { registry: Registry }> {
-    const registryFixtures = new RegistryFixtures(this.db);
+  }): Promise<Slate & { registry: Registry }> => {
+    const registryFixtures = RegistryFixtures(db);
     const registry = await registryFixtures.default(data?.registryOverrides);
 
-    const slate = await this.default({
+    const slate = await defaultSlate({
       registryOid: registry.oid,
       identifier: data?.slateIdentifier,
       status: data?.slateStatus,
       overrides: data?.slateOverrides
     });
 
-    return this.db.slate.findUniqueOrThrow({
+    return db.slate.findUniqueOrThrow({
       where: { id: slate.id },
       include: { registry: true }
     }) as Promise<Slate & { registry: Registry }>;
-  }
+  };
 
-  async complete(data?: {
+  const complete = async (data?: {
     registryOverrides?: Partial<Registry>;
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
@@ -74,15 +80,15 @@ export class SlateFixtures extends BaseFixture {
       registry: Registry;
       currentVersion: SlateVersion & { specification: SlateSpecification };
     }
-  > {
-    const slateWithRegistry = await this.withRegistry({
+  > => {
+    const slateWithRegistry = await withRegistry({
       registryOverrides: data?.registryOverrides,
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus,
       slateOverrides: data?.slateOverrides
     });
 
-    const versionFixtures = new SlateVersionFixtures(this.db);
+    const versionFixtures = SlateVersionFixtures(db);
     const { version } = await versionFixtures.withSpecification({
       slateOid: slateWithRegistry.oid,
       registryOid: slateWithRegistry.registryOid,
@@ -90,12 +96,12 @@ export class SlateFixtures extends BaseFixture {
       specificationOverrides: data?.specificationOverrides
     });
 
-    await this.db.slate.update({
+    await db.slate.update({
       where: { oid: slateWithRegistry.oid },
       data: { currentVersionOid: version.oid }
     });
 
-    return this.db.slate.findUniqueOrThrow({
+    return db.slate.findUniqueOrThrow({
       where: { id: slateWithRegistry.id },
       include: {
         registry: true,
@@ -109,25 +115,32 @@ export class SlateFixtures extends BaseFixture {
         currentVersion: SlateVersion & { specification: SlateSpecification };
       }
     >;
-  }
+  };
 
-  async withoutVersion(data?: {
+  const withoutVersion = async (data?: {
     registryOverrides?: Partial<Registry>;
     slateIdentifier?: string;
     slateOverrides?: Partial<Slate>;
-  }): Promise<Slate & { registry: Registry; currentVersion: null }> {
-    const slate = await this.withRegistry({
+  }): Promise<Slate & { registry: Registry; currentVersion: null }> => {
+    const slate = await withRegistry({
       registryOverrides: data?.registryOverrides,
       slateIdentifier: data?.slateIdentifier,
       slateOverrides: data?.slateOverrides
     });
 
-    return this.db.slate.findUniqueOrThrow({
+    return db.slate.findUniqueOrThrow({
       where: { id: slate.id },
       include: {
         registry: true,
         currentVersion: true
       }
     }) as Promise<Slate & { registry: Registry; currentVersion: null }>;
-  }
-}
+  };
+
+  return {
+    default: defaultSlate,
+    withRegistry,
+    complete,
+    withoutVersion
+  };
+};
