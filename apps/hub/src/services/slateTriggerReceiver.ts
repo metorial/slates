@@ -1,26 +1,29 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
+import { getSentry } from '@lowerdeck/sentry';
 import { Service } from '@lowerdeck/service';
 import {
   SlateTriggerDestinationStatus,
   SlateTriggerReceiverTriggerSource,
+  type Slate,
   type SlateAuthConfig,
   type SlateInstance,
   type SlateInstanceConfig,
-  type Slate,
   type Tenant
 } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId, snowflake } from '../id';
 import { slateTriggerWebhookRegisterQueue } from '../queues/trigger/eventQueues';
 import { slateSessionService } from './slateSession';
+import { SlateTriggerReceiverCore } from './slateTriggerReceiverCore';
+import { SlateTriggerReceiverRuntime } from './slateTriggerReceiverRuntime';
 import {
   normalizeEventTypes,
   receiverInclude,
   receiverTriggerInclude
 } from './slateTriggerReceiverShared';
-import { SlateTriggerReceiverCore } from './slateTriggerReceiverCore';
-import { SlateTriggerReceiverRuntime } from './slateTriggerReceiverRuntime';
+
+let Sentry = getSentry();
 
 class slateTriggerReceiverServiceImpl {
   private readonly core: SlateTriggerReceiverCore;
@@ -371,6 +374,7 @@ class slateTriggerReceiverServiceImpl {
             receiverTrigger: trigger
           });
         } catch (error) {
+          Sentry.captureException(error);
           console.error('Failed to auto-unregister trigger webhook:', error);
         }
       }

@@ -2,6 +2,7 @@ import { canonicalize } from '@lowerdeck/canonicalize';
 import { Hash } from '@lowerdeck/hash';
 import { createLock } from '@lowerdeck/lock';
 import { createQueue, QueueRetryError } from '@lowerdeck/queue';
+import { getSentry } from '@lowerdeck/sentry';
 import { differenceInMinutes } from 'date-fns';
 import semver from 'semver';
 import { db } from '../../db';
@@ -10,6 +11,8 @@ import { getId, snowflake } from '../../id';
 import { getStackError, getStackResultsOrThrow } from '../../lib/invocation/error';
 import type { InvocationError } from '../../lib/invocation/types';
 import { slateInvocationService } from '../../services';
+
+let Sentry = getSentry();
 
 export let discoverSlateQueue = createQueue<{ versionId: string }>({
   name: 'shub/dis/sing',
@@ -410,6 +413,7 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
       });
     } catch (e) {
       console.error('Error during discovery:', e);
+      Sentry.captureException(e);
 
       await discoverSlateErrorQueue.add({
         versionId: version.id,
