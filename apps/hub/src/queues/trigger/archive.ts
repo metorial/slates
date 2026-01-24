@@ -1,4 +1,5 @@
 import { QueueRetryError } from '@lowerdeck/queue';
+import { getSentry } from '@lowerdeck/sentry';
 import { SlateTriggerEventInputStatus } from '../../../prisma/generated/client';
 import { db } from '../../db';
 import {
@@ -7,6 +8,8 @@ import {
 } from '../../lib/triggerEventInput';
 import { invocationsBucketRecord, storage } from '../../storage';
 import { slateTriggerEventInputArchiveQueue } from './eventQueues';
+
+let Sentry = getSentry();
 
 const terminalStatuses = new Set<SlateTriggerEventInputStatus>([
   SlateTriggerEventInputStatus.succeeded,
@@ -65,6 +68,10 @@ export let slateTriggerEventInputArchiveQueueProcessor =
         }
       });
     } catch (error) {
+      Sentry.captureException(error, {
+        extra: { eventInputId: data.eventInputId }
+      });
+
       console.error('Failed to archive trigger event input:', {
         eventInputId: data.eventInputId,
         error

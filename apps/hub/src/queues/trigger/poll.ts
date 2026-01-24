@@ -1,9 +1,12 @@
 import { createCron } from '@lowerdeck/cron';
 import { createLock } from '@lowerdeck/lock';
 import { createQueue, QueueRetryError } from '@lowerdeck/queue';
+import { getSentry } from '@lowerdeck/sentry';
 import { db } from '../../db';
 import { env } from '../../env';
 import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
+
+let Sentry = getSentry();
 
 export let slateTriggerPollingCron = createCron(
   {
@@ -47,6 +50,7 @@ export let slateTriggerPollingBatchQueueProcessor = slateTriggerPollingBatchQueu
         cursor: triggers[triggers.length - 1]!.id
       });
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Failed to enqueue polling triggers:', error);
       throw new QueueRetryError();
     }
@@ -84,6 +88,9 @@ export let slateTriggerPollQueueProcessor = slateTriggerPollQueue.process(async 
       });
     });
   } catch (error) {
+    Sentry.captureException(error, {
+      extra: { receiverTriggerId: data.receiverTriggerId }
+    });
     console.error('Failed to poll trigger receiver:', {
       receiverTriggerId: data.receiverTriggerId,
       error

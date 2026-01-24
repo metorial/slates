@@ -1,4 +1,5 @@
 import { delay } from '@lowerdeck/delay';
+import { getSentry } from '@lowerdeck/sentry';
 import PQueue from 'p-queue';
 import type { SlateInvocation } from '../../../prisma/generated/client';
 import { db } from '../../db';
@@ -10,6 +11,8 @@ import type {
   SlatesResponse,
   StoredSlateInvocation
 } from './types';
+
+let Sentry = getSentry();
 
 let storeQueue = new PQueue({ concurrency: 25 });
 
@@ -133,7 +136,14 @@ export let storeSlateInvocation = (
         }
       });
     })
-    .catch(console.error);
+    .catch(err => {
+      Sentry.captureException(err, {
+        extra: {
+          slateInvocationOid: d.record.oid
+        }
+      });
+      console.error('Error storing slate invocation:', err);
+    });
 };
 
 export let getStoredInvocationStorageKey = (invocation: SlateInvocation) => {
