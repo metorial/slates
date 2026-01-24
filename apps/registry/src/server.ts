@@ -1,3 +1,5 @@
+import './instrument';
+
 import { slatesRegistryApi } from './apis/internal';
 import { registryApp } from './apis/public';
 
