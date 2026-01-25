@@ -23,7 +23,6 @@ import { slateTriggerInvocationController } from './slateTriggerInvocation';
 import { slateTriggerReceiverController } from './slateTriggerReceiver';
 import { slateVersionController } from './slateVersion';
 import { slateVersionDiscoveryController } from './slateVersionDiscovery';
-import { slateEventController } from './slateEvent';
 import { slateSpecificationChangeController } from './slateSpecificationChange';
 import { tenantController } from './tenant';
 
@@ -55,7 +54,6 @@ export let rootController = app.controller({
   slateTriggerInvocation: slateTriggerInvocationController,
   slateTriggerDelivery: slateTriggerDeliveryController,
   slateVersionDiscovery: slateVersionDiscoveryController,
-  slateEvent: slateEventController,
   slateSpecificationChange: slateSpecificationChangeController
 });
 
