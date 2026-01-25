@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Avatar, Button, Text, Title, Badge, Flex, Spacer, Group, RenderDate } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { useUsers } from '../../hooks';
-import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
+import { EmptyState, MonoText } from '../../components/styled';
 
 export let UserList = () => {
   let navigate = useNavigate();
@@ -40,27 +41,28 @@ export let UserList = () => {
         </Flex>
 
         <Group.Wrapper>
-          {items.map(user => (
-            <ListItemLink key={user.id} to={`/tenants/${tenantId}/users/${user.id}`}>
-              <ListItemRow align="center" justify="space-between">
+          <Table
+            padding={{ sides: '20px' }}
+            headers={['User', 'Status', 'Created']}
+            data={items.map(user => ({
+              href: `/tenants/${tenantId}/users/${user.id}`,
+              data: [
                 <Flex align="center" gap={14}>
                   <Avatar entity={{ name: user.name }} size={32} withInitials radius={6} />
                   <div>
-                    <Flex align="center" gap={8}>
-                      <Text size="2" weight="medium">{user.name}</Text>
-                      <Badge color={user.status === 'active' ? 'green' : 'gray'} size="1">
-                        {user.status}
-                      </Badge>
-                    </Flex>
+                    <Text size="2" weight="medium">{user.name}</Text>
                     <Text size="1" color="gray600">
                       <MonoText>{user.identifier}</MonoText>
                     </Text>
                   </div>
-                </Flex>
+                </Flex>,
+                <Badge color={user.status === 'active' ? 'green' : 'gray'} size="1">
+                  {user.status}
+                </Badge>,
                 <RenderDate date={user.createdAt} />
-              </ListItemRow>
-            </ListItemLink>
-          ))}
+              ]
+            }))}
+          />
         </Group.Wrapper>
       </Flex>
     );

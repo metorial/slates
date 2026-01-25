@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Avatar, Button, Text, Title, Flex, Spacer, Badge, Group, RenderDate } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { useSubRegistries } from '../../hooks';
-import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
+import { EmptyState, MonoText } from '../../components/styled';
 
 export let SubRegistryList = () => {
   let navigate = useNavigate();
@@ -40,25 +41,26 @@ export let SubRegistryList = () => {
         </Flex>
 
         <Group.Wrapper>
-          {items.map(subRegistry => (
-            <ListItemLink key={subRegistry.id} to={`/tenants/${tenantId}/sub-registries/${subRegistry.id}`}>
-              <ListItemRow align="center" justify="space-between">
+          <Table
+            padding={{ sides: '20px' }}
+            headers={['Sub-Registry', 'Filters', 'Created']}
+            data={items.map(subRegistry => ({
+              href: `/tenants/${tenantId}/sub-registries/${subRegistry.id}`,
+              data: [
                 <Flex align="center" gap={14}>
                   <Avatar entity={{ name: subRegistry.name }} size={32} withInitials radius={6} />
                   <div>
-                    <Flex align="center" gap={8}>
-                      <Text size="2" weight="medium">{subRegistry.name}</Text>
-                      <Badge color="blue" size="1">{subRegistry.filters?.length ?? 0} filters</Badge>
-                    </Flex>
+                    <Text size="2" weight="medium">{subRegistry.name}</Text>
                     <Text size="1" color="gray600">
                       <MonoText>{subRegistry.identifier}</MonoText>
                     </Text>
                   </div>
-                </Flex>
+                </Flex>,
+                <Badge color="blue" size="1">{subRegistry.filters?.length ?? 0} filters</Badge>,
                 <RenderDate date={subRegistry.createdAt} />
-              </ListItemRow>
-            </ListItemLink>
-          ))}
+              ]
+            }))}
+          />
         </Group.Wrapper>
       </Flex>
     );

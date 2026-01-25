@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Avatar, Button, Text, Title, Flex, Spacer, Group, RenderDate } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { useTenants } from '../../hooks';
-import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
+import { EmptyState, MonoText } from '../../components/styled';
 
 export let TenantList = () => {
   let navigate = useNavigate();
@@ -39,9 +40,12 @@ export let TenantList = () => {
         </Flex>
 
         <Group.Wrapper>
-          {items.map(tenant => (
-            <ListItemLink key={tenant.id} to={`/tenants/${tenant.id}`}>
-              <ListItemRow align="center" justify="space-between">
+          <Table
+            padding={{ sides: '20px' }}
+            headers={['Tenant', 'Created']}
+            data={items.map(tenant => ({
+              href: `/tenants/${tenant.id}`,
+              data: [
                 <Flex align="center" gap={14}>
                   <Avatar entity={{ name: tenant.name }} size={32} withInitials radius={6} />
                   <div>
@@ -50,11 +54,11 @@ export let TenantList = () => {
                       <MonoText>{tenant.identifier}</MonoText>
                     </Text>
                   </div>
-                </Flex>
+                </Flex>,
                 <RenderDate date={tenant.createdAt} />
-              </ListItemRow>
-            </ListItemLink>
-          ))}
+              ]
+            }))}
+          />
         </Group.Wrapper>
       </Flex>
     );

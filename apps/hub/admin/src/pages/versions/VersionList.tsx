@@ -1,8 +1,9 @@
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Badge, Flex, Group, RenderDate, Spacer, Text, Title } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { useParams } from 'react-router-dom';
 import { BackLink } from '../../components/BackLink.js';
-import { EmptyState, ListItemLink, ListItemRow } from '../../components/styled.js';
+import { EmptyState } from '../../components/styled.js';
 import { versionStatusColors } from '../../constants/statusColors.js';
 import { useSlate, useSlateVersions } from '../../state/index.js';
 
@@ -49,26 +50,31 @@ export let VersionList = () => {
 
         return (
           <Group.Wrapper>
-            {items.map(version => (
-              <ListItemLink key={version.id} to={`/slates/${slateId}/versions/${version.id}`}>
-                <ListItemRow align="center" justify="space-between">
+            <Table
+              padding={{ sides: '20px' }}
+              headers={['Version', 'Status', 'Current', 'Created']}
+              data={items.map(version => ({
+                href: `/slates/${slateId}/versions/${version.id}`,
+                data: [
                   <Text size="3" weight="bold" style={{ fontFamily: 'monospace' }}>
                     v{version.version}
-                  </Text>
-                  <Flex align="center" gap={12}>
-                    <Badge color={versionStatusColors[version.status] || 'gray'}>
-                      {version.status}
+                  </Text>,
+                  <Badge color={versionStatusColors[version.status] || 'gray'}>
+                    {version.status}
+                  </Badge>,
+                  version.isCurrent ? (
+                    <Badge color="green" size="1">
+                      Current
                     </Badge>
-                    {version.isCurrent && (
-                      <Badge color="green" size="1">
-                        Current
-                      </Badge>
-                    )}
-                    <RenderDate date={version.createdAt} />
-                  </Flex>
-                </ListItemRow>
-              </ListItemLink>
-            ))}
+                  ) : (
+                    <Text size="2" color="gray600">
+                      -
+                    </Text>
+                  ),
+                  <RenderDate date={version.createdAt} />
+                ]
+              }))}
+            />
           </Group.Wrapper>
         );
       })}

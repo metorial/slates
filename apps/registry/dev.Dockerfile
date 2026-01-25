@@ -18,4 +18,4 @@ RUN bun run build:admin
 EXPOSE 51001
 
 # Run server with hot reloading
-CMD ["sh", "-c", "bun prisma db push && bun --watch src/server.ts"]
+CMD ["sh", "-c", "bun prisma generate && bun prisma db push && bun --watch src/server.ts"]

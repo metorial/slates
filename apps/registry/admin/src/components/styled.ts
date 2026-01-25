@@ -1,6 +1,5 @@
 import { styled } from 'styled-components';
 import { Flex } from '@metorial-io/ui';
-import { Link } from 'react-router-dom';
 
 // Empty state container used in list pages
 export let EmptyState = styled(Flex)`
@@ -9,18 +8,6 @@ export let EmptyState = styled(Flex)`
   border-radius: 8px;
   border: 1px solid #e8e8e8;
   text-align: center;
-`;
-
-// Clickable list item link wrapper
-export let ListItemLink = styled(Link)`
-  text-decoration: none;
-  color: inherit;
-  display: block;
-`;
-
-// Row inside a list item
-export let ListItemRow = styled(Flex)`
-  padding: 14px 20px;
 `;
 
 // Monospace text for identifiers
@@ -78,15 +65,6 @@ export let FileInput = styled.input`
       background: #f1f5f9;
     }
   }
-`;
-
-// Table header row styling
-export let TableHeaderRow = styled(Flex)`
-  font-weight: 600;
-  font-size: 12px;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 `;
 
 // Slate logo image

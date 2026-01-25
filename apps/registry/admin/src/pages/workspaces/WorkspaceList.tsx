@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Avatar, Button, Text, Title, Badge, Flex, Spacer, Group, RenderDate } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { useWorkspaces } from '../../hooks';
-import { EmptyState, ListItemLink, ListItemRow, MonoText } from '../../components/styled';
+import { EmptyState, MonoText } from '../../components/styled';
 
 export let WorkspaceList = () => {
   let navigate = useNavigate();
@@ -40,27 +41,28 @@ export let WorkspaceList = () => {
         </Flex>
 
         <Group.Wrapper>
-          {items.map(workspace => (
-            <ListItemLink key={workspace.id} to={`/tenants/${tenantId}/workspaces/${workspace.id}/edit`}>
-              <ListItemRow align="center" justify="space-between">
+          <Table
+            padding={{ sides: '20px' }}
+            headers={['Workspace', 'Status', 'Created']}
+            data={items.map(workspace => ({
+              href: `/tenants/${tenantId}/workspaces/${workspace.id}/edit`,
+              data: [
                 <Flex align="center" gap={14}>
                   <Avatar entity={{ name: workspace.name }} size={32} withInitials radius={6} />
                   <div>
-                    <Flex align="center" gap={8}>
-                      <Text size="2" weight="medium">{workspace.name}</Text>
-                      <Badge color={workspace.status === 'active' ? 'green' : 'gray'} size="1">
-                        {workspace.status}
-                      </Badge>
-                    </Flex>
+                    <Text size="2" weight="medium">{workspace.name}</Text>
                     <Text size="1" color="gray600">
                       <MonoText>{workspace.identifier}</MonoText>
                     </Text>
                   </div>
-                </Flex>
+                </Flex>,
+                <Badge color={workspace.status === 'active' ? 'green' : 'gray'} size="1">
+                  {workspace.status}
+                </Badge>,
                 <RenderDate date={workspace.createdAt} />
-              </ListItemRow>
-            </ListItemLink>
-          ))}
+              ]
+            }))}
+          />
         </Group.Wrapper>
       </Flex>
     );

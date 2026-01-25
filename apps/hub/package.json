@@ -54,6 +54,7 @@
     "@metorial-io/data-hooks": "^1.0.1",
     "@metorial-io/layout": "^1.0.1",
     "@metorial-io/ui": "^1.0.0",
+    "@metorial-io/ui-product": "^1.0.0",
     "@metorial-services/function-bay-client": "1.0.3",
     "@metorial-services/signal-client": "^1.0.0",
     "@metorial-services/slates-registry-client": "^1.0.0",

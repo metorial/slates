@@ -10,16 +10,6 @@ export let EmptyState = styled(Flex)`
   text-align: center;
 `;
 
-export let ListItemLink = styled(Link)`
-  text-decoration: none;
-  color: inherit;
-  display: block;
-`;
-
-export let ListItemRow = styled(Flex)`
-  padding: 14px 20px;
-`;
-
 export let MonoText = styled.span`
   font-family: monospace;
 `;

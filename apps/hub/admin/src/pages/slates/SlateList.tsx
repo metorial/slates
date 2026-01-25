@@ -1,7 +1,8 @@
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Badge, Flex, Group, Spacer, Text, Title } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { styled } from 'styled-components';
-import { EmptyState, ListItemLink, ListItemRow, SlateLogoPlaceholder } from '../../components/styled.js';
+import { EmptyState, SlateLogoPlaceholder } from '../../components/styled.js';
 import { versionStatusColors } from '../../constants/statusColors.js';
 import { useSlates } from '../../state/index.js';
 
@@ -45,13 +46,16 @@ export let SlateList = () => {
 
         return (
           <Group.Wrapper>
-            {items.map(slate => {
-              let displayName = slate.name || slate.identifier;
-              let initial = displayName.charAt(0).toUpperCase();
+            <Table
+              padding={{ sides: '20px' }}
+              headers={['Slate', 'Version', 'Status']}
+              data={items.map(slate => {
+                let displayName = slate.name || slate.identifier;
+                let initial = displayName.charAt(0).toUpperCase();
 
-              return (
-                <ListItemLink key={slate.id} to={`/slates/${slate.id}`}>
-                  <ListItemRow align="center" justify="space-between">
+                return {
+                  href: `/slates/${slate.id}`,
+                  data: [
                     <Flex align="center" gap={14}>
                       <SlateIcon align="center" justify="center">
                         {initial}
@@ -64,29 +68,27 @@ export let SlateList = () => {
                           {slate.slate?.fullIdentifier || slate.identifier}
                         </Text>
                       </Flex>
-                    </Flex>
-                    <Flex align="center" gap={12}>
-                      {slate.currentVersion ? (
-                        <Badge color="blue">v{slate.currentVersion.version}</Badge>
-                      ) : (
-                        <Text size="2" color="gray500">
-                          -
-                        </Text>
-                      )}
-                      <Badge
-                        color={
-                          slate.currentVersion?.status
-                            ? versionStatusColors[slate.currentVersion.status] || 'gray'
-                            : 'gray'
-                        }
-                      >
-                        {slate.currentVersion?.status ?? 'no version'}
-                      </Badge>
-                    </Flex>
-                  </ListItemRow>
-                </ListItemLink>
-              );
-            })}
+                    </Flex>,
+                    slate.currentVersion ? (
+                      <Badge color="blue">v{slate.currentVersion.version}</Badge>
+                    ) : (
+                      <Text size="2" color="gray500">
+                        -
+                      </Text>
+                    ),
+                    <Badge
+                      color={
+                        slate.currentVersion?.status
+                          ? versionStatusColors[slate.currentVersion.status] || 'gray'
+                          : 'gray'
+                      }
+                    >
+                      {slate.currentVersion?.status ?? 'no version'}
+                    </Badge>
+                  ]
+                };
+              })}
+            />
           </Group.Wrapper>
         );
       })}

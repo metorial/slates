@@ -1,9 +1,10 @@
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Badge, Flex, Group, RenderDate, Spacer, Text, Title } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { BackLink } from '../../components/BackLink.js';
-import { EmptyState, FilterButton, ListItemLink, ListItemRow } from '../../components/styled.js';
+import { EmptyState, FilterButton } from '../../components/styled.js';
 import { discoveryStatusColors } from '../../constants/statusColors.js';
 import { useAllDiscoveries, useSlate, useSlateDiscoveries } from '../../state/index.js';
 
@@ -77,12 +78,12 @@ export let DiscoveryList = () => {
 
         return (
           <Group.Wrapper>
-            {items.map(discovery => (
-              <ListItemLink
-                key={discovery.id}
-                to={`/slates/${discovery.slate?.id}/versions/${discovery.version?.id}/discoveries/${discovery.id}`}
-              >
-                <ListItemRow align="center" justify="space-between">
+            <Table
+              padding={{ sides: '20px' }}
+              headers={['Slate', 'Version', 'Status', 'Error', 'Created']}
+              data={items.map(discovery => ({
+                href: `/slates/${discovery.slate?.id}/versions/${discovery.version?.id}/discoveries/${discovery.id}`,
+                data: [
                   <Flex direction="column">
                     <Text size="2" weight="strong">
                       {discovery.slate?.name ?? discovery.slate?.identifier ?? '-'}
@@ -90,36 +91,38 @@ export let DiscoveryList = () => {
                     <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
                       {discovery.id.slice(0, 16)}...
                     </Text>
-                  </Flex>
-                  <Flex align="center" gap={12}>
-                    <Badge color="blue">v{discovery.version?.version ?? '-'}</Badge>
-                    <Badge color={discoveryStatusColors[discovery.status] || 'gray'}>
-                      {discovery.status}
-                    </Badge>
-                    {discovery.error && (
-                      <Flex direction="column" align="end" gap={2}>
-                        <Text size="1" weight="medium" color="red600">
-                          {discovery.error.code}
-                        </Text>
-                        <Text
-                          size="1"
-                          color="gray600"
-                          style={{
-                            maxWidth: 200,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {discovery.error.message}
-                        </Text>
-                      </Flex>
-                    )}
-                    <RenderDate date={discovery.createdAt} />
-                  </Flex>
-                </ListItemRow>
-              </ListItemLink>
-            ))}
+                  </Flex>,
+                  <Badge color="blue">v{discovery.version?.version ?? '-'}</Badge>,
+                  <Badge color={discoveryStatusColors[discovery.status] || 'gray'}>
+                    {discovery.status}
+                  </Badge>,
+                  discovery.error ? (
+                    <Flex direction="column" gap={2}>
+                      <Text size="1" weight="medium" color="red600">
+                        {discovery.error.code}
+                      </Text>
+                      <Text
+                        size="1"
+                        color="gray600"
+                        style={{
+                          maxWidth: 200,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {discovery.error.message}
+                      </Text>
+                    </Flex>
+                  ) : (
+                    <Text size="2" color="gray600">
+                      -
+                    </Text>
+                  ),
+                  <RenderDate date={discovery.createdAt} />
+                ]
+              }))}
+            />
           </Group.Wrapper>
         );
       })}

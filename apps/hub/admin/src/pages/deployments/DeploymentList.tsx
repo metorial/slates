@@ -1,14 +1,10 @@
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Badge, Flex, Group, RenderDate, Spacer, Text, Title } from '@metorial-io/ui';
+import { Table } from '@metorial-io/ui-product';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { BackLink } from '../../components/BackLink.js';
-import {
-  EmptyState,
-  FilterButton,
-  ListItemLink,
-  ListItemRow
-} from '../../components/styled.js';
+import { EmptyState, FilterButton } from '../../components/styled.js';
 import { deploymentStatusColors } from '../../constants/statusColors.js';
 import { useAllDeployments, useSlate, useSlateDeployments } from '../../state/index.js';
 
@@ -94,12 +90,12 @@ export let DeploymentList = () => {
 
         return (
           <Group.Wrapper>
-            {items.map(deployment => (
-              <ListItemLink
-                key={deployment.id}
-                to={`/slates/${deployment.slate?.id || deployment.version?.slateId}/deployments/${deployment.id}`}
-              >
-                <ListItemRow align="center" justify="space-between">
+            <Table
+              padding={{ sides: '20px' }}
+              headers={['Slate', 'Version', 'Status', 'Created']}
+              data={items.map(deployment => ({
+                href: `/slates/${deployment.slate?.id || deployment.version?.slateId}/deployments/${deployment.id}`,
+                data: [
                   <Flex direction="column">
                     <Text size="2" weight="strong">
                       {deployment.slate?.name ??
@@ -109,19 +105,31 @@ export let DeploymentList = () => {
                     <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
                       {deployment.id.slice(0, 16)}...
                     </Text>
-                  </Flex>
-                  <Flex align="center" gap={12}>
-                    <Badge color="blue">v{deployment.version?.version ?? '-'}</Badge>
-                    <Flex direction="column" align="end" gap={2}>
-                      <Badge color={deploymentStatusColors[deployment.status] || 'gray'}>
-                        {deployment.status}
-                      </Badge>
-                    </Flex>
-                    <RenderDate date={deployment.createdAt} />
-                  </Flex>
-                </ListItemRow>
-              </ListItemLink>
-            ))}
+                  </Flex>,
+                  <Badge color="blue">v{deployment.version?.version ?? '-'}</Badge>,
+                  <Flex direction="column" gap={4}>
+                    <Badge color={deploymentStatusColors[deployment.status] || 'gray'}>
+                      {deployment.status}
+                    </Badge>
+                    {deployment.error && (
+                      <Text
+                        size="1"
+                        color="red600"
+                        style={{
+                          maxWidth: 160,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {deployment.error.code}
+                      </Text>
+                    )}
+                  </Flex>,
+                  <RenderDate date={deployment.createdAt} />
+                ]
+              }))}
+            />
           </Group.Wrapper>
         );
       })}
