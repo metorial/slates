@@ -1,3 +1,5 @@
+import './instrument';
+
 import { slatesHubApi } from './apis/internal';
 import { hubApp } from './apis/public';
 

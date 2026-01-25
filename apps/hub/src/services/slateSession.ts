@@ -1,9 +1,14 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Slate, SlateInstance, Tenant } from '../../prisma/generated/client';
+import type {
+  Slate,
+  SlateInstance,
+  SlateVersion,
+  Tenant
+} from '../../prisma/generated/client';
 import { db } from '../db';
-import { getId, snowflake } from '../id';
+import { getId } from '../id';
 
 let include = {
   slate: true,
@@ -16,12 +21,15 @@ class slateSessionServiceImpl {
     input: {
       slateInstance: SlateInstance;
       slate: Slate;
+      lockedVersion?: SlateVersion;
     };
   }) {
-    let version = await this.getSessionVersion({
-      slate: d.input.slate,
-      slateInstance: d.input.slateInstance
-    });
+    let version =
+      d.input.lockedVersion ??
+      (await this.getSessionVersion({
+        slate: d.input.slate,
+        slateInstance: d.input.slateInstance
+      }));
 
     return await db.slateSession.create({
       data: {
@@ -77,30 +85,31 @@ class slateSessionServiceImpl {
           await db.slateSession.findMany({
             ...opts,
             where: {
-              oid: snowflake.nextId(),
               slateInstance: { tenantOid: d.tenant.oid },
 
               AND: [
-                slateVersions
-                  ? {
-                      OR: [
-                        { slateVersionOid: { in: slateVersions.map(sv => sv.oid) } },
-                        {
-                          toolCalls: {
-                            some: { slateVersionOid: { in: slateVersions.map(sv => sv.oid) } }
+                ...(slateVersions
+                  ? [
+                      {
+                        OR: [
+                          { slateVersionOid: { in: slateVersions.map(sv => sv.oid) } },
+                          {
+                            toolCalls: {
+                              some: { slateVersionOid: { in: slateVersions.map(sv => sv.oid) } }
+                            }
                           }
-                        }
-                      ]
-                    }
-                  : undefined!,
+                        ]
+                      }
+                    ]
+                  : []),
 
-                slateInstances
-                  ? { slateInstanceOid: { in: slateInstances.map(si => si.oid) } }
-                  : undefined!,
+                ...(slateInstances
+                  ? [{ slateInstanceOid: { in: slateInstances.map(si => si.oid) } }]
+                  : []),
 
-                slates
-                  ? { slateVersion: { slateOid: { in: slates.map(s => s.oid) } } }
-                  : undefined!
+                ...(slates
+                  ? [{ slateVersion: { slateOid: { in: slates.map(s => s.oid) } } }]
+                  : [])
               ]
             },
             include

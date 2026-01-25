@@ -5,7 +5,7 @@ import type { SlatesParticipant } from '@slates/proto';
 import { differenceInMinutes } from 'date-fns';
 import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
-import { getId, snowflake } from '../id';
+import { getId } from '../id';
 import { slateAuthHandlerService } from './slateInstanceAuthHandler';
 import { slateInvocationService } from './slateInvocation';
 import { slateSessionService } from './slateSession';
@@ -230,25 +230,24 @@ class slateSessionToolCallServiceImpl {
           await db.slateSessionToolCall.findMany({
             ...opts,
             where: {
-              oid: snowflake.nextId(),
               session: { tenantOid: d.tenant.oid },
 
               AND: [
-                tools ? { actionOid: { in: tools.map(t => t.oid) } } : undefined!,
+                ...(tools ? [{ actionOid: { in: tools.map(t => t.oid) } }] : []),
 
-                slateVersions
-                  ? { slateVersionOid: { in: slateVersions.map(sv => sv.oid) } }
-                  : undefined!,
+                ...(slateVersions
+                  ? [{ slateVersionOid: { in: slateVersions.map(sv => sv.oid) } }]
+                  : []),
 
-                slateInstances
-                  ? { session: { slateInstanceOid: { in: slateInstances.map(si => si.oid) } } }
-                  : undefined!,
+                ...(slateInstances
+                  ? [{ session: { slateInstanceOid: { in: slateInstances.map(si => si.oid) } } }]
+                  : []),
 
-                slates
-                  ? { session: { slateOid: { in: slates.map(s => s.oid) } } }
-                  : undefined!,
+                ...(slates
+                  ? [{ session: { slateOid: { in: slates.map(s => s.oid) } } }]
+                  : []),
 
-                sessions ? { sessionOid: { in: sessions.map(s => s.oid) } } : undefined!
+                ...(sessions ? [{ sessionOid: { in: sessions.map(s => s.oid) } }] : [])
               ]
             },
             include
