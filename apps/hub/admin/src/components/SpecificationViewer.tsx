@@ -12,7 +12,9 @@ import { useState } from 'react';
 import { useDiscoverySpecification } from '../state/discoveries.js';
 import { MonoCode } from './styled';
 
-type SlateDiscoverySpecification = NonNullable<ReturnType<typeof useDiscoverySpecification>['data']>;
+type SlateDiscoverySpecification = NonNullable<
+  ReturnType<typeof useDiscoverySpecification>['data']
+>;
 
 type SchemaProperty = {
   type?: string;
@@ -65,7 +67,8 @@ let PropertyItem = ({
   isRequired: boolean;
 }) => {
   let typeLabel = getTypeLabel(prop);
-  let typeColor = prop.enum || prop.oneOf || prop.anyOf ? 'cyan' : getTypeColor(prop.type || 'any');
+  let typeColor =
+    prop.enum || prop.oneOf || prop.anyOf ? 'cyan' : getTypeColor(prop.type || 'any');
 
   return (
     <Flex
@@ -117,7 +120,13 @@ let PropertyItem = ({
   );
 };
 
-let SchemaViewer = ({ schema, title }: { schema: JsonSchema | null | undefined; title: string }) => {
+let SchemaViewer = ({
+  schema,
+  title
+}: {
+  schema: JsonSchema | null | undefined;
+  title: string;
+}) => {
   if (!schema) return null;
 
   let properties = schema.properties || {};
@@ -193,14 +202,14 @@ export let SpecificationViewer = ({
           <Flex direction="column" gap={24}>
             <Datalist
               items={[
-                { label: 'Provider Name', value: specification.provider?.name || '-' },
+                { label: 'Provider Name', value: specification.name || '-' },
                 {
                   label: 'Provider Key',
-                  value: <MonoCode>{specification.provider?.key || '-'}</MonoCode>
+                  value: <MonoCode>{specification.key || '-'}</MonoCode>
                 },
                 {
                   label: 'Protocol Version',
-                  value: <MonoCode>{specification.provider?.protocolVersion || '-'}</MonoCode>
+                  value: <MonoCode>{specification.protocolVersion || '-'}</MonoCode>
                 }
               ]}
             />
@@ -225,7 +234,7 @@ export let SpecificationViewer = ({
                       Total Calls
                     </Text>
                     <Text size="5" weight="strong">
-                      {toolCallStats.total.toLocaleString()}
+                      {toolCallStats.total.toString()}
                     </Text>
                   </Flex>
                   <Flex
@@ -242,7 +251,7 @@ export let SpecificationViewer = ({
                       Succeeded
                     </Text>
                     <Text size="5" weight="strong" color="green300">
-                      {toolCallStats.succeeded.toLocaleString()}
+                      {toolCallStats.succeeded.toString()}
                     </Text>
                   </Flex>
                   {toolCallStats.failed > 0 && (
@@ -260,7 +269,7 @@ export let SpecificationViewer = ({
                         Failed
                       </Text>
                       <Text size="5" weight="strong" color="red300">
-                        {toolCallStats.failed.toLocaleString()}
+                        {toolCallStats.failed.toString()}
                       </Text>
                     </Flex>
                   )}
@@ -291,7 +300,7 @@ export let SpecificationViewer = ({
                         <MonoCode>{tool.key}</MonoCode>
                         {toolStats && toolStats.total > 0 && (
                           <Badge color="gray" size="1">
-                            {toolStats.total.toLocaleString()} calls
+                            {toolStats.total.toString()} calls
                           </Badge>
                         )}
                       </Flex>
@@ -413,36 +422,49 @@ export let SpecificationViewer = ({
                               Scopes
                             </Text>
                             <Flex direction="column" gap={4}>
-                              {method.scopes.map((scope: { id?: string; description?: string; title?: string }, idx: number) => (
-                                <Flex
-                                  key={scope.id || idx}
-                                  align="center"
-                                  gap={12}
-                                  style={{
-                                    padding: '6px 0',
-                                    borderBottom: '1px solid #f1f5f9'
-                                  }}
-                                >
-                                  <MonoCode style={{ minWidth: 180 }}>{scope.id}</MonoCode>
-                                  <Text size="2" color="gray600">
-                                    {scope.description || scope.title}
-                                  </Text>
-                                </Flex>
-                              ))}
+                              {method.scopes.map(
+                                (
+                                  scope: { id?: string; description?: string; title?: string },
+                                  idx: number
+                                ) => (
+                                  <Flex
+                                    key={scope.id || idx}
+                                    align="center"
+                                    gap={12}
+                                    style={{
+                                      padding: '6px 0',
+                                      borderBottom: '1px solid #f1f5f9'
+                                    }}
+                                  >
+                                    <MonoCode style={{ minWidth: 180 }}>{scope.id}</MonoCode>
+                                    <Text size="2" color="gray600">
+                                      {scope.description || scope.title}
+                                    </Text>
+                                  </Flex>
+                                )
+                              )}
                             </Flex>
                           </Flex>
                         )}
 
                         {method.capabilities &&
-                          Object.entries(method.capabilities as Record<string, { enabled?: boolean; description?: string }>).filter(
-                            ([_, v]) => v?.enabled
-                          ).length > 0 && (
+                          Object.entries(
+                            method.capabilities as Record<
+                              string,
+                              { enabled?: boolean; description?: string }
+                            >
+                          ).filter(([_, v]) => v?.enabled).length > 0 && (
                             <Flex direction="column" gap={8}>
                               <Text size="2" weight="strong">
                                 Capabilities
                               </Text>
                               <Flex direction="column" gap={4}>
-                                {Object.entries(method.capabilities as Record<string, { enabled?: boolean; description?: string }>)
+                                {Object.entries(
+                                  method.capabilities as Record<
+                                    string,
+                                    { enabled?: boolean; description?: string }
+                                  >
+                                )
                                   .filter(([_, v]) => v?.enabled)
                                   .map(([key, value]) => (
                                     <Flex
@@ -473,7 +495,10 @@ export let SpecificationViewer = ({
                               <SchemaViewer schema={method.inputSchema} title="Input Schema" />
                             </div>
                             <div style={{ flex: 1 }}>
-                              <SchemaViewer schema={method.outputSchema} title="Output Schema" />
+                              <SchemaViewer
+                                schema={method.outputSchema}
+                                title="Output Schema"
+                              />
                             </div>
                           </Flex>
                         ) : (
@@ -482,7 +507,10 @@ export let SpecificationViewer = ({
                               <SchemaViewer schema={method.inputSchema} title="Input Schema" />
                             )}
                             {hasOutputSchema && (
-                              <SchemaViewer schema={method.outputSchema} title="Output Schema" />
+                              <SchemaViewer
+                                schema={method.outputSchema}
+                                title="Output Schema"
+                              />
                             )}
                           </>
                         )}

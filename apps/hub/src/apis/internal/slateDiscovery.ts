@@ -3,8 +3,8 @@ import { v } from '@lowerdeck/validation';
 import { SlateVersionDiscoveryStatus } from '../../../prisma/generated/client';
 import { slateVersionDiscoveryPresenter } from '../../presenters/slateDiscovery';
 import { slateDiscoveryBuildOutputPresenter } from '../../presenters/slateDiscoveryBuildOutput';
-import { slateDiscoverySpecificationPresenter } from '../../presenters/slateDiscoverySpecification';
 import { slateDiscoveryToolCallStatsPresenter } from '../../presenters/slateDiscoveryToolCallStats';
+import { slateSpecificationPresenter } from '../../presenters/slateSpecification';
 import { slateService } from '../../services';
 import { slateVersionDiscoveryService } from '../../services/slateDiscovery';
 import { slateSpecificationService } from '../../services/slateSpecification';
@@ -95,7 +95,7 @@ export let slateDiscoveryController = app.controller({
         id: ctx.slateDiscovery.specification.id
       });
 
-      return slateDiscoverySpecificationPresenter(specification);
+      return slateSpecificationPresenter({ ...specification, slate: ctx.slate });
     }),
 
   getToolCallStats: slateDiscoveryApp
