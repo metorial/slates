@@ -115,7 +115,7 @@ export let SlateDetail = () => {
       let discoveryItems = discoveries.data?.items ?? [];
       let eventItems = events.data?.items ?? [];
 
-    return (
+      return (
       <Flex direction="column" gap={24}>
         <BackLink to="/slates">Back to Slates</BackLink>
 

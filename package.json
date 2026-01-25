@@ -22,10 +22,5 @@
     "packages/*",
     "clients/*",
     "apps/*"
-  ],
-  "dependencies": {
-    "@metorial-io/ui": "^1.0.0",
-    "@metorial-io/ui-product": "^1.0.0",
-    "npm-run-all": "^4.1.5"
-  }
+  ]
 }

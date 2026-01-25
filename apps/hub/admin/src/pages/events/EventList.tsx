@@ -113,7 +113,7 @@ export let EventList = () => {
               data={filteredEvents.map(event => {
                 let href = getEventHref(event);
                 let row = {
-                  ...(href ? { href } : {}),
+                  href,
                   data: slateId
                     ? [
                         <Badge color={eventTypeColors[event.type] || 'gray'}>
