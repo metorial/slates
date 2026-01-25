@@ -77,7 +77,6 @@ class slateDeploymentServiceImpl {
               slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined,
               status: d.status
             },
-            orderBy: { createdAt: 'desc' },
             include
           })
       )

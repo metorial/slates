@@ -79,7 +79,6 @@ class slateEventServiceImpl {
               slateVersion: versions ? { oid: { in: versions.map(v => v.oid) } } : undefined,
               type: d.type as any
             },
-            orderBy: { createdAt: 'desc' },
             include
           })
       )

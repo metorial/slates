@@ -5,10 +5,10 @@ import { slateVersionDiscoveryPresenter } from '../../presenters/slateDiscovery'
 import { slateDiscoveryBuildOutputPresenter } from '../../presenters/slateDiscoveryBuildOutput';
 import { slateDiscoverySpecificationPresenter } from '../../presenters/slateDiscoverySpecification';
 import { slateDiscoveryToolCallStatsPresenter } from '../../presenters/slateDiscoveryToolCallStats';
+import { slateService } from '../../services';
 import { slateVersionDiscoveryService } from '../../services/slateDiscovery';
 import { slateSpecificationService } from '../../services/slateSpecification';
 import { app } from './_app';
-import { slateApp } from './slate';
 import { slateVersionApp } from './slateVersion';
 
 export let slateDiscoveryApp = slateVersionApp.use(async ctx => {
@@ -24,40 +24,26 @@ export let slateDiscoveryApp = slateVersionApp.use(async ctx => {
 });
 
 export let slateDiscoveryController = app.controller({
-  listAll: app
+  list: app
     .handler()
     .input(
       Paginator.validate(
         v.object({
+          slateId: v.optional(v.string()),
+          versionIds: v.optional(v.array(v.string())),
           status: v.optional(v.enumOf(Object.values(SlateVersionDiscoveryStatus) as [SlateVersionDiscoveryStatus, ...SlateVersionDiscoveryStatus[]]))
         })
       )
     )
     .do(async ctx => {
-      let status = ctx.input.status;
+      let slate = ctx.input.slateId
+        ? await slateService.getSlateById({ id: ctx.input.slateId })
+        : undefined;
+
       let paginator = await slateVersionDiscoveryService.listSlateVersionDiscoveries({
-        status
-      });
-
-      let list = await paginator.run(ctx.input);
-
-      return Paginator.presentLight(list, slateVersionDiscoveryPresenter);
-    }),
-
-  list: slateApp
-    .handler()
-    .input(
-      Paginator.validate(
-        v.object({
-          slateId: v.string(),
-          versionIds: v.optional(v.array(v.string()))
-        })
-      )
-    )
-    .do(async ctx => {
-      let paginator = await slateVersionDiscoveryService.listSlateVersionDiscoveries({
-        slate: ctx.slate,
-        versionIds: ctx.input.versionIds
+        slate,
+        versionIds: ctx.input.versionIds,
+        status: ctx.input.status
       });
 
       let list = await paginator.run(ctx.input);
@@ -103,10 +89,10 @@ export let slateDiscoveryController = app.controller({
       })
     )
     .do(async ctx => {
-      if (!ctx.slateDiscovery.specificationOid) return null;
+      if (!ctx.slateDiscovery.specification?.id) return null;
 
-      let specification = await slateSpecificationService.getSlateSpecificationByOid({
-        oid: ctx.slateDiscovery.specificationOid
+      let specification = await slateSpecificationService.getSlateSpecificationById({
+        id: ctx.slateDiscovery.specification.id
       });
 
       return slateDiscoverySpecificationPresenter(specification);

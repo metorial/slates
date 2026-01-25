@@ -1,7 +1,7 @@
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import { Badge, Button, Datalist, Flex, Group, InlineCopy, Text } from '@metorial-io/ui';
 import { Link, useParams } from 'react-router-dom';
-import { versionStatusColors } from '../../constants/statusColors.js';
+import { deploymentStatusColors, versionStatusColors } from '../../constants/statusColors.js';
 import {
   useSlate,
   useSlateDeployments,
@@ -91,13 +91,7 @@ export let VersionDetail = () => {
               <Button as="span" variant="outline">
                 Latest Deployment
                 <Badge
-                  color={
-                    latestDeployment.status === 'succeeded'
-                      ? 'green'
-                      : latestDeployment.status === 'failed'
-                        ? 'red'
-                        : 'blue'
-                  }
+                  color={deploymentStatusColors[latestDeployment.status] || 'gray'}
                   size="1"
                   style={{ marginLeft: 8 }}
                 >

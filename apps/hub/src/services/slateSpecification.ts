@@ -31,18 +31,6 @@ class slateSpecificationServiceImpl {
     return slateSpecification;
   }
 
-  async getSlateSpecificationByOid(d: { oid: bigint }) {
-    let slateSpecification = await db.slateSpecification.findFirst({
-      where: {
-        oid: d.oid
-      },
-      include,
-      omit
-    });
-    if (!slateSpecification) throw new ServiceError(notFoundError('slate.specification'));
-    return slateSpecification;
-  }
-
   async listSlateSpecifications(d: { slateIds?: string[]; versionIds?: string[] }) {
     let versions = d.versionIds
       ? await db.slateVersion.findMany({

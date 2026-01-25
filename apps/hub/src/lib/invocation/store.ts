@@ -106,6 +106,34 @@ export let storeSlateInvocation = (
         return m;
       });
 
+      // Handle error case where invocationResult.id may be undefined
+      if (!d.invocationResult.id) {
+        let storageKey = getStoredInvocationStorageKey(d.record);
+        await storage.putObject(
+          invocationsBucketRecord.bucket,
+          storageKey,
+          JSON.stringify({
+            id: d.record.id,
+            requests: sanitizedRequests as any,
+            responses: (sanitizedResponses ?? []) as any,
+            provider: { error: (d.invocationResult as any).error } as any,
+            logs: []
+          } satisfies StoredSlateInvocation)
+        );
+
+        await db.slateInvocation.update({
+          where: { oid: d.record.oid },
+          data: {
+            isPending: false,
+            hasResponseError: hasResponseError,
+            hasInvocationError: true,
+            providerInvocationId: '',
+            bucketOid: invocationsBucketRecord.oid
+          }
+        });
+        return;
+      }
+
       let invocationResult = await getFunctionBayInvocationResultWithRetry({
         slateVersion: d.slateVersion,
         participants: d.participants,

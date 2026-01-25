@@ -1,3 +1,4 @@
+import { ServiceError } from '@lowerdeck/error';
 import { useMemo, useState } from 'react';
 
 type PaginatedData<T> = {
@@ -11,9 +12,9 @@ type PaginatedData<T> = {
 type LoaderResult<T> = {
   data: PaginatedData<T> | null;
   isLoading: boolean;
-  error: any;
+  error: ServiceError<any> | null;
   refetch: () => void;
-  mutators: any;
+  mutators: Record<string, never>;
 };
 
 export let usePaginatedLoader = <T extends { id: string }, P>(

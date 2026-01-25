@@ -12,7 +12,9 @@ export let slateDiscoverySpecificationPresenter = (
   spec: SlateSpecification & {
     slateAuthMethods: (SlateSpecificationAuthMethod & { authMethod: SlateAuthMethod })[];
     slateActions: (SlateSpecificationAction & { action: SlateAction })[];
-    slateConfigSchemas: (SlateSpecificationConfigSchema & { configSchema: SlateConfigSchema })[];
+    slateConfigSchemas: (SlateSpecificationConfigSchema & {
+      configSchema: SlateConfigSchema;
+    })[];
   }
 ) => ({
   object: 'slate.discovery.specification',
@@ -41,14 +43,20 @@ export let slateDiscoverySpecificationPresenter = (
       inputSchema: (a.spec as any)?.inputSchema,
       outputSchema: (a.spec as any)?.outputSchema
     })),
-  authMethods: spec.slateAuthMethods.map(sam => sam.authMethod).map(am => ({
-    key: am.key,
-    name: am.name,
-    type: am.type,
-    scopes: (am.spec as any)?.scopes,
-    capabilities: (am.spec as any)?.capabilities,
-    inputSchema: (am.spec as any)?.inputSchema,
-    outputSchema: (am.spec as any)?.outputSchema
-  })),
+  authMethods: spec.slateAuthMethods
+    .map(sam => sam.authMethod)
+    .map(am => ({
+      key: am.key,
+      name: am.name,
+      type: am.type,
+      scopes: (am.spec as any)?.scopes,
+      capabilities: (am.spec as any)?.capabilities,
+      inputSchema: (am.spec as any)?.inputSchema,
+      outputSchema: (am.spec as any)?.outputSchema
+    })),
   configSchema: spec.slateConfigSchemas[0]?.configSchema?.schema ?? null
 });
+
+export type SlateDiscoverySpecification = ReturnType<
+  typeof slateDiscoverySpecificationPresenter
+>;

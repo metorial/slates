@@ -10,6 +10,9 @@ import { db } from '../db';
 import { functionBay, functionBayTenant } from '../functionBay';
 
 let include = {
+  specification: {
+    select: { id: true }
+  },
   slateVersion: {
     include: {
       specification: true,
@@ -95,7 +98,6 @@ class slateVersionDiscoveryServiceImpl {
               slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined,
               status: d.status
             },
-            orderBy: { createdAt: 'desc' },
             include
           })
       )

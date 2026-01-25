@@ -36,14 +36,6 @@ export let FormWrapper = styled.div`
   max-width: 480px;
 `;
 
-export let TableHeaderRow = styled(Flex)`
-  font-weight: 600;
-  font-size: 12px;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`;
-
 export let SlateLogoImage = styled.img`
   width: 40px;
   height: 40px;

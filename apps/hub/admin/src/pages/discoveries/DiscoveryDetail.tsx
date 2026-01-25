@@ -20,24 +20,12 @@ import { BackLink } from '../../components/BackLink.js';
 import { LogViewer, MonoCode, TextLink } from '../../components/styled.js';
 import { SpecificationViewer } from '../../components/SpecificationViewer.js';
 
-let formatBuildOutput = (buildOutput: any): string => {
-  if (typeof buildOutput === 'string') {
-    return buildOutput;
-  }
+type BuildOutputData = NonNullable<ReturnType<typeof useDiscoveryBuildOutput>['data']>;
 
-  let logs = buildOutput.logs ?? buildOutput.output;
+let formatBuildOutput = (buildOutput: BuildOutputData): string => {
+  let logs = buildOutput.logs;
   if (Array.isArray(logs)) {
-    return logs
-      .map((entry: any) => {
-        if (typeof entry === 'string') return entry;
-        if (entry.message) return entry.message;
-        return JSON.stringify(entry);
-      })
-      .join('\n');
-  }
-
-  if (typeof logs === 'string') {
-    return logs;
+    return logs.map(entry => entry.message).join('\n');
   }
 
   return JSON.stringify(buildOutput, null, 2);

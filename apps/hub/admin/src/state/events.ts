@@ -4,11 +4,11 @@ import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allEventsLoader = createLoader({
   name: 'allEvents',
-  fetch: (params: { after?: string; before?: string }) => hubClient.slateEvent.listAll(params),
+  fetch: (params: { type?: string; after?: string; before?: string }) => hubClient.slateEvent.list(params),
   mutators: {}
 });
 
-export let useAllEvents = () => usePaginatedLoader(allEventsLoader, {});
+export let useAllEvents = (type?: string) => usePaginatedLoader(allEventsLoader, { type });
 
 export let slateEventsLoader = createLoader({
   name: 'slateEvents',

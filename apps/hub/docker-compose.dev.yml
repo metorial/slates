@@ -193,6 +193,36 @@ services:
     networks:
       - slates-hub-network
 
+  slates-hub-admin:
+    image: oven/bun:latest
+    container_name: slates-hub-admin
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "bun install && cd apps/hub && bun vite --config admin/vite.docker.config.ts"
+    ports:
+      - '52047:52047'
+    volumes:
+      - ../../:/app
+    depends_on:
+      - slates-hub
+    networks:
+      - slates-hub-network
+
+  slates-registry-admin:
+    image: oven/bun:latest
+    container_name: slates-registry-admin
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "bun install && cd apps/registry && bun vite --config admin/vite.docker.config.ts"
+    ports:
+      - '52043:52043'
+    volumes:
+      - ../../:/app
+    depends_on:
+      - slates-registry
+    networks:
+      - slates-hub-network
+
 volumes:
   postgres_data2:
     driver: local

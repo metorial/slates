@@ -22,6 +22,11 @@ import {
   SlateLogoPlaceholder
 } from '../../components/styled.js';
 
+type SlateVersion = NonNullable<ReturnType<typeof useSlateVersions>['data']>['items'][number];
+type SlateDeployment = NonNullable<ReturnType<typeof useSlateDeployments>['data']>['items'][number];
+type SlateDiscovery = NonNullable<ReturnType<typeof useSlateDiscoveries>['data']>['items'][number];
+type SlateEvent = NonNullable<ReturnType<typeof useSlateEvents>['data']>['items'][number];
+
 let LargeLogoPlaceholder = styled(SlateLogoPlaceholder)`
   width: 72px;
   height: 72px;
@@ -101,8 +106,8 @@ export let SlateDetail = () => {
   let discoveries = useSlateDiscoveries(slateId);
   let events = useSlateEvents(slateId);
 
-  return renderWithLoader({ slate, versions, deployments, discoveries, events })(
-    ({ slate, versions, deployments, discoveries, events }) => {
+  return renderWithLoader({ slate, versions, deployments, discoveries, events } as any)(
+    ({ slate, versions, deployments, discoveries, events }: any) => {
       let slateData = slate.data!;
       let statsData = stats.data;
       let versionItems = versions.data?.items ?? [];
@@ -228,7 +233,7 @@ export let SlateDetail = () => {
               </Text>
             ) : (
               <Flex direction="column" gap={12}>
-                {versionItems.slice(0, 3).map(version => (
+                {versionItems.slice(0, 3).map((version: SlateVersion) => (
                   <VersionItem
                     key={version.id}
                     to={`/slates/${slateId}/versions/${version.id}`}
@@ -271,7 +276,7 @@ export let SlateDetail = () => {
               </Text>
             ) : (
               <Flex direction="column" gap={12}>
-                {deploymentItems.slice(0, 3).map(deployment => (
+                {deploymentItems.slice(0, 3).map((deployment: SlateDeployment) => (
                   <ItemCard
                     key={deployment.id}
                     to={`/slates/${slateId}/deployments/${deployment.id}`}
@@ -316,7 +321,7 @@ export let SlateDetail = () => {
               </Text>
             ) : (
               <Flex direction="column" gap={12}>
-                {discoveryItems.slice(0, 3).map(discovery => (
+                {discoveryItems.slice(0, 3).map((discovery: SlateDiscovery) => (
                   <ItemCard
                     key={discovery.id}
                     to={`/slates/${slateId}/versions/${discovery.version?.id}/discoveries/${discovery.id}`}
@@ -359,7 +364,7 @@ export let SlateDetail = () => {
               </Text>
             ) : (
               <Flex direction="column">
-                {eventItems.slice(0, 3).map(event => (
+                {eventItems.slice(0, 3).map((event: SlateEvent) => (
                   <EventItem key={event.id} align="center" justify="space-between">
                     <Flex align="center" gap={12}>
                       <Badge color={eventTypeColors[event.type] || 'gray'} size="1">

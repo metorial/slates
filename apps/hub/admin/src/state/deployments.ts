@@ -4,12 +4,15 @@ import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allDeploymentsLoader = createLoader({
   name: 'allDeployments',
-  fetch: (params: { status?: string; after?: string; before?: string }) =>
-    hubClient.slateDeployment.listAll(params),
+  fetch: (params: {
+    status?: 'pending' | 'running' | 'succeeded' | 'failed';
+    after?: string;
+    before?: string;
+  }) => hubClient.slateDeployment.list(params),
   mutators: {}
 });
 
-export let useAllDeployments = (status?: string) =>
+export let useAllDeployments = (status?: 'pending' | 'running' | 'succeeded' | 'failed') =>
   usePaginatedLoader(allDeploymentsLoader, { status });
 
 export let slateDeploymentsLoader = createLoader({

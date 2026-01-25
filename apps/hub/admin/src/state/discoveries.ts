@@ -4,12 +4,15 @@ import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allDiscoveriesLoader = createLoader({
   name: 'allDiscoveries',
-  fetch: (params: { status?: string; after?: string; before?: string }) =>
-    hubClient.slateDiscovery.listAll(params),
+  fetch: (params: {
+    status?: 'succeeded' | 'failed';
+    after?: string;
+    before?: string;
+  }) => hubClient.slateDiscovery.list(params),
   mutators: {}
 });
 
-export let useAllDiscoveries = (status?: string) =>
+export let useAllDiscoveries = (status?: 'succeeded' | 'failed') =>
   usePaginatedLoader(allDiscoveriesLoader, { status });
 
 export let slateDiscoveriesLoader = createLoader({

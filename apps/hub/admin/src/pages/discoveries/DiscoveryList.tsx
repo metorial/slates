@@ -2,15 +2,10 @@ import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Badge, Flex, Group, RenderDate, Spacer, Text, Title } from '@metorial-io/ui';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { BackLink } from '../../components/BackLink.js';
+import { EmptyState, FilterButton, ListItemLink, ListItemRow } from '../../components/styled.js';
 import { discoveryStatusColors } from '../../constants/statusColors.js';
 import { useAllDiscoveries, useSlate, useSlateDiscoveries } from '../../state/index.js';
-import { BackLink } from '../../components/BackLink.js';
-import {
-  EmptyState,
-  FilterButton,
-  ListItemLink,
-  TableHeaderRow
-} from '../../components/styled.js';
 
 type StatusFilter = 'all' | 'succeeded' | 'failed';
 
@@ -82,70 +77,47 @@ export let DiscoveryList = () => {
 
         return (
           <Group.Wrapper>
-            <Group.HeaderRow>
-              <TableHeaderRow>
-                <Flex style={{ flex: 1 }}>Slate</Flex>
-                <Flex style={{ width: 100 }}>Version</Flex>
-                <Flex style={{ width: 120 }}>Status</Flex>
-                <Flex style={{ width: 250 }}>Error</Flex>
-                <Flex style={{ width: 180 }}>Created</Flex>
-              </TableHeaderRow>
-            </Group.HeaderRow>
             {items.map(discovery => (
               <ListItemLink
                 key={discovery.id}
                 to={`/slates/${discovery.slate?.id}/versions/${discovery.version?.id}/discoveries/${discovery.id}`}
               >
-                <Group.Row style={{ padding: '16px 20px', cursor: 'pointer' }}>
-                  <Flex align="center">
-                    <Flex style={{ flex: 1 }}>
-                      <Flex direction="column">
-                        <Text size="2" weight="strong">
-                          {discovery.slate?.name ?? discovery.slate?.identifier ?? '-'}
+                <ListItemRow align="center" justify="space-between">
+                  <Flex direction="column">
+                    <Text size="2" weight="strong">
+                      {discovery.slate?.name ?? discovery.slate?.identifier ?? '-'}
+                    </Text>
+                    <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
+                      {discovery.id.slice(0, 16)}...
+                    </Text>
+                  </Flex>
+                  <Flex align="center" gap={12}>
+                    <Badge color="blue">v{discovery.version?.version ?? '-'}</Badge>
+                    <Badge color={discoveryStatusColors[discovery.status] || 'gray'}>
+                      {discovery.status}
+                    </Badge>
+                    {discovery.error && (
+                      <Flex direction="column" align="end" gap={2}>
+                        <Text size="1" weight="medium" color="red600">
+                          {discovery.error.code}
                         </Text>
-                        <Text size="1" color="gray600" style={{ fontFamily: 'monospace' }}>
-                          {discovery.id.slice(0, 16)}...
+                        <Text
+                          size="1"
+                          color="gray600"
+                          style={{
+                            maxWidth: 200,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {discovery.error.message}
                         </Text>
                       </Flex>
-                    </Flex>
-                    <Flex style={{ width: 100 }}>
-                      <Badge color="blue">v{discovery.version?.version ?? '-'}</Badge>
-                    </Flex>
-                    <Flex style={{ width: 120 }}>
-                      <Badge color={discoveryStatusColors[discovery.status] || 'gray'}>
-                        {discovery.status}
-                      </Badge>
-                    </Flex>
-                    <Flex style={{ width: 250 }}>
-                      {discovery.error ? (
-                        <Flex direction="column" gap={2}>
-                          <Text size="1" weight="medium" color="red600">
-                            {discovery.error.code}
-                          </Text>
-                          <Text
-                            size="1"
-                            color="gray600"
-                            style={{
-                              maxWidth: 230,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {discovery.error.message}
-                          </Text>
-                        </Flex>
-                      ) : (
-                        <Text size="2" color="gray600">
-                          -
-                        </Text>
-                      )}
-                    </Flex>
-                    <Flex style={{ width: 180 }}>
-                      <RenderDate date={discovery.createdAt} />
-                    </Flex>
+                    )}
+                    <RenderDate date={discovery.createdAt} />
                   </Flex>
-                </Group.Row>
+                </ListItemRow>
               </ListItemLink>
             ))}
           </Group.Wrapper>

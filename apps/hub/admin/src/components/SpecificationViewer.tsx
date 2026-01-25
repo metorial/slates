@@ -9,7 +9,24 @@ import {
   Text
 } from '@metorial-io/ui';
 import { useState } from 'react';
+import { useDiscoverySpecification } from '../state/discoveries.js';
 import { MonoCode } from './styled';
+
+type SlateDiscoverySpecification = NonNullable<ReturnType<typeof useDiscoverySpecification>['data']>;
+
+type SchemaProperty = {
+  type?: string;
+  enum?: string[];
+  oneOf?: Array<{ type?: string }>;
+  anyOf?: Array<{ type?: string }>;
+  items?: { type?: string };
+  description?: string;
+};
+
+type JsonSchema = {
+  properties?: Record<string, SchemaProperty>;
+  required?: string[];
+};
 
 let getTypeColor = (
   type: string
@@ -31,7 +48,7 @@ let getTypeColor = (
   }
 };
 
-let getTypeLabel = (prop: any): string => {
+let getTypeLabel = (prop: SchemaProperty): string => {
   if (prop.enum) return 'Enum';
   if (prop.oneOf || prop.anyOf) return 'Union';
   if (prop.type === 'array' && prop.items?.type) return `${prop.items.type}[]`;
@@ -44,11 +61,11 @@ let PropertyItem = ({
   isRequired
 }: {
   name: string;
-  prop: any;
+  prop: SchemaProperty;
   isRequired: boolean;
 }) => {
   let typeLabel = getTypeLabel(prop);
-  let typeColor = prop.enum || prop.oneOf || prop.anyOf ? 'cyan' : getTypeColor(prop.type);
+  let typeColor = prop.enum || prop.oneOf || prop.anyOf ? 'cyan' : getTypeColor(prop.type || 'any');
 
   return (
     <Flex
@@ -88,7 +105,7 @@ let PropertyItem = ({
       {(prop.oneOf || prop.anyOf) && (
         <AccordionSingle title="Union types" defaultOpen={false}>
           <Flex direction="column" gap={4} style={{ paddingLeft: 8 }}>
-            {(prop.oneOf || prop.anyOf).map((t: any, i: number) => (
+            {(prop.oneOf || prop.anyOf)!.map((t, i) => (
               <Text key={i} size="2">
                 {t.type || JSON.stringify(t)}
               </Text>
@@ -100,7 +117,7 @@ let PropertyItem = ({
   );
 };
 
-let SchemaViewer = ({ schema, title }: { schema: any; title: string }) => {
+let SchemaViewer = ({ schema, title }: { schema: JsonSchema | null | undefined; title: string }) => {
   if (!schema) return null;
 
   let properties = schema.properties || {};
@@ -116,7 +133,7 @@ let SchemaViewer = ({ schema, title }: { schema: any; title: string }) => {
         {title}
       </Text>
       <Flex direction="column">
-        {propertyEntries.map(([name, prop]: [string, any]) => (
+        {propertyEntries.map(([name, prop]) => (
           <PropertyItem
             key={name}
             name={name}
@@ -139,7 +156,7 @@ type ToolCallStats = {
 };
 
 type SpecificationViewerProps = {
-  specification: any;
+  specification: SlateDiscoverySpecification;
   toolCallStats?: ToolCallStats | null;
 };
 
@@ -262,7 +279,7 @@ export let SpecificationViewer = ({
             ) : (
               <Accordion
                 type="multiple"
-                items={specification.tools.map((tool: any) => {
+                items={specification.tools!.map(tool => {
                   let toolStats = toolCallStats?.byTool?.[tool.key];
                   return {
                     id: tool.key,
@@ -324,7 +341,7 @@ export let SpecificationViewer = ({
             ) : (
               <Accordion
                 type="multiple"
-                items={specification.triggers.map((trigger: any) => ({
+                items={specification.triggers!.map(trigger => ({
                   id: trigger.key,
                   title: (
                     <Flex align="center" gap={8}>
@@ -366,7 +383,7 @@ export let SpecificationViewer = ({
             ) : (
               <Accordion
                 type="multiple"
-                items={specification.authMethods.map((method: any, index: number) => {
+                items={specification.authMethods!.map((method, index) => {
                   let hasInputSchema =
                     method.inputSchema?.properties &&
                     Object.keys(method.inputSchema.properties).length > 0;
@@ -396,46 +413,38 @@ export let SpecificationViewer = ({
                               Scopes
                             </Text>
                             <Flex direction="column" gap={4}>
-                              {method.scopes.map((scope: any, idx: number) => {
-                                let scopeId = typeof scope === 'string' ? scope : scope.id;
-                                let scopeTitle =
-                                  typeof scope === 'string' ? scope : scope.title || scope.id;
-                                let scopeDescription =
-                                  typeof scope === 'object' ? scope.description : null;
-
-                                return (
-                                  <Flex
-                                    key={scopeId || idx}
-                                    align="center"
-                                    gap={12}
-                                    style={{
-                                      padding: '6px 0',
-                                      borderBottom: '1px solid #f1f5f9'
-                                    }}
-                                  >
-                                    <MonoCode style={{ minWidth: 180 }}>{scopeId}</MonoCode>
-                                    <Text size="2" color="gray600">
-                                      {scopeDescription || scopeTitle}
-                                    </Text>
-                                  </Flex>
-                                );
-                              })}
+                              {method.scopes.map((scope: { id?: string; description?: string; title?: string }, idx: number) => (
+                                <Flex
+                                  key={scope.id || idx}
+                                  align="center"
+                                  gap={12}
+                                  style={{
+                                    padding: '6px 0',
+                                    borderBottom: '1px solid #f1f5f9'
+                                  }}
+                                >
+                                  <MonoCode style={{ minWidth: 180 }}>{scope.id}</MonoCode>
+                                  <Text size="2" color="gray600">
+                                    {scope.description || scope.title}
+                                  </Text>
+                                </Flex>
+                              ))}
                             </Flex>
                           </Flex>
                         )}
 
                         {method.capabilities &&
-                          Object.entries(method.capabilities).filter(
-                            ([_, v]: [string, any]) => v?.enabled
+                          Object.entries(method.capabilities as Record<string, { enabled?: boolean; description?: string }>).filter(
+                            ([_, v]) => v?.enabled
                           ).length > 0 && (
                             <Flex direction="column" gap={8}>
                               <Text size="2" weight="strong">
                                 Capabilities
                               </Text>
                               <Flex direction="column" gap={4}>
-                                {Object.entries(method.capabilities)
-                                  .filter(([_, v]: [string, any]) => v?.enabled)
-                                  .map(([key, value]: [string, any]) => (
+                                {Object.entries(method.capabilities as Record<string, { enabled?: boolean; description?: string }>)
+                                  .filter(([_, v]) => v?.enabled)
+                                  .map(([key, value]) => (
                                     <Flex
                                       key={key}
                                       align="center"

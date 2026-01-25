@@ -11,12 +11,23 @@ import {
 } from '@metorial-io/ui';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { styled } from 'styled-components';
+import { BackLink } from '../../components/BackLink.js';
+import { EmptyState, FilterButton, ListItemRow, MonoCode, TextLink } from '../../components/styled.js';
 import { eventTypeColors } from '../../constants/statusColors.js';
 import { useAllEvents, useSlate, useSlateEvents } from '../../state/index.js';
-import { BackLink } from '../../components/BackLink.js';
-import { EmptyState, FilterButton, MonoCode, TableHeaderRow, TextLink } from '../../components/styled.js';
 
 type EventFilter = 'all' | 'deployment' | 'discovery' | 'version';
+
+let EventItemWrapper = styled.div`
+  cursor: pointer;
+`;
+
+let ExpandedContent = styled(Flex)`
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+`;
 
 export let EventList = () => {
   let { slateId } = useParams<{ slateId?: string }>();
@@ -99,60 +110,36 @@ export let EventList = () => {
 
         return (
           <Group.Wrapper>
-            <Group.HeaderRow>
-              <TableHeaderRow>
-                <Flex style={{ width: 180 }}>Type</Flex>
-                <Flex style={{ flex: 1 }}>Message</Flex>
-                {!slateId && <Flex style={{ width: 200 }}>Slate</Flex>}
-                <Flex style={{ width: 180 }}>Time</Flex>
-              </TableHeaderRow>
-            </Group.HeaderRow>
             {filteredEvents.map(event => {
               let isExpanded = expandedEventId === event.id;
               return (
-                <div key={event.id}>
-                  <Group.Row
-                    style={{ padding: '16px 20px', cursor: 'pointer' }}
-                    onClick={() => setExpandedEventId(isExpanded ? null : event.id)}
-                  >
-                    <Flex align="center">
-                      <Flex style={{ width: 180 }}>
-                        <Badge color={eventTypeColors[event.type] || 'gray'}>
-                          {event.type.replace(/_/g, ' ')}
-                        </Badge>
-                      </Flex>
-                      <Flex style={{ flex: 1 }}>
-                        <Text size="2" color={event.message ? undefined : 'gray600'}>
-                          {event.message || '-'}
-                        </Text>
-                      </Flex>
-                      {!slateId && (
-                        <Flex style={{ width: 200 }}>
-                          {event.slate ? (
-                            <TextLink
-                              to={`/slates/${event.slate.id}`}
-                              onClick={e => e.stopPropagation()}
-                            >
-                              {event.slate.name || event.slate.identifier}
-                            </TextLink>
-                          ) : (
-                            <Text size="2" color="gray600">
-                              -
-                            </Text>
-                          )}
-                        </Flex>
-                      )}
-                      <Flex style={{ width: 180 }}>
-                        <RenderDate date={event.createdAt} />
-                      </Flex>
+                <EventItemWrapper
+                  key={event.id}
+                  onClick={() => setExpandedEventId(isExpanded ? null : event.id)}
+                >
+                  <ListItemRow align="center" justify="space-between">
+                    <Flex align="center" gap={16}>
+                      <Badge color={eventTypeColors[event.type] || 'gray'}>
+                        {event.type.replace(/_/g, ' ')}
+                      </Badge>
+                      <Text size="2" color={event.message ? undefined : 'gray600'}>
+                        {event.message || '-'}
+                      </Text>
                     </Flex>
-                  </Group.Row>
+                    <Flex align="center" gap={16}>
+                      {!slateId && event.slate && (
+                        <TextLink
+                          to={`/slates/${event.slate.id}`}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          {event.slate.name || event.slate.identifier}
+                        </TextLink>
+                      )}
+                      <RenderDate date={event.createdAt} />
+                    </Flex>
+                  </ListItemRow>
                   {isExpanded && (
-                    <Flex
-                      direction="column"
-                      gap={12}
-                      style={{ padding: '12px 20px 16px', background: '#f8fafc' }}
-                    >
+                    <ExpandedContent direction="column" gap={12}>
                       <Flex gap={32} wrap="wrap">
                         <Flex direction="column" gap={4}>
                           <Text size="1" color="gray600">
@@ -187,6 +174,7 @@ export let EventList = () => {
                             <Link
                               to={`/slates/${event.slate?.id}/deployments/${event.deployment.id}`}
                               style={{ textDecoration: 'none' }}
+                              onClick={e => e.stopPropagation()}
                             >
                               <Badge color="blue" size="1">
                                 View Deployment →
@@ -202,6 +190,7 @@ export let EventList = () => {
                             <Link
                               to={`/slates/${event.slate?.id}/versions/${event.version?.id}/discoveries/${event.discovery.id}`}
                               style={{ textDecoration: 'none' }}
+                              onClick={e => e.stopPropagation()}
                             >
                               <Badge color="blue" size="1">
                                 View Discovery →
@@ -220,9 +209,9 @@ export let EventList = () => {
                           </Text>
                         </Flex>
                       )}
-                    </Flex>
+                    </ExpandedContent>
                   )}
-                </div>
+                </EventItemWrapper>
               );
             })}
           </Group.Wrapper>

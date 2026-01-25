@@ -1,11 +1,12 @@
-export let slateDiscoveryBuildOutputPresenter = (buildOutput: any | null) => {
+import type { SlateInvocationResult } from '../lib/invocation/store';
+
+export let slateDiscoveryBuildOutputPresenter = (buildOutput: SlateInvocationResult | null) => {
   if (!buildOutput) return null;
 
   return {
-    object: 'slate.discovery.build_output',
-    logs: buildOutput.logs ?? buildOutput.output ?? null,
+    object: 'slate.discovery.build_output' as const,
+    logs: buildOutput.logs ?? null,
     status: buildOutput.status ?? null,
-    startedAt: buildOutput.startedAt ?? null,
-    completedAt: buildOutput.completedAt ?? null
+    createdAt: buildOutput.createdAt ?? null
   };
 };

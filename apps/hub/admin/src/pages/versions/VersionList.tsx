@@ -1,10 +1,10 @@
 import { renderWithPagination } from '@metorial-io/data-hooks';
 import { Badge, Flex, Group, RenderDate, Spacer, Text, Title } from '@metorial-io/ui';
 import { useParams } from 'react-router-dom';
+import { BackLink } from '../../components/BackLink.js';
+import { EmptyState, ListItemLink, ListItemRow } from '../../components/styled.js';
 import { versionStatusColors } from '../../constants/statusColors.js';
 import { useSlate, useSlateVersions } from '../../state/index.js';
-import { BackLink } from '../../components/BackLink.js';
-import { EmptyState, ListItemLink, TableHeaderRow } from '../../components/styled.js';
 
 export let VersionList = () => {
   let { slateId } = useParams<{ slateId: string }>();
@@ -49,45 +49,24 @@ export let VersionList = () => {
 
         return (
           <Group.Wrapper>
-            <Group.HeaderRow>
-              <TableHeaderRow>
-                <Flex style={{ flex: 1 }}>Version</Flex>
-                <Flex style={{ width: 120 }}>Status</Flex>
-                <Flex style={{ width: 100 }}>Current</Flex>
-                <Flex style={{ width: 180 }}>Created</Flex>
-              </TableHeaderRow>
-            </Group.HeaderRow>
-
             {items.map(version => (
               <ListItemLink key={version.id} to={`/slates/${slateId}/versions/${version.id}`}>
-                <Group.Row style={{ padding: '16px 20px', cursor: 'pointer' }}>
-                  <Flex align="center">
-                    <Flex style={{ flex: 1 }}>
-                      <Text size="3" weight="bold" style={{ fontFamily: 'monospace' }}>
-                        v{version.version}
-                      </Text>
-                    </Flex>
-                    <Flex style={{ width: 120 }}>
-                      <Badge color={versionStatusColors[version.status] || 'gray'}>
-                        {version.status}
+                <ListItemRow align="center" justify="space-between">
+                  <Text size="3" weight="bold" style={{ fontFamily: 'monospace' }}>
+                    v{version.version}
+                  </Text>
+                  <Flex align="center" gap={12}>
+                    <Badge color={versionStatusColors[version.status] || 'gray'}>
+                      {version.status}
+                    </Badge>
+                    {version.isCurrent && (
+                      <Badge color="green" size="1">
+                        Current
                       </Badge>
-                    </Flex>
-                    <Flex style={{ width: 100 }}>
-                      {version.isCurrent ? (
-                        <Badge color="green" size="1">
-                          Current
-                        </Badge>
-                      ) : (
-                        <Text size="2" color="gray600">
-                          -
-                        </Text>
-                      )}
-                    </Flex>
-                    <Flex style={{ width: 180 }}>
-                      <RenderDate date={version.createdAt} />
-                    </Flex>
+                    )}
+                    <RenderDate date={version.createdAt} />
                   </Flex>
-                </Group.Row>
+                </ListItemRow>
               </ListItemLink>
             ))}
           </Group.Wrapper>
