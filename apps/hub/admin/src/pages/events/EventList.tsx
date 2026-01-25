@@ -114,38 +114,29 @@ export let EventList = () => {
                 let href = getEventHref(event);
                 let row = {
                   href,
-                  data: slateId
-                    ? [
-                        <Badge color={eventTypeColors[event.type] || 'gray'}>
-                          {event.type.replace(/_/g, ' ')}
-                        </Badge>,
-                        <Text size="2" color={event.message ? undefined : 'gray600'}>
-                          {event.message || '-'}
-                        </Text>,
-                        <Badge color="blue" size="1">
-                          v{event.version?.version ?? '-'}
-                        </Badge>,
-                        <RenderDate date={event.createdAt} />
-                      ]
-                    : [
-                        <Badge color={eventTypeColors[event.type] || 'gray'}>
-                          {event.type.replace(/_/g, ' ')}
-                        </Badge>,
-                        <Text size="2" color={event.message ? undefined : 'gray600'}>
-                          {event.message || '-'}
-                        </Text>,
-                        event.slate ? (
-                          <Text size="2">{event.slate.name || event.slate.identifier}</Text>
-                        ) : (
-                          <Text size="2" color="gray600">
-                            -
-                          </Text>
-                        ),
-                        <Badge color="blue" size="1">
-                          v{event.version?.version ?? '-'}
-                        </Badge>,
-                        <RenderDate date={event.createdAt} />
-                      ]
+                  data: [
+                    <Badge color={eventTypeColors[event.type] || 'gray'}>
+                      {event.type.replace(/_/g, ' ')}
+                    </Badge>,
+                    <Text size="2" color={event.message ? undefined : 'gray600'}>
+                      {event.message || '-'}
+                    </Text>,
+                    ...(!slateId
+                      ? [
+                          event.slate ? (
+                            <Text size="2">{event.slate.name || event.slate.identifier}</Text>
+                          ) : (
+                            <Text size="2" color="gray600">
+                              -
+                            </Text>
+                          )
+                        ]
+                      : []),
+                    <Badge color="blue" size="1">
+                      v{event.version?.version ?? '-'}
+                    </Badge>,
+                    <RenderDate date={event.createdAt} />
+                  ]
                 };
                 return row;
               })}
