@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { slateTriggerReceiverPresenter } from '../../presenters';
-import type { Tenant } from '../../prisma/generated/client';
+import type { Tenant } from '../../../prisma/generated/client';
 import {
   slateAuthConfigService,
   slateInstanceService,

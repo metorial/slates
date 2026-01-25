@@ -26,6 +26,7 @@ export let slateSpecificationPresenter = (
 
   name: spec.name,
   key: spec.key,
+  protocolVersion: spec.protocolVersion,
 
   providerInfo: spec.providerInfo,
   configSchema: spec.configSchema,

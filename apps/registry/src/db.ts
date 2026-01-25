@@ -17,5 +17,10 @@ declare global {
       version: string;
       description?: string;
     };
+
+    type FilterExpression = {
+      type: 'prefix' | 'scope' | 'slate';
+      value: string;
+    }[];
   }
 }

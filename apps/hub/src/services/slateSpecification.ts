@@ -10,6 +10,9 @@ let include = {
   },
   slateActions: {
     include: { action: true }
+  },
+  slateConfigSchemas: {
+    include: { configSchema: true }
   }
 };
 

@@ -1,6 +1,5 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
-import { getSentry } from '@lowerdeck/sentry';
 import { Service } from '@lowerdeck/service';
 import type {
   Slate,
@@ -15,8 +14,6 @@ import { db } from '../db';
 import { getId } from '../id';
 import { validateJsonSchema } from '../lib/validateJsonSchema';
 import { slateInstanceConfigChangedQueue } from '../queues/instance/configChanged';
-
-let _Sentry = getSentry();
 
 let include = {
   lockedSlateVersion: true,

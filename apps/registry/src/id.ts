@@ -14,6 +14,7 @@ export let ID = createIdGenerator({
   artifact: idType.sorted('sraf'),
   changeNotification: idType.sorted('srcn'),
   subRegistry: idType.sorted('srsr'),
+  subRegistryFilter: idType.sorted('srsf'),
   slateCategory: idType.sorted('srct')
 });
 

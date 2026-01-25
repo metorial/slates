@@ -1,6 +1,5 @@
 import { badRequestError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
-import { getSentry } from '@lowerdeck/sentry';
 import { Service } from '@lowerdeck/service';
 import type { SlateInstanceOAuthSetup, SlateVersion } from '../../prisma/generated/browser';
 import type { Slate, SlateOAuthCredentials, Tenant } from '../../prisma/generated/client';
@@ -8,8 +7,6 @@ import { db } from '../db';
 import { getId } from '../id';
 import { validateJsonSchema } from '../lib/validateJsonSchema';
 import { type SecretSlateInstanceOauthSetup, secretService } from './secret';
-
-let _Sentry = getSentry();
 
 let include = {
   slate: true,

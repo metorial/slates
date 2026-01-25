@@ -1,0 +1,56 @@
+import { createLoader } from '@metorial-io/data-hooks';
+import { hubClient } from './client.js';
+import { usePaginatedLoader } from './usePaginatedLoader.js';
+
+export let allDeploymentsLoader = createLoader({
+  name: 'allDeployments',
+  fetch: (params: {
+    status?: 'pending' | 'running' | 'succeeded' | 'failed';
+    after?: string;
+    before?: string;
+  }) => hubClient.slateDeployment.list(params),
+  mutators: {}
+});
+
+export let useAllDeployments = (status?: 'pending' | 'running' | 'succeeded' | 'failed') =>
+  usePaginatedLoader(allDeploymentsLoader, { status });
+
+export let slateDeploymentsLoader = createLoader({
+  name: 'slateDeployments',
+  fetch: (params: {
+    slateId: string;
+    versionIds?: string[];
+    after?: string;
+    before?: string;
+  }) => hubClient.slateDeployment.list(params),
+  mutators: {}
+});
+
+export let useSlateDeployments = (slateId: string | undefined, versionIds?: string[]) =>
+  usePaginatedLoader(slateDeploymentsLoader, slateId ? { slateId, versionIds } : null);
+
+export let slateDeploymentLoader = createLoader({
+  name: 'slateDeployment',
+  fetch: (params: { slateId: string; slateDeploymentId: string }) =>
+    hubClient.slateDeployment.get(params),
+  mutators: {},
+  parents: [slateDeploymentsLoader]
+});
+
+export let useSlateDeployment = (
+  slateId: string | undefined,
+  deploymentId: string | undefined
+) =>
+  slateDeploymentLoader.use(
+    slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null
+  );
+
+let buildOutputLoader = createLoader({
+  name: 'buildOutput',
+  fetch: (params: { slateId: string; slateDeploymentId: string }) =>
+    hubClient.slateDeployment.getBuildOutput(params),
+  mutators: {}
+});
+
+export let useBuildOutput = (slateId: string | undefined, deploymentId: string | undefined) =>
+  buildOutputLoader.use(slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null);

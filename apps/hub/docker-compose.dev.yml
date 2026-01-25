@@ -164,6 +164,7 @@ services:
     ports:
       - '52040:52040'
       - '52041:52041'
+      - '52042:52042'
     environment:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0
@@ -183,6 +184,90 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - slates-hub-network
+
+  slates-hub:
+    build:
+      context: ../../
+      dockerfile: ./apps/hub/dev.Dockerfile
+    container_name: slates-hub-service
+    restart: unless-stopped
+    ports:
+      - '52045:52045'
+      - '52046:52046'
+    environment:
+      DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-hub
+      REDIS_URL: redis://redis:6379/0
+      METORIAL_ENV: development
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      FUNCTION_BAY_API_URL: http://function-bay:52030/metorial-function-bay
+      FUNCTION_BAY_TENANT_IDENTIFIER: dev-tenant
+      FUNCTION_BAY_DEFAULT_MEMORY_MB: 512
+      FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS: 15
+      OBJECT_STORAGE_URL: http://object-storage:52010
+      INVOCATIONS_BUCKET_NAME: slates-hub-invocations
+      INITIAL_REGISTRIES: 'http://slates-registry:52040'
+      SIGNAL_API_URL: http://signal:52050/metorial-signal
+      SIGNAL_SENDER_IDENTIFIER: dev-slates-hub
+      SLATES_HUB_INSTANCE_IDENTIFIER: dev-slates-hub
+      SERVICE_PUBLIC_URL: http://localhost:52045
+    volumes:
+      - ./src:/app/apps/hub/src:ro
+      - ./package.json:/app/apps/hub/package.json:ro
+      - ./tsconfig.json:/app/apps/hub/tsconfig.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      object-storage:
+        condition: service_healthy
+      slates-registry:
+        condition: service_healthy
+      forge:
+        condition: service_healthy
+      function-bay:
+        condition: service_healthy
+      signal:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -s http://localhost:52045/ > /dev/null || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - slates-hub-network
+
+  slates-hub-admin:
+    image: oven/bun:latest
+    container_name: slates-hub-admin
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "bun install && cd apps/hub && bun vite --config admin/vite.docker.config.ts"
+    ports:
+      - '52047:52047'
+    volumes:
+      - ../../:/app
+    depends_on:
+      slates-hub:
+        condition: service_healthy
+    networks:
+      - slates-hub-network
+
+  slates-registry-admin:
+    image: oven/bun:latest
+    container_name: slates-registry-admin
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "bun install && cd apps/registry && bun vite --config admin/vite.docker.config.ts"
+    ports:
+      - '52043:52043'
+    volumes:
+      - ../../:/app
+    depends_on:
+      slates-registry:
+        condition: service_healthy
     networks:
       - slates-hub-network
 

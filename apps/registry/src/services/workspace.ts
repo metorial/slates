@@ -1,7 +1,7 @@
 import { conflictError, notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Tenant, Workspace } from '../../prisma/generated/client';
+import type { Scope, Tenant, Workspace } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId } from '../id';
 
@@ -15,6 +15,7 @@ class workspaceServiceImpl {
     input: {
       name: string;
       identifier: string;
+      description?: string;
     };
     tenant: Tenant;
   }) {
@@ -40,6 +41,7 @@ class workspaceServiceImpl {
 
           identifier: d.input.identifier,
           name: d.input.name,
+          description: d.input.description,
 
           tenantOid: d.tenant.oid,
 
@@ -93,7 +95,7 @@ class workspaceServiceImpl {
   }
 
   async updateWorkspace(d: {
-    workspace: Workspace;
+    workspace: Workspace & { scope: Scope };
     input: {
       name?: string;
       description?: string;
@@ -102,7 +104,7 @@ class workspaceServiceImpl {
   }) {
     return await db.$transaction(async db => {
       await db.scope.update({
-        where: { oid: d.workspace.scopeOid },
+        where: { oid: d.workspace.scope.oid },
         data: {
           name: d.input.name,
           description: d.input.description,

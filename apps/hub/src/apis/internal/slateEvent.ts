@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { slateEventPresenter } from '../../presenters';
-import { slateEventService } from '../../services';
+import { slateEventService, slateService } from '../../services';
 import { app } from './_app';
 import { slateApp } from './slate';
 
@@ -18,20 +18,26 @@ export let slateEventApp = slateApp.use(async ctx => {
 });
 
 export let slateEventController = app.controller({
-  list: slateApp
+  list: app
     .handler()
     .input(
       Paginator.validate(
         v.object({
-          slateId: v.string(),
-          versionIds: v.optional(v.array(v.string()))
+          slateId: v.optional(v.string()),
+          versionIds: v.optional(v.array(v.string())),
+          type: v.optional(v.string())
         })
       )
     )
     .do(async ctx => {
+      let slate = ctx.input.slateId
+        ? await slateService.getSlateById({ id: ctx.input.slateId })
+        : undefined;
+
       let paginator = await slateEventService.listSlateEvents({
-        slate: ctx.slate,
-        versionIds: ctx.input.versionIds
+        slate,
+        versionIds: ctx.input.versionIds,
+        type: ctx.input.type
       });
 
       let list = await paginator.run(ctx.input);

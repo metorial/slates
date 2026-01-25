@@ -94,6 +94,45 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
 
     let directory = await unzipper.Open.buffer(Buffer.from(zipBuffer));
 
+    let slatePackageJsonFile = directory.files.find(f => f.path === 'package.json');
+    let slateEntrypoint: string | undefined;
+
+    if (slatePackageJsonFile) {
+      try {
+        let slatePackageJson = JSON.parse((await slatePackageJsonFile.buffer()).toString());
+        if (slatePackageJson.main) {
+          slateEntrypoint = './' + slatePackageJson.main.replace(/\.(js|ts)$/, '');
+        }
+      } catch (e) {
+        console.warn(
+          `[Deployment]: Failed to parse slate package.json, using no dependencies`,
+          e
+        );
+      }
+    }
+
+    if (!slateEntrypoint) {
+      let commonEntrypoints = [
+        'src/index.ts',
+        'src/index.js',
+        'index.ts',
+        'index.js',
+        'dist/index.js'
+      ];
+      for (let entry of commonEntrypoints) {
+        if (directory.files.some(f => f.path === entry)) {
+          slateEntrypoint = './' + entry.replace(/\.(js|ts)$/, '');
+          break;
+        }
+      }
+    }
+
+    if (!slateEntrypoint) {
+      throw new Error(
+        'Could not determine slate entrypoint - no main field in package.json and no common entry files found'
+      );
+    }
+
     let func = await functionBay.function.upsert({
       identifier: `slates::slate_version::${version.id}::${generateCode(6)}`,
       name: `Slate Version ${version.id} Deployment`,
@@ -122,7 +161,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
       {
         filename: 'slates_entry_point.js',
         content: `
-          import { provider } from './index';
+          import { provider } from '${slateEntrypoint}';
           import { createProviderHandler } from '@slates/provider-handler';
           import { SlatesProviderProtoHandlerManager } from '@slates/proto';
           import { serialize } from '@lowerdeck/serialize';
@@ -209,7 +248,6 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
       env: {},
       files: [
         ...initialFiles,
-
         ...(await Promise.all(
           directory.files.map(async f => ({
             filename: initialFilenames.has(f.path) ? `_${f.path}` : f.path,

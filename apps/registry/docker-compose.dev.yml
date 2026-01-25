@@ -53,6 +53,7 @@ services:
     ports:
       - '52040:52040'
       - '52041:52041'
+      - '52042:52042'
     environment:
       DATABASE_URL: postgresql://slates-registry:slates-registry@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0

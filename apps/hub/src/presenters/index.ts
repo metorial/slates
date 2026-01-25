@@ -5,6 +5,8 @@ export * from './slate';
 export * from './slateAction';
 export * from './slateAuthConfig';
 export * from './slateDeployment';
+export * from './slateDiscoveryBuildOutput';
+export * from './slateDiscoveryToolCallStats';
 export * from './slateEvent';
 export * from './slateInstance';
 export * from './slateInvocation';
