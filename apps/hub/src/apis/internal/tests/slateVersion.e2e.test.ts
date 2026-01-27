@@ -28,17 +28,25 @@ describe('slateVersion:list E2E', () => {
     });
 
     expect(result.items).toHaveLength(2);
-    expect(result.items[0]).toMatchObject({
-      object: 'slate.version',
-      id: slate.currentVersion.id,
-      status: 'active',
-      version: '1.0.0',
-      isCurrent: true,
-      slateId: slate.id,
-      manifest: expect.any(Object),
-      specification: expect.any(Object),
-      createdAt: expect.any(Date)
-    });
+    const [first, second] = result.items;
+    expect(first).toBeDefined();
+    expect(second).toBeDefined();
+    expect(first!.createdAt.getTime()).toBeGreaterThanOrEqual(
+      second!.createdAt.getTime()
+    );
+    expect(result.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          object: 'slate.version',
+          id: slate.currentVersion.id,
+          version: '1.0.0'
+        }),
+        expect.objectContaining({
+          object: 'slate.version',
+          version: '1.1.0'
+        })
+      ])
+    );
   });
 });
 

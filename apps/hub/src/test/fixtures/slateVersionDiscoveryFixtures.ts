@@ -64,6 +64,7 @@ export const SlateVersionDiscoveryFixtures = (db: PrismaClient) => {
   const failed = async (data: {
     slateVersionOid: bigint;
     errorMessage?: string;
+    errorCode?: string;
     overrides?: Partial<SlateVersionDiscovery>;
   }): Promise<SlateVersionDiscovery> =>
     defaultDiscovery({
@@ -71,6 +72,7 @@ export const SlateVersionDiscoveryFixtures = (db: PrismaClient) => {
       status: SlateVersionDiscoveryStatus.failed,
       overrides: {
         errorMessage: data.errorMessage ?? 'Discovery failed',
+        ...(data.errorCode ? { errorCode: data.errorCode } : {}),
         ...data.overrides
       }
     });

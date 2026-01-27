@@ -37,7 +37,13 @@ export let syncRegistryQueueProcessor = syncRegistryQueue.process(data =>
     });
     if (changeNotifications.status !== 200) return;
 
-    let { items } = await changeNotifications.json();
+    let { items } = (await changeNotifications.json()) as {
+      items: Array<{
+        id: string;
+        slate: { fullIdentifier: string };
+        slateVersion?: { identifier?: string | null; id?: string | null };
+      }>;
+    };
     console.log(`Syncing ${items.length} items for registry ${reg.id}`);
     if (items.length === 0) return;
 

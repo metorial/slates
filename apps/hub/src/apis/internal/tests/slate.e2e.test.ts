@@ -127,3 +127,53 @@ describe('slate:list E2E', () => {
     });
   });
 });
+
+describe('slate:getStats E2E', () => {
+  const f = fixtures(testDb);
+
+  beforeEach(async () => {
+    await cleanDatabase();
+  });
+
+  it('returns aggregated counts for a slate', async () => {
+    const slate = await f.slate.complete({
+      slateStatus: SlateStatus.active
+    });
+
+    await f.slateVersion.withSpecification({
+      slateOid: slate.oid,
+      registryOid: slate.registry.oid,
+      version: '1.1.0'
+    });
+
+    const provider = await f.deploymentProvider.default();
+    await f.slateDeployment.succeeded({
+      slateOid: slate.oid,
+      slateVersionOid: slate.currentVersion.oid,
+      providerOid: provider.oid
+    });
+
+    await f.slateEvent.default({
+      slateOid: slate.oid,
+      slateVersionOid: slate.currentVersion.oid
+    });
+
+    await f.slateVersionDiscovery.default({
+      slateVersionOid: slate.currentVersion.oid,
+      specificationOid: slate.currentVersion.specification.oid
+    });
+
+    const result = await slatesHubClient.slate.getStats({
+      slateId: slate.id
+    });
+
+    expect(result).toMatchObject({
+      object: 'slate.stats',
+      slateId: slate.id,
+      versions: 2,
+      deployments: 1,
+      discoveries: 1,
+      events: 1
+    });
+  });
+});
