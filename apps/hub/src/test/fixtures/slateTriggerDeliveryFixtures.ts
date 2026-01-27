@@ -8,7 +8,7 @@ import type {
   Tenant
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateTriggerEventFixtures } from './slateTriggerEventFixtures';
 import { SlateTriggerDestinationFixtures } from './slateTriggerDestinationFixtures';
 

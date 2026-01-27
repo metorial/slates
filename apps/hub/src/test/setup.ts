@@ -1,13 +1,18 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../prisma/generated/client';
-import { setupTestGlobals, withTestDb } from '@metorial/testing';
+import { afterAll } from 'vitest';
+import { setupPrismaTestDb, setupTestGlobals } from '@lowerdeck/testing-tools';
 
 setupTestGlobals({ nodeEnv: 'test' });
 
-const { client, clean } = withTestDb<PrismaClient>({
+const db = await setupPrismaTestDb<PrismaClient>({
   guard: 'slates-hub-test',
   prismaClientFactory: url => new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) })
 });
 
-export const testDb: PrismaClient = client;
-export const cleanDatabase = clean;
+afterAll(async () => {
+  await db.disconnect();
+});
+
+export const testDb: PrismaClient = db.client;
+export const cleanDatabase = db.clean;

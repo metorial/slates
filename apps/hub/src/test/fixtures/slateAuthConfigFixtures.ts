@@ -1,15 +1,15 @@
+import { Prisma } from '../../../prisma/generated/client';
 import type {
   PrismaClient,
   SlateAuthConfig,
   SlateAuthMethod,
   Slate,
   Tenant,
-  Secret,
-  Prisma
+  Secret
 } from '../../../prisma/generated/client';
 import { SlateAuthConfigType, SecretType, type SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 
 import { TenantFixtures } from './tenantFixtures';
 import { SecretFixtures } from './secretFixtures';
@@ -22,7 +22,7 @@ export const SlateAuthConfigFixtures = (db: PrismaClient) => {
     authMethodOid: bigint;
     secretOid: bigint;
     type?: SlateAuthConfigType;
-    overrides?: Omit<Partial<Prisma.SlateAuthConfigUncheckedCreateInput>, 'oid' | 'id'>;
+    overrides?: Omit<Partial<SlateAuthConfig>, 'oid' | 'id'>;
   }): Promise<SlateAuthConfig> => {
     const { oid, id } = getId('slateAuthConfig');
 
@@ -39,7 +39,18 @@ export const SlateAuthConfigFixtures = (db: PrismaClient) => {
         ...data.overrides
       } as SlateAuthConfig,
       {
-        persist: value => db.slateAuthConfig.create({ data: value })
+        persist: value => {
+          const { profile, ...rest } = value;
+          const data: Prisma.SlateAuthConfigUncheckedCreateInput = {
+            ...rest,
+            ...(profile === null
+              ? { profile: Prisma.DbNull }
+              : profile
+                ? { profile }
+                : {})
+          };
+          return db.slateAuthConfig.create({ data });
+        }
       }
     );
 
@@ -68,7 +79,7 @@ export const SlateAuthConfigFixtures = (db: PrismaClient) => {
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
     type?: SlateAuthConfigType;
-    configOverrides?: Omit<Partial<Prisma.SlateAuthConfigUncheckedCreateInput>, 'oid' | 'id'>;
+    configOverrides?: Omit<Partial<SlateAuthConfig>, 'oid' | 'id'>;
   }): Promise<{
     config: SlateAuthConfig;
     authMethod: SlateAuthMethod;

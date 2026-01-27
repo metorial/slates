@@ -14,7 +14,7 @@ import type {
 } from '../../../prisma/generated/client';
 import { SlateTriggerEventDeliveryStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateTriggerReceiverFixtures } from './slateTriggerReceiverFixtures';
 import { SlateInvocationFixtures, SlateInvocationStorageBucketFixtures } from './invocationFixtures';
 import { DeploymentProviderFixtures, SlateDeploymentFixtures } from './deploymentFixtures';

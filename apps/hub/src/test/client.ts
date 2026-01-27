@@ -1,5 +1,5 @@
 import { createSlatesHubInternalClient } from '../../../../clients/hub/src/index.ts';
-import { createFetchRouter } from '@metorial/testing';
+import { createFetchRouter } from '@lowerdeck/testing-tools';
 import { slatesHubApi } from '../apis/internal';
 
 type ClientOptsLike = {

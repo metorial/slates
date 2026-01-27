@@ -1,7 +1,7 @@
 import type { PrismaClient, SlateVersion, SlateSpecification } from '../../../prisma/generated/client';
 import { SlateVersionStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateSpecificationFixtures } from './slateSpecificationFixtures';
 
 export const SlateVersionFixtures = (db: PrismaClient) => {

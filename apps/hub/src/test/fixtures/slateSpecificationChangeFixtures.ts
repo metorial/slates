@@ -7,7 +7,7 @@ import type {
 } from '../../../prisma/generated/client';
 import { SlateSpecificationChangeType, SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateFixtures } from './slateFixtures';
 import { SlateVersionFixtures } from './slateVersionFixtures';
 

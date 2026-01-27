@@ -5,7 +5,7 @@ import {
   SlateTriggerDestinationStatus
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { TenantFixtures } from './tenantFixtures';
 
 export const SlateTriggerDestinationFixtures = (db: PrismaClient) => {

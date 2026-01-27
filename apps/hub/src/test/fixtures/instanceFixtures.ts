@@ -6,7 +6,7 @@ import type {
   SlateInstanceConfig
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 
 export const SlateConfigSchemaFixtures = (db: PrismaClient) => {
   const defaultSchema = async (data: {

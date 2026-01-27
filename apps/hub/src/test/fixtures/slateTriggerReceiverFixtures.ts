@@ -16,7 +16,7 @@ import {
   SlateStatus
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { defineFactory } from '@metorial/testing';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { TenantFixtures } from './tenantFixtures';
 import { SlateFixtures } from './slateFixtures';
 import { SlateInstanceFixtures } from './instanceFixtures';
