@@ -1,21 +1,26 @@
-import type { SlateEvent, Slate, SlateVersion } from '../../../prisma/generated/client';
+import type {
+  PrismaClient,
+  SlateEvent,
+  Slate,
+  SlateVersion
+} from '../../../prisma/generated/client';
 import { SlateEventType, SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateFixtures } from './slateFixtures';
 
-export class SlateEventFixtures extends BaseFixture {
-  async default(data: {
+export const SlateEventFixtures = (db: PrismaClient) => {
+  const defaultEvent = async (data: {
     slateOid: bigint;
     slateVersionOid: bigint;
     type?: SlateEventType;
     overrides?: Partial<SlateEvent>;
-  }): Promise<SlateEvent> {
+  }): Promise<SlateEvent> => {
     const { oid, id } = getId('slateEvent');
     const type = data.type ?? SlateEventType.version_pulled;
 
-    return this.db.slateEvent.create({
-      data: {
+    const factory = defineFactory<SlateEvent>(
+      {
         oid,
         id,
         type,
@@ -23,11 +28,16 @@ export class SlateEventFixtures extends BaseFixture {
         slateOid: data.slateOid,
         slateVersionOid: data.slateVersionOid,
         ...data.overrides
+      } as SlateEvent,
+      {
+        persist: value => db.slateEvent.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withSlate(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withSlate = async (data?: {
     type?: SlateEventType;
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
@@ -35,14 +45,14 @@ export class SlateEventFixtures extends BaseFixture {
   }): Promise<{
     event: SlateEvent;
     slate: Slate & { currentVersion: SlateVersion };
-  }> {
-    const slateFixtures = new SlateFixtures(this.db);
+  }> => {
+    const slateFixtures = SlateFixtures(db);
     const slate = await slateFixtures.complete({
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus ?? SlateStatus.active
     });
 
-    const event = await this.default({
+    const event = await defaultEvent({
       slateOid: slate.oid,
       slateVersionOid: slate.currentVersion.oid,
       type: data?.type,
@@ -50,5 +60,10 @@ export class SlateEventFixtures extends BaseFixture {
     });
 
     return { event, slate };
-  }
-}
+  };
+
+  return {
+    default: defaultEvent,
+    withSlate
+  };
+};

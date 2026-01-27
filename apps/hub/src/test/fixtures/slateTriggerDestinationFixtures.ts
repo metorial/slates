@@ -1,23 +1,23 @@
 import { randomBytes } from 'crypto';
-import type { SlateTriggerDestination, Tenant } from '../../../prisma/generated/client';
+import type { PrismaClient, SlateTriggerDestination, Tenant } from '../../../prisma/generated/client';
 import {
   SlateTriggerDestinationType,
   SlateTriggerDestinationStatus
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { TenantFixtures } from './tenantFixtures';
 
-export class SlateTriggerDestinationFixtures extends BaseFixture {
-  async default(data: {
+export const SlateTriggerDestinationFixtures = (db: PrismaClient) => {
+  const defaultDestination = async (data: {
     tenantOid: bigint;
     overrides?: Partial<SlateTriggerDestination>;
-  }): Promise<SlateTriggerDestination> {
+  }): Promise<SlateTriggerDestination> => {
     const { oid, id } = getId('slateTriggerDestination');
     const name = `destination-${randomBytes(4).toString('hex')}`;
 
-    return this.db.slateTriggerDestination.create({
-      data: {
+    const factory = defineFactory<SlateTriggerDestination>(
+      {
         oid,
         id,
         tenantOid: data.tenantOid,
@@ -29,24 +29,34 @@ export class SlateTriggerDestinationFixtures extends BaseFixture {
         eventTypes: ['*'],
         signalDestinationId: `signal_dest_${randomBytes(8).toString('hex')}`,
         ...data.overrides
+      } as SlateTriggerDestination,
+      {
+        persist: value => db.slateTriggerDestination.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withTenant(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withTenant = async (data?: {
     destinationOverrides?: Partial<SlateTriggerDestination>;
   }): Promise<{
     destination: SlateTriggerDestination;
     tenant: Tenant;
-  }> {
-    const tenantFixtures = new TenantFixtures(this.db);
+  }> => {
+    const tenantFixtures = TenantFixtures(db);
     const tenant = await tenantFixtures.default();
 
-    const destination = await this.default({
+    const destination = await defaultDestination({
       tenantOid: tenant.oid,
       overrides: data?.destinationOverrides
     });
 
     return { destination, tenant };
-  }
-}
+  };
+
+  return {
+    default: defaultDestination,
+    withTenant
+  };
+};

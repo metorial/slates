@@ -1,4 +1,5 @@
 import type {
+  PrismaClient,
   SlateInstanceOAuthSetup,
   SlateOAuthCredentials,
   SlateAuthMethod,
@@ -13,15 +14,15 @@ import {
   SlateStatus
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateFixtures } from './slateFixtures';
 import { TenantFixtures } from './tenantFixtures';
 import { SecretFixtures } from './secretFixtures';
 import { SlateAuthMethodFixtures } from './slateAuthMethodFixtures';
 import { SlateOAuthCredentialsFixtures } from './slateOAuthCredentialsFixtures';
 
-export class SlateOAuthSetupFixtures extends BaseFixture {
-  async default(data: {
+export const SlateOAuthSetupFixtures = (db: PrismaClient) => {
+  const defaultSetup = async (data: {
     slateOid: bigint;
     tenantOid: bigint;
     slateVersionOid: bigint;
@@ -30,11 +31,11 @@ export class SlateOAuthSetupFixtures extends BaseFixture {
     secretOid: bigint;
     status?: SlateInstanceOAuthSetupStatus;
     overrides?: Partial<SlateInstanceOAuthSetup>;
-  }): Promise<SlateInstanceOAuthSetup> {
+  }): Promise<SlateInstanceOAuthSetup> => {
     const { oid, id } = getId('slateInstanceOAuthSetup');
 
-    return this.db.slateInstanceOAuthSetup.create({
-      data: {
+    const factory = defineFactory<SlateInstanceOAuthSetup>(
+      {
         oid,
         id,
         status: data.status ?? SlateInstanceOAuthSetupStatus.unused,
@@ -46,23 +47,28 @@ export class SlateOAuthSetupFixtures extends BaseFixture {
         oauthCredentialsOid: data.oauthCredentialsOid,
         secretOid: data.secretOid,
         ...data.overrides
+      } as SlateInstanceOAuthSetup,
+      {
+        persist: value => db.slateInstanceOAuthSetup.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withSecret(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withSecret = async (data: {
     tenantOid: bigint;
     slateOid: bigint;
     slateVersionOid: bigint;
     authMethodOid: bigint;
     oauthCredentialsOid: bigint;
-  }): Promise<SlateInstanceOAuthSetup> {
-    const secretFixtures = new SecretFixtures(this.db);
+  }): Promise<SlateInstanceOAuthSetup> => {
+    const secretFixtures = SecretFixtures(db);
     const secret = await secretFixtures.default({
       tenantOid: data.tenantOid,
       type: SecretType.slate_oauth_setup
     });
-    return this.default({
+    return defaultSetup({
       slateOid: data.slateOid,
       tenantOid: data.tenantOid,
       slateVersionOid: data.slateVersionOid,
@@ -70,9 +76,9 @@ export class SlateOAuthSetupFixtures extends BaseFixture {
       oauthCredentialsOid: data.oauthCredentialsOid,
       secretOid: secret.oid
     });
-  }
+  };
 
-  async complete(data?: {
+  const complete = async (data?: {
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
     status?: SlateInstanceOAuthSetupStatus;
@@ -84,29 +90,29 @@ export class SlateOAuthSetupFixtures extends BaseFixture {
     slate: Slate & { currentVersion: SlateVersion };
     tenant: Tenant;
     secret: Secret;
-  }> {
-    const tenantFixtures = new TenantFixtures(this.db);
+  }> => {
+    const tenantFixtures = TenantFixtures(db);
     const tenant = await tenantFixtures.default();
 
-    const slateFixtures = new SlateFixtures(this.db);
+    const slateFixtures = SlateFixtures(db);
     const slate = await slateFixtures.complete({
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus ?? SlateStatus.active
     });
 
-    const authMethodFixtures = new SlateAuthMethodFixtures(this.db);
+    const authMethodFixtures = SlateAuthMethodFixtures(db);
     const authMethod = await authMethodFixtures.default({
       slateOid: slate.oid,
       specificationOid: slate.currentVersion.specification.oid
     });
 
-    const secretFixtures = new SecretFixtures(this.db);
+    const secretFixtures = SecretFixtures(db);
     const credentialsSecret = await secretFixtures.default({
       tenantOid: tenant.oid,
       type: SecretType.slate_oauth_credentials
     });
 
-    const credentialsFixtures = new SlateOAuthCredentialsFixtures(this.db);
+    const credentialsFixtures = SlateOAuthCredentialsFixtures(db);
     const credentials = await credentialsFixtures.default({
       slateOid: slate.oid,
       tenantOid: tenant.oid,
@@ -118,7 +124,7 @@ export class SlateOAuthSetupFixtures extends BaseFixture {
       type: SecretType.slate_oauth_setup
     });
 
-    const setup = await this.default({
+    const setup = await defaultSetup({
       slateOid: slate.oid,
       tenantOid: tenant.oid,
       slateVersionOid: slate.currentVersion.oid,
@@ -130,5 +136,11 @@ export class SlateOAuthSetupFixtures extends BaseFixture {
     });
 
     return { setup, credentials, authMethod, slate, tenant, secret: setupSecret };
-  }
-}
+  };
+
+  return {
+    default: defaultSetup,
+    withSecret,
+    complete
+  };
+};

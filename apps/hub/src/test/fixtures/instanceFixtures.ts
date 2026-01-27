@@ -1,23 +1,24 @@
 import { randomBytes } from 'crypto';
 import type {
+  PrismaClient,
   SlateConfigSchema,
   SlateInstance,
   SlateInstanceConfig
 } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 
-export class SlateConfigSchemaFixtures extends BaseFixture {
-  async default(data: {
+export const SlateConfigSchemaFixtures = (db: PrismaClient) => {
+  const defaultSchema = async (data: {
     slateOid: bigint;
     specificationOid: bigint;
     overrides?: Partial<SlateConfigSchema>;
-  }): Promise<SlateConfigSchema> {
+  }): Promise<SlateConfigSchema> => {
     const { oid, id } = getId('slateConfigSchema');
     const identifier = `config-schema-${randomBytes(4).toString('hex')}`;
 
-    return this.db.slateConfigSchema.create({
-      data: {
+    const factory = defineFactory<SlateConfigSchema>(
+      {
         oid,
         id,
         identifier,
@@ -26,23 +27,32 @@ export class SlateConfigSchemaFixtures extends BaseFixture {
         slateOid: data.slateOid,
         mostRecentSpecificationOid: data.specificationOid,
         ...data.overrides
+      } as SlateConfigSchema,
+      {
+        persist: value => db.slateConfigSchema.create({ data: value })
       }
-    });
-  }
-}
+    );
 
-export class SlateInstanceConfigFixtures extends BaseFixture {
-  async default(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  return {
+    default: defaultSchema
+  };
+};
+
+export const SlateInstanceConfigFixtures = (db: PrismaClient) => {
+  const defaultConfig = async (data: {
     instanceOid: bigint;
     schemaOid: bigint;
     tenantOid: bigint;
     value?: Record<string, unknown>;
     overrides?: Partial<SlateInstanceConfig>;
-  }): Promise<SlateInstanceConfig> {
+  }): Promise<SlateInstanceConfig> => {
     const { oid, id } = getId('slateInstanceConfig');
 
-    return this.db.slateInstanceConfig.create({
-      data: {
+    const factory = defineFactory<SlateInstanceConfig>(
+      {
         oid,
         id,
         instanceOid: data.instanceOid,
@@ -50,31 +60,45 @@ export class SlateInstanceConfigFixtures extends BaseFixture {
         tenantOid: data.tenantOid,
         value: data.value ?? {},
         ...data.overrides
+      } as SlateInstanceConfig,
+      {
+        persist: value => db.slateInstanceConfig.create({ data: value })
       }
-    });
-  }
-}
+    );
 
-export class SlateInstanceFixtures extends BaseFixture {
-  async default(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  return {
+    default: defaultConfig
+  };
+};
+
+export const SlateInstanceFixtures = (db: PrismaClient) => {
+  const defaultInstance = async (data: {
     slateOid: bigint;
     tenantOid: bigint;
     overrides?: Partial<SlateInstance>;
-  }): Promise<SlateInstance> {
+  }): Promise<SlateInstance> => {
     const { oid, id } = getId('slateInstance');
 
-    return this.db.slateInstance.create({
-      data: {
+    const factory = defineFactory<SlateInstance>(
+      {
         oid,
         id,
         slateOid: data.slateOid,
         tenantOid: data.tenantOid,
         ...data.overrides
+      } as SlateInstance,
+      {
+        persist: value => db.slateInstance.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withConfig(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withConfig = async (data: {
     slateOid: bigint;
     tenantOid: bigint;
     specificationOid: bigint;
@@ -86,21 +110,21 @@ export class SlateInstanceFixtures extends BaseFixture {
     instance: SlateInstance;
     configSchema: SlateConfigSchema;
     instanceConfig: SlateInstanceConfig;
-  }> {
-    const configSchemaFixtures = new SlateConfigSchemaFixtures(this.db);
+  }> => {
+    const configSchemaFixtures = SlateConfigSchemaFixtures(db);
     const configSchema = await configSchemaFixtures.default({
       slateOid: data.slateOid,
       specificationOid: data.specificationOid,
       overrides: data.schemaOverrides
     });
 
-    const instance = await this.default({
+    const instance = await defaultInstance({
       slateOid: data.slateOid,
       tenantOid: data.tenantOid,
       overrides: data.instanceOverrides
     });
 
-    const instanceConfigFixtures = new SlateInstanceConfigFixtures(this.db);
+    const instanceConfigFixtures = SlateInstanceConfigFixtures(db);
     const instanceConfig = await instanceConfigFixtures.default({
       instanceOid: instance.oid,
       schemaOid: configSchema.oid,
@@ -109,12 +133,12 @@ export class SlateInstanceFixtures extends BaseFixture {
       overrides: data.configOverrides
     });
 
-    await this.db.slateInstance.update({
+    await db.slateInstance.update({
       where: { oid: instance.oid },
       data: { currentConfigOid: instanceConfig.oid }
     });
 
-    const updatedInstance = await this.db.slateInstance.findUniqueOrThrow({
+    const updatedInstance = await db.slateInstance.findUniqueOrThrow({
       where: { oid: instance.oid }
     });
 
@@ -123,5 +147,10 @@ export class SlateInstanceFixtures extends BaseFixture {
       configSchema,
       instanceConfig
     };
-  }
-}
+  };
+
+  return {
+    default: defaultInstance,
+    withConfig
+  };
+};
