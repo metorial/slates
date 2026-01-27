@@ -1,6 +1,6 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { subRegistryPresenter } from '../../presenters';
+import { subRegistryFilterPresenter, subRegistryPresenter } from '../../presenters';
 import { subRegistryService } from '../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
@@ -66,5 +66,95 @@ export let subRegistryController = app.controller({
         subRegistryId: v.string()
       })
     )
-    .do(async ctx => subRegistryPresenter(ctx.subRegistry))
+    .do(async ctx => subRegistryPresenter(ctx.subRegistry)),
+
+  addFilter: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string(),
+        type: v.enumOf(['scope', 'prefix', 'package']),
+        value: v.string()
+      })
+    )
+    .do(async ctx => {
+      let filter = await subRegistryService.addFilter({
+        subRegistry: ctx.subRegistry,
+        input: {
+          type: ctx.input.type,
+          value: ctx.input.value
+        }
+      });
+      return subRegistryFilterPresenter(filter);
+    }),
+
+  removeFilter: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string(),
+        filterId: v.string()
+      })
+    )
+    .do(async ctx => {
+      await subRegistryService.removeFilter({
+        subRegistry: ctx.subRegistry,
+        filterId: ctx.input.filterId
+      });
+      return { success: true };
+    }),
+
+  listFilters: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string()
+      })
+    )
+    .do(async ctx => {
+      let filters = await subRegistryService.listFilters({
+        subRegistry: ctx.subRegistry
+      });
+      return filters.map(subRegistryFilterPresenter);
+    }),
+
+  setFilters: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string(),
+        filters: v.array(
+          v.object({
+            type: v.enumOf(['scope', 'prefix', 'package']),
+            value: v.string()
+          })
+        )
+      })
+    )
+    .do(async ctx => {
+      let subRegistry = await subRegistryService.setFilters({
+        subRegistry: ctx.subRegistry,
+        filters: ctx.input.filters
+      });
+      return subRegistryPresenter(subRegistry);
+    }),
+
+  clearFilters: subRegistryApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        subRegistryId: v.string()
+      })
+    )
+    .do(async ctx => {
+      await subRegistryService.clearFilters({
+        subRegistry: ctx.subRegistry
+      });
+      return { success: true };
+    })
 });

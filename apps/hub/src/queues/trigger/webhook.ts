@@ -1,5 +1,6 @@
 import { createLock } from '@lowerdeck/lock';
 import { createQueue, QueueRetryError } from '@lowerdeck/queue';
+import { getSentry } from '@lowerdeck/sentry';
 import { db } from '../../db';
 import { env } from '../../env';
 import {
@@ -8,6 +9,8 @@ import {
 } from '../../lib/triggerWebhook';
 import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
 import { invocationsBucketRecord, storage } from '../../storage';
+
+let Sentry = getSentry();
 
 export type TriggerWebhookQueuePayload = {
   webhookRequestId: string;
@@ -126,6 +129,9 @@ export let slateTriggerWebhookQueueProcessor = slateTriggerWebhookQueue.process(
       });
     });
   } catch (error) {
+    Sentry.captureException(error, {
+      extra: { webhookRequestId: data.webhookRequestId }
+    });
     console.error('Failed to process trigger webhook request:', {
       webhookRequestId: data.webhookRequestId,
       error

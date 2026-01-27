@@ -1,4 +1,5 @@
 import { delay } from '@lowerdeck/delay';
+import { getSentry } from '@lowerdeck/sentry';
 import PQueue from 'p-queue';
 import type { SlateInvocation } from '../../../prisma/generated/client';
 import { db } from '../../db';
@@ -10,6 +11,8 @@ import type {
   SlatesResponse,
   StoredSlateInvocation
 } from './types';
+
+let Sentry = getSentry();
 
 let storeQueue = new PQueue({ concurrency: 25 });
 
@@ -25,6 +28,10 @@ let authFieldsToRedact = [
 let getFunctionBayInvocationResultWithRetry = async (
   d: SlateInvocationBaseParams & { invocationId: string }
 ) => {
+  if (!d.invocationId) {
+    throw new Error('invocationId is required for getFunctionBayInvocationResultWithRetry');
+  }
+
   let attempt = 0;
   while (true) {
     attempt++;
@@ -102,6 +109,34 @@ export let storeSlateInvocation = (
         return m;
       });
 
+      // Handle error case where invocationResult.id may be undefined
+      if (!d.invocationResult.id) {
+        let storageKey = getStoredInvocationStorageKey(d.record);
+        await storage.putObject(
+          invocationsBucketRecord.bucket,
+          storageKey,
+          JSON.stringify({
+            id: d.record.id,
+            requests: sanitizedRequests as any,
+            responses: (sanitizedResponses ?? []) as any,
+            provider: { error: (d.invocationResult as any).error } as any,
+            logs: []
+          } satisfies StoredSlateInvocation)
+        );
+
+        await db.slateInvocation.update({
+          where: { oid: d.record.oid },
+          data: {
+            isPending: false,
+            hasResponseError: hasResponseError,
+            hasInvocationError: true,
+            providerInvocationId: '',
+            bucketOid: invocationsBucketRecord.oid
+          }
+        });
+        return;
+      }
+
       let invocationResult = await getFunctionBayInvocationResultWithRetry({
         slateVersion: d.slateVersion,
         participants: d.participants,
@@ -133,7 +168,14 @@ export let storeSlateInvocation = (
         }
       });
     })
-    .catch(console.error);
+    .catch(err => {
+      Sentry.captureException(err, {
+        extra: {
+          slateInvocationOid: d.record.oid
+        }
+      });
+      console.error('Error storing slate invocation:', err);
+    });
 };
 
 export let getStoredInvocationStorageKey = (invocation: SlateInvocation) => {

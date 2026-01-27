@@ -118,7 +118,10 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
 
           ...slateVersionUpsertData
         },
-        update: slateVersionUpsertData
+        update: {
+          ...slateVersionUpsertData,
+          ...(slateVersionData.isCurrent ? { willBeCurrent: true } : {})
+        }
       });
 
       if (newVersionId === version.id) {

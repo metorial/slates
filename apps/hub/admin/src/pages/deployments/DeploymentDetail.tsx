@@ -1,0 +1,169 @@
+import { renderWithLoader } from '@metorial-io/data-hooks';
+import {
+  Badge,
+  Datalist,
+  Flex,
+  Group,
+  InlineCopy,
+  RenderDate,
+  Text
+} from '@metorial-io/ui';
+import { Link, useParams } from 'react-router-dom';
+import { deploymentStatusColors } from '../../constants/statusColors.js';
+import { useBuildOutput, useSlate, useSlateDeployment } from '../../state/index.js';
+import { BackLink } from '../../components/BackLink.js';
+import {
+  LogViewer,
+  MonoCode,
+  TextLink
+} from '../../components/styled.js';
+
+type BuildStep = {
+  name: string;
+  type: string;
+  status: string;
+  logs: { timestamp: number; message: string }[];
+};
+
+let BuildStepView = ({ step }: { step: BuildStep }) => {
+  let logs = step.logs
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .map(log => log.message)
+    .join('\n');
+
+  return (
+    <Flex direction="column" gap={8}>
+      <Flex align="center" gap={8}>
+        <Text size="2" weight="medium">
+          {step.name}
+        </Text>
+        <Badge color="gray" size="1">
+          {step.type}
+        </Badge>
+        <Badge color={step.status === 'failed' ? 'red' : 'green'} size="1">
+          {step.status}
+        </Badge>
+      </Flex>
+      {logs && <LogViewer>{logs}</LogViewer>}
+    </Flex>
+  );
+};
+
+export let DeploymentDetail = () => {
+  let { slateId, deploymentId } = useParams<{ slateId: string; deploymentId: string }>();
+  let slate = useSlate(slateId);
+  let deployment = useSlateDeployment(slateId, deploymentId);
+  let buildOutput = useBuildOutput(slateId, deploymentId);
+
+  return renderWithLoader({ slate, deployment })(({ slate, deployment }) => {
+    let slateData = slate.data!;
+    let deploymentData = deployment.data!;
+    let buildSteps = (buildOutput.data ?? []) as BuildStep[];
+
+    return (
+      <Flex direction="column" gap={24}>
+        <BackLink to={`/slates/${slateId}`}>
+          Back to {slateData.name || slateData.identifier}
+        </BackLink>
+
+        <Group.Wrapper>
+          <Group.Header title="Deployment Details" />
+          <Group.Content>
+            <Datalist
+              items={[
+                {
+                  label: 'Deployment ID',
+                  value: (
+                    <Flex align="center" gap={6}>
+                      <MonoCode>{deploymentData.id}</MonoCode>
+                      <InlineCopy value={deploymentData.id} />
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Status',
+                  value: (
+                    <Badge color={deploymentStatusColors[deploymentData.status] || 'gray'}>
+                      {deploymentData.status}
+                    </Badge>
+                  )
+                },
+                {
+                  label: 'Version',
+                  value: (
+                    <Flex align="center" gap={8}>
+                      {deploymentData.version?.id ? (
+                        <Link
+                          to={`/slates/${slateId}/versions/${deploymentData.version.id}`}
+                          style={{ textDecoration: 'none' }}
+                        >
+                          <Badge color="blue">v{deploymentData.version?.version ?? '-'}</Badge>
+                        </Link>
+                      ) : (
+                        <Badge color="blue">v{deploymentData.version?.version ?? '-'}</Badge>
+                      )}
+                      {deploymentData.version?.isCurrent && (
+                        <Badge color="green" size="1">
+                          Current
+                        </Badge>
+                      )}
+                    </Flex>
+                  )
+                },
+                {
+                  label: 'Slate',
+                  value: (
+                    <TextLink to={`/slates/${slateId}`}>
+                      {slateData.name || slateData.identifier}
+                    </TextLink>
+                  )
+                },
+                { label: 'Created', value: <RenderDate date={deploymentData.createdAt} /> }
+              ]}
+            />
+          </Group.Content>
+        </Group.Wrapper>
+
+        {deploymentData.error && (
+          <Group.Wrapper>
+            <Group.Header title="Error" />
+            <Group.Content>
+              <Flex
+                direction="column"
+                gap={12}
+                style={{
+                  padding: 16,
+                  background: '#fef2f2',
+                  borderRadius: 8,
+                  border: '1px solid #fecaca'
+                }}
+              >
+                <Flex align="center" gap={8}>
+                  <Badge color="red">{deploymentData.error.code}</Badge>
+                </Flex>
+                <Text size="2">{deploymentData.error.message}</Text>
+              </Flex>
+            </Group.Content>
+          </Group.Wrapper>
+        )}
+
+        <Group.Wrapper>
+          <Group.Header title="Build Output" />
+          <Group.Content>
+            {buildSteps.length > 0 ? (
+              <Flex direction="column" gap={16}>
+                {buildSteps.map((step, i) => (
+                  <BuildStepView key={i} step={step} />
+                ))}
+              </Flex>
+            ) : (
+              <Text size="2" color="gray600">
+                No build output available yet.
+              </Text>
+            )}
+          </Group.Content>
+        </Group.Wrapper>
+      </Flex>
+    );
+  });
+};

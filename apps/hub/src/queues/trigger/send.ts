@@ -1,7 +1,10 @@
 import { QueueRetryError } from '@lowerdeck/queue';
+import { getSentry } from '@lowerdeck/sentry';
 import { db } from '../../db';
 import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
 import { slateTriggerEventSendQueue } from './eventQueues';
+
+let Sentry = getSentry();
 
 export let slateTriggerEventSendQueueProcessor = slateTriggerEventSendQueue.process(
   async data => {
@@ -14,6 +17,9 @@ export let slateTriggerEventSendQueueProcessor = slateTriggerEventSendQueue.proc
     try {
       await slateTriggerReceiverService.sendTriggerEvent({ eventId: event.id });
     } catch (error) {
+      Sentry.captureException(error, {
+        extra: { eventId: data.eventId }
+      });
       console.error('Failed to send trigger event:', error);
       throw new QueueRetryError();
     }

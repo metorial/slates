@@ -25,6 +25,7 @@ export let slatesController = createHono()
 
       let paginator = await slateService.listSlates({
         tenant: auth.tenant,
+        subRegistry: auth.subRegistry,
         scopeIds: query.scopeId?.split(','),
         userIds: query.userId?.split(','),
         workspaceIds: query.workspaceId?.split(',')
@@ -39,6 +40,7 @@ export let slatesController = createHono()
 
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
+      subRegistry: auth.subRegistry,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 
@@ -80,6 +82,7 @@ export let slatesController = createHono()
 
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
+      subRegistry: auth.subRegistry,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 
@@ -93,6 +96,7 @@ export let slatesController = createHono()
 
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
+      subRegistry: auth.subRegistry,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 
@@ -108,6 +112,7 @@ export let slatesController = createHono()
 
     let slate = await slateService.getSlateById({
       tenant: auth.tenant,
+      subRegistry: auth.subRegistry,
       id: `${c.req.param('scopeId')}/${c.req.param('slateId')}`
     });
 

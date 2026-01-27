@@ -1,10 +1,13 @@
 import { QueueRetryError } from '@lowerdeck/queue';
+import { getSentry } from '@lowerdeck/sentry';
 import { db } from '../../db';
 import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
 import {
   slateTriggerWebhookRegisterQueue,
   slateTriggerWebhookUnregisterQueue
 } from './eventQueues';
+
+let Sentry = getSentry();
 
 export let slateTriggerWebhookRegisterQueueProcessor =
   slateTriggerWebhookRegisterQueue.process(async data => {
@@ -19,6 +22,9 @@ export let slateTriggerWebhookRegisterQueueProcessor =
         receiverTriggerId: receiverTrigger.id
       });
     } catch (error) {
+      Sentry.captureException(error, {
+        extra: { receiverTriggerId: data.receiverTriggerId }
+      });
       console.error('Failed to auto-register trigger webhook:', error);
       throw new QueueRetryError();
     }
@@ -37,6 +43,9 @@ export let slateTriggerWebhookUnregisterQueueProcessor =
         receiverTriggerId: receiverTrigger.id
       });
     } catch (error) {
+      Sentry.captureException(error, {
+        extra: { receiverTriggerId: data.receiverTriggerId }
+      });
       console.error('Failed to auto-unregister trigger webhook:', error);
       throw new QueueRetryError();
     }

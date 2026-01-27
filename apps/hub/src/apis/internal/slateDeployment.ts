@@ -1,7 +1,8 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
+import { SlateDeploymentStatus } from '../../../prisma/generated/client';
 import { slateDeploymentPresenter } from '../../presenters';
-import { slateDeploymentService } from '../../services';
+import { slateDeploymentService, slateService } from '../../services';
 import { app } from './_app';
 import { slateApp } from './slate';
 
@@ -18,20 +19,26 @@ export let slateDeploymentApp = slateApp.use(async ctx => {
 });
 
 export let slateDeploymentController = app.controller({
-  list: slateApp
+  list: app
     .handler()
     .input(
       Paginator.validate(
         v.object({
-          slateId: v.string(),
-          versionIds: v.optional(v.array(v.string()))
+          slateId: v.optional(v.string()),
+          versionIds: v.optional(v.array(v.string())),
+          status: v.optional(v.enumOf(Object.values(SlateDeploymentStatus) as [SlateDeploymentStatus, ...SlateDeploymentStatus[]]))
         })
       )
     )
     .do(async ctx => {
+      let slate = ctx.input.slateId
+        ? await slateService.getSlateById({ id: ctx.input.slateId })
+        : undefined;
+
       let paginator = await slateDeploymentService.listSlateDeployments({
-        slate: ctx.slate,
-        versionIds: ctx.input.versionIds
+        slate,
+        versionIds: ctx.input.versionIds,
+        status: ctx.input.status
       });
 
       let list = await paginator.run(ctx.input);

@@ -7,6 +7,8 @@ import { secretController } from './secret';
 import { slateController } from './slate';
 import { slateAuthConfigController } from './slateAuthConfig';
 import { slateDeploymentController } from './slateDeployment';
+import { slateDiscoveryController } from './slateDiscovery';
+import { slateEventController } from './slateEvent';
 import { slateInstanceController } from './slateInstance';
 import { slateInvocationController } from './slateInvocation';
 import { slateOAuthCredentialsController } from './slateOAuthCredentials';
@@ -21,7 +23,6 @@ import { slateTriggerInvocationController } from './slateTriggerInvocation';
 import { slateTriggerReceiverController } from './slateTriggerReceiver';
 import { slateVersionController } from './slateVersion';
 import { slateVersionDiscoveryController } from './slateVersionDiscovery';
-import { slateEventController } from './slateEvent';
 import { slateSpecificationChangeController } from './slateSpecificationChange';
 import { tenantController } from './tenant';
 
@@ -37,6 +38,8 @@ export let rootController = app.controller({
   slateVersion: slateVersionController,
   slateInvocation: slateInvocationController,
   slateDeployment: slateDeploymentController,
+  slateDiscovery: slateDiscoveryController,
+  slateEvent: slateEventController,
   slateSpecification: slateSpecificationController,
   slateInstance: slateInstanceController,
   slateOAuthCredentials: slateOAuthCredentialsController,
@@ -51,7 +54,6 @@ export let rootController = app.controller({
   slateTriggerInvocation: slateTriggerInvocationController,
   slateTriggerDelivery: slateTriggerDeliveryController,
   slateVersionDiscovery: slateVersionDiscoveryController,
-  slateEvent: slateEventController,
   slateSpecificationChange: slateSpecificationChangeController
 });
 

@@ -4,6 +4,7 @@ export * from './scope';
 export * from './slate';
 export * from './slateVersion';
 export * from './subRegistry';
+export * from './subRegistryFilter';
 export * from './tenant';
 export * from './user';
 export * from './userToken';

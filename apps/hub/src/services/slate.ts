@@ -70,6 +70,19 @@ class slateServiceImpl {
       include
     });
   }
+
+  async getSlateStats(d: { slate: Slate }) {
+    let [versions, deployments, discoveries, events] = await Promise.all([
+      db.slateVersion.count({ where: { slateOid: d.slate.oid } }),
+      db.slateDeployment.count({ where: { slateOid: d.slate.oid } }),
+      db.slateVersionDiscovery.count({
+        where: { slateVersion: { slateOid: d.slate.oid } }
+      }),
+      db.slateEvent.count({ where: { slateOid: d.slate.oid } })
+    ]);
+
+    return { versions, deployments, discoveries, events };
+  }
 }
 
 export let slateService = Service.create('slateService', () => new slateServiceImpl()).build();

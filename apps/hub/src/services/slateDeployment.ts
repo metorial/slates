@@ -8,7 +8,12 @@ import { functionBay, functionBayTenant } from '../functionBay';
 let include = {
   slate: {
     include: {
-      registry: true
+      registry: true,
+      currentVersion: {
+        include: {
+          specification: true
+        }
+      }
     }
   },
   slateVersion: {
@@ -36,20 +41,29 @@ class slateDeploymentServiceImpl {
       return [];
     }
 
-    return await functionBay.functionDeployment.getOutput({
+    let res = await functionBay.functionDeployment.getOutput({
       tenantId: functionBayTenant.id,
       functionId: d.slateDeployment.providerDeploymentInfo.functionId,
       functionDeploymentId: d.slateDeployment.providerDeploymentInfo.functionDeploymentId
     });
+
+    return res;
   }
 
-  async listSlateDeployments(d: { slate: Slate; versionIds?: string[] }) {
-    let versions = d.versionIds
+  async listSlateDeployments(d: {
+    slate?: Slate;
+    versionIds?: string[];
+    status?: 'pending' | 'running' | 'succeeded' | 'failed';
+  }) {
+    let versions = (d.slate || d.versionIds)
       ? await db.slateVersion.findMany({
           where: {
-            status: 'active',
-            OR: [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
-          }
+            slateOid: d.slate?.oid,
+            OR: d.versionIds
+              ? [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
+              : undefined
+          },
+          select: { oid: true }
         })
       : undefined;
 
@@ -59,8 +73,9 @@ class slateDeploymentServiceImpl {
           await db.slateDeployment.findMany({
             ...opts,
             where: {
-              slateOid: d.slate.oid,
-              slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined
+              slateOid: d.slate?.oid,
+              slateVersionOid: versions ? { in: versions.map(v => v.oid) } : undefined,
+              status: d.status
             },
             include
           })

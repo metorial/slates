@@ -1,4 +1,5 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
+import { getSentry } from '@lowerdeck/sentry';
 import {
   SlateTriggerEventDeliveryStatus,
   SlateTriggerEventInputStatus,
@@ -14,17 +15,19 @@ import {
   type TriggerWebhookRequestPayload
 } from '../lib/triggerWebhook';
 import {
+  slateTriggerEventInputArchiveQueue,
   slateTriggerEventProcessQueue,
-  slateTriggerEventSendQueue,
-  slateTriggerEventInputArchiveQueue
+  slateTriggerEventSendQueue
 } from '../queues/trigger/eventQueues';
 import { slateInvocationService } from './slateInvocation';
+import type { SlateTriggerReceiverCore } from './slateTriggerReceiverCore';
 import {
   getTriggerSpec,
   receiverTriggerInclude,
   type ReceiverTriggerWithRelations
 } from './slateTriggerReceiverShared';
-import type { SlateTriggerReceiverCore } from './slateTriggerReceiverCore';
+
+let Sentry = getSentry();
 
 const MAX_TRIGGER_EVENT_INPUT_ATTEMPTS = 5;
 const ARCHIVE_INPUT_STATUSES = new Set<SlateTriggerEventInputStatus>([
@@ -229,6 +232,10 @@ export class SlateTriggerReceiverRuntime {
         await slateTriggerEventSendQueue.add({ eventId: event.id }, { id: event.id });
       }
     } catch (error) {
+      Sentry.captureException(error, {
+        extra: { eventInputId: eventInput.id }
+      });
+
       let status =
         attemptCount >= MAX_TRIGGER_EVENT_INPUT_ATTEMPTS
           ? SlateTriggerEventInputStatus.failed
@@ -282,10 +289,7 @@ export class SlateTriggerReceiverRuntime {
 
   private async enqueueEventInputArchive(eventInputId: string) {
     try {
-      await slateTriggerEventInputArchiveQueue.add(
-        { eventInputId },
-        { id: eventInputId }
-      );
+      await slateTriggerEventInputArchiveQueue.add({ eventInputId }, { id: eventInputId });
     } catch (error) {
       console.error('Failed to enqueue trigger event input archive:', {
         eventInputId,
