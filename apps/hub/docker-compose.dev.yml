@@ -163,9 +163,8 @@ services:
   slates-registry:
     profiles: ['infra']
     build:
-      context: ../..
-      dockerfile: ./apps/registry/Dockerfile
-      target: runner
+      context: ../registry
+      dockerfile: ../registry/dev.Dockerfile
     container_name: slates-hub-registry
     restart: unless-stopped
     ports:

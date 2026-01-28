@@ -29,16 +29,15 @@ services:
       - object-store-data:/app/data
     environment:
       RUST_LOG: info
-      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID:-test}
-      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY:-test}
-      AWS_REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${OBJECT_STORAGE_AWS_REGION}
 
       OBJECT_STORE__SERVER__HOST: 0.0.0.0
       OBJECT_STORE__SERVER__PORT: 52010
-      OBJECT_STORE__BACKEND__TYPE: ${OBJECT_STORAGE_BACKEND_TYPE:-local}
-      OBJECT_STORE__BACKEND__ROOT_PATH: ${OBJECT_STORAGE_BACKEND_ROOT_PATH:-/app/data}
-      OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
-      OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET:-slates-registry}
+      OBJECT_STORE__BACKEND__TYPE: s3
+      OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION}
+      OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET}
 
     container_name: slates-registry-object-storage
     restart: unless-stopped
@@ -47,9 +46,8 @@ services:
 
   slates-registry:
     build:
-      context: ../..
-      dockerfile: ./apps/registry/Dockerfile
-      target: dev
+      context: .
+      dockerfile: dev.Dockerfile
     container_name: slates-registry-service
     restart: unless-stopped
     ports:
@@ -64,9 +62,9 @@ services:
       SERVICE_PUBLIC_URL: http://localhost:52040
       PUBLIC_ACCESS_PERMITTED: 'true'
     volumes:
-      - ./src:/app/apps/registry/src:ro
-      - ./package.json:/app/apps/registry/package.json:ro
-      - ./tsconfig.json:/app/apps/registry/tsconfig.json:ro
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
     depends_on:
       - postgres
       - redis
