@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: slates-hub
       POSTGRES_DB: slates-hub
     volumes:
-      - postgres_data2:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./init-test-db.sh:/docker-entrypoint-initdb.d/init-test-db.sh
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U slates-hub']
@@ -25,7 +25,7 @@ services:
     container_name: slates-hub-redis
     restart: unless-stopped
     ports:
-      - '46379:6379' # Non-standard port to avoid conflicts
+      - '46379:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -35,6 +35,7 @@ services:
       - slates-hub-network
 
   object-storage:
+    profiles: ['infra']
     image: ghcr.io/metorial/object-storage:latest
     container_name: slates-hub-object-storage
     restart: unless-stopped
@@ -44,14 +45,15 @@ services:
       - object-store-data:/app/data
     environment:
       RUST_LOG: info
-      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ${OBJECT_STORAGE_AWS_REGION}
+      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY:-test}
+      AWS_REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
       OBJECT_STORE__SERVER__HOST: 0.0.0.0
       OBJECT_STORE__SERVER__PORT: 52010
-      OBJECT_STORE__BACKEND__TYPE: s3
-      OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION}
-      OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET}
+      OBJECT_STORE__BACKEND__TYPE: ${OBJECT_STORAGE_BACKEND_TYPE:-local}
+      OBJECT_STORE__BACKEND__ROOT_PATH: ${OBJECT_STORAGE_BACKEND_ROOT_PATH:-/app/data}
+      OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
+      OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET:-slates-hub-ci}
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:52010/health || exit 1']
       interval: 5s
@@ -61,6 +63,7 @@ services:
       - slates-hub-network
 
   forge:
+    profiles: ['infra']
     image: ghcr.io/metorial/forge:latest
     container_name: slates-hub-forge
     restart: unless-stopped
@@ -74,9 +77,9 @@ services:
       OBJECT_STORAGE_URL: http://object-storage:52010
       LOG_BUCKET_NAME: logs
       ARTIFACT_BUCKET_NAME: artifacts
-      CODE_BUILD_AWS_REGION: ${CODE_BUILD_AWS_REGION:-}
-      CODE_BUILD_AWS_ACCESS_KEY_ID: ${CODE_BUILD_AWS_ACCESS_KEY_ID:-}
-      CODE_BUILD_AWS_SECRET_ACCESS_KEY: ${CODE_BUILD_AWS_SECRET_ACCESS_KEY:-}
+      CODE_BUILD_AWS_REGION: ${CODE_BUILD_AWS_REGION:-us-east-1}
+      CODE_BUILD_AWS_ACCESS_KEY_ID: ${CODE_BUILD_AWS_ACCESS_KEY_ID:-test}
+      CODE_BUILD_AWS_SECRET_ACCESS_KEY: ${CODE_BUILD_AWS_SECRET_ACCESS_KEY:-test}
       CODE_BUILD_PROJECT_NAME: ${CODE_BUILD_PROJECT_NAME:-}
       CODE_BUILD_ROLE_ARN: ${CODE_BUILD_ROLE_ARN:-}
     depends_on:
@@ -95,6 +98,7 @@ services:
       - slates-hub-network
 
   function-bay:
+    profiles: ['infra']
     image: ghcr.io/metorial/function-bay:latest
     container_name: slates-hub-function-bay
     restart: unless-stopped
@@ -104,13 +108,13 @@ services:
       DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/function-bay
       REDIS_URL: redis://redis:6379/0
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER}
+      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER:-aws.lambda}
       OBJECT_STORAGE_URL: http://object-storage:52010
       BUNDLE_BUCKET_NAME: bundles
       FORGE_API_URL: http://forge:52020/metorial-forge
-      LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-}
-      LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-}
-      LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-}
+      LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-us-east-1}
+      LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-test}
+      LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-test}
       LAMBDA_ROLE_ARN: ${LAMBDA_ROLE_ARN:-}
     depends_on:
       postgres:
@@ -130,6 +134,7 @@ services:
       - slates-hub-network
 
   signal:
+    profiles: ['infra']
     image: ghcr.io/metorial/signal:latest
     container_name: slates-hub-signal
     restart: unless-stopped
@@ -156,6 +161,7 @@ services:
       - slates-hub-network
 
   slates-registry:
+    profiles: ['infra']
     build:
       context: ../registry
       dockerfile: ../registry/dev.Dockerfile
@@ -180,7 +186,11 @@ services:
       object-storage:
         condition: service_healthy
     healthcheck:
-      test: ['CMD-SHELL', 'curl -s http://localhost:52040/ > /dev/null || exit 1']
+      test:
+        [
+          'CMD-SHELL',
+          "bun -e \"fetch('http://localhost:52040/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -188,8 +198,9 @@ services:
       - slates-hub-network
 
   slates-hub:
+    profiles: ['hub']
     build:
-      context: ../../
+      context: ../..
       dockerfile: ./apps/hub/dev.Dockerfile
     container_name: slates-hub-service
     restart: unless-stopped
@@ -197,49 +208,31 @@ services:
       - '52045:52045'
       - '52046:52046'
     environment:
-      DATABASE_URL: postgresql://slates-hub:slates-hub@postgres:5432/slates-hub
-      REDIS_URL: redis://redis:6379/0
-      METORIAL_ENV: development
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      METORIAL_ENV: ${METORIAL_ENV:-development}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      FUNCTION_BAY_API_URL: http://function-bay:52030/metorial-function-bay
-      FUNCTION_BAY_TENANT_IDENTIFIER: dev-tenant
-      FUNCTION_BAY_DEFAULT_MEMORY_MB: 512
-      FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS: 15
-      OBJECT_STORAGE_URL: http://object-storage:52010
-      INVOCATIONS_BUCKET_NAME: slates-hub-invocations
-      INITIAL_REGISTRIES: 'http://slates-registry:52040'
-      SIGNAL_API_URL: http://signal:52050/metorial-signal
-      SIGNAL_SENDER_IDENTIFIER: dev-slates-hub
-      SLATES_HUB_INSTANCE_IDENTIFIER: dev-slates-hub
-      SERVICE_PUBLIC_URL: http://localhost:52045
-    volumes:
-      - ./src:/app/apps/hub/src:ro
-      - ./package.json:/app/apps/hub/package.json:ro
-      - ./tsconfig.json:/app/apps/hub/tsconfig.json:ro
+      FUNCTION_BAY_API_URL: ${FUNCTION_BAY_API_URL}
+      FUNCTION_BAY_TENANT_IDENTIFIER: ${FUNCTION_BAY_TENANT_IDENTIFIER}
+      FUNCTION_BAY_DEFAULT_MEMORY_MB: ${FUNCTION_BAY_DEFAULT_MEMORY_MB}
+      FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS: ${FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS}
+      OBJECT_STORAGE_URL: ${OBJECT_STORAGE_URL}
+      INVOCATIONS_BUCKET_NAME: ${INVOCATIONS_BUCKET_NAME}
+      INITIAL_REGISTRIES: ${INITIAL_REGISTRIES}
+      SIGNAL_API_URL: ${SIGNAL_API_URL}
+      SIGNAL_SENDER_IDENTIFIER: ${SIGNAL_SENDER_IDENTIFIER}
+      SLATES_HUB_INSTANCE_IDENTIFIER: ${SLATES_HUB_INSTANCE_IDENTIFIER}
+      SERVICE_PUBLIC_URL: ${SERVICE_PUBLIC_URL}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      object-storage:
-        condition: service_healthy
-      slates-registry:
-        condition: service_healthy
-      forge:
-        condition: service_healthy
-      function-bay:
-        condition: service_healthy
-      signal:
-        condition: service_healthy
-    healthcheck:
-      test: ['CMD-SHELL', 'curl -s http://localhost:52045/ > /dev/null || exit 1']
-      interval: 5s
-      timeout: 5s
-      retries: 10
     networks:
       - slates-hub-network
 
   slates-hub-admin:
+    profiles: ['admin']
     image: oven/bun:latest
     container_name: slates-hub-admin
     restart: unless-stopped
@@ -249,13 +242,11 @@ services:
       - '52047:52047'
     volumes:
       - ../../:/app
-    depends_on:
-      slates-hub:
-        condition: service_healthy
     networks:
       - slates-hub-network
 
   slates-registry-admin:
+    profiles: ['admin']
     image: oven/bun:latest
     container_name: slates-registry-admin
     restart: unless-stopped
@@ -265,14 +256,11 @@ services:
       - '52043:52043'
     volumes:
       - ../../:/app
-    depends_on:
-      slates-registry:
-        condition: service_healthy
     networks:
       - slates-hub-network
 
 volumes:
-  postgres_data2:
+  postgres_data:
     driver: local
   object-store-data:
     driver: local

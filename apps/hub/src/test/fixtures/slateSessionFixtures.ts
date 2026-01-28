@@ -1,4 +1,5 @@
 import type {
+  PrismaClient,
   SlateSession,
   Slate,
   SlateInstance,
@@ -8,23 +9,23 @@ import type {
 } from '../../../prisma/generated/client';
 import { SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateFixtures } from './slateFixtures';
 import { SlateInstanceFixtures } from './instanceFixtures';
 import { TenantFixtures } from './tenantFixtures';
 
-export class SlateSessionFixtures extends BaseFixture {
-  async default(data: {
+export const SlateSessionFixtures = (db: PrismaClient) => {
+  const defaultSession = async (data: {
     slateOid: bigint;
     tenantOid: bigint;
     instanceOid: bigint;
     versionOid: bigint;
     overrides?: Partial<SlateSession>;
-  }): Promise<SlateSession> {
+  }): Promise<SlateSession> => {
     const { oid, id } = getId('slateSession');
 
-    return this.db.slateSession.create({
-      data: {
+    const factory = defineFactory<SlateSession>(
+      {
         oid,
         id,
         slateOid: data.slateOid,
@@ -32,11 +33,16 @@ export class SlateSessionFixtures extends BaseFixture {
         slateInstanceOid: data.instanceOid,
         slateVersionOid: data.versionOid,
         ...data.overrides
+      } as SlateSession,
+      {
+        persist: value => db.slateSession.create({ data: value })
       }
-    });
-  }
+    );
 
-  async complete(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const complete = async (data?: {
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
     sessionOverrides?: Partial<SlateSession>;
@@ -46,23 +52,23 @@ export class SlateSessionFixtures extends BaseFixture {
     instance: SlateInstance;
     version: SlateVersion & { specification: SlateSpecification };
     tenant: Tenant;
-  }> {
-    const tenantFixtures = new TenantFixtures(this.db);
+  }> => {
+    const tenantFixtures = TenantFixtures(db);
     const tenant = await tenantFixtures.default();
 
-    const slateFixtures = new SlateFixtures(this.db);
+    const slateFixtures = SlateFixtures(db);
     const slate = await slateFixtures.complete({
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus ?? SlateStatus.active
     });
 
-    const instanceFixtures = new SlateInstanceFixtures(this.db);
+    const instanceFixtures = SlateInstanceFixtures(db);
     const instance = await instanceFixtures.default({
       slateOid: slate.oid,
       tenantOid: tenant.oid
     });
 
-    const session = await this.default({
+    const session = await defaultSession({
       slateOid: slate.oid,
       tenantOid: tenant.oid,
       instanceOid: instance.oid,
@@ -77,5 +83,10 @@ export class SlateSessionFixtures extends BaseFixture {
       version: slate.currentVersion,
       tenant
     };
-  }
-}
+  };
+
+  return {
+    default: defaultSession,
+    complete
+  };
+};

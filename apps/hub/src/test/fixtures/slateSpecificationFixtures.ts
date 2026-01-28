@@ -1,24 +1,25 @@
 import { randomBytes } from 'crypto';
 import type {
+  PrismaClient,
   SlateSpecification,
   SlateAction,
   SlateSpecificationAction
 } from '../../../prisma/generated/client';
 import { getId, snowflake } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 
-export class SlateSpecificationFixtures extends BaseFixture {
-  async default(data: {
+export const SlateSpecificationFixtures = (db: PrismaClient) => {
+  const defaultSpecification = async (data: {
     slateOid: bigint;
     versionOid: bigint;
     identifier?: string;
     overrides?: Partial<SlateSpecification>;
-  }): Promise<SlateSpecification> {
+  }): Promise<SlateSpecification> => {
     const { oid, id } = getId('slateSpecification');
     const identifier = data.identifier || `spec-${randomBytes(4).toString('hex')}`;
 
-    return this.db.slateSpecification.create({
-      data: {
+    const factory = defineFactory<SlateSpecification>(
+      {
         oid,
         id,
         identifier,
@@ -33,18 +34,23 @@ export class SlateSpecificationFixtures extends BaseFixture {
         slateOid: data.slateOid,
         mostRecentVersionOid: data.versionOid,
         ...data.overrides
+      } as SlateSpecification,
+      {
+        persist: value => db.slateSpecification.create({ data: value })
       }
-    });
-  }
+    );
 
-  async createAction(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const createAction = async (data: {
     slateOid: bigint;
     specificationOid: bigint;
     type?: 'tool' | 'trigger';
     identifier?: string;
     key?: string;
     overrides?: Partial<SlateAction>;
-  }): Promise<SlateAction> {
+  }): Promise<SlateAction> => {
     const { oid, id } = getId('slateAction');
     const type = data.type || 'tool';
     const identifier = data.identifier || `${type}.${randomBytes(4).toString('hex')}`;
@@ -70,8 +76,8 @@ export class SlateSpecificationFixtures extends BaseFixture {
             type: 'action.tool' as const
           };
 
-    return this.db.slateAction.create({
-      data: {
+    const factory = defineFactory<SlateAction>(
+      {
         oid,
         id,
         type,
@@ -83,11 +89,16 @@ export class SlateSpecificationFixtures extends BaseFixture {
         slateOid: data.slateOid,
         mostRecentSpecificationOid: data.specificationOid,
         ...data.overrides
+      } as SlateAction,
+      {
+        persist: value => db.slateAction.create({ data: value })
       }
-    });
-  }
+    );
 
-  async createTriggerAction(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const createTriggerAction = async (data: {
     slateOid: bigint;
     specificationOid: bigint;
     identifier?: string;
@@ -97,7 +108,7 @@ export class SlateSpecificationFixtures extends BaseFixture {
       autoUnregistration?: boolean;
     };
     overrides?: Partial<SlateAction>;
-  }): Promise<SlateAction> {
+  }): Promise<SlateAction> => {
     const identifier = data.identifier || `trigger.${randomBytes(4).toString('hex')}`;
     const key = data.key || identifier;
     const webhookConfig = data.webhookConfig || {
@@ -120,8 +131,8 @@ export class SlateSpecificationFixtures extends BaseFixture {
       }
     };
 
-    return this.db.slateAction.create({
-      data: {
+    const factory = defineFactory<SlateAction>(
+      {
         oid,
         id,
         type: 'trigger',
@@ -133,24 +144,28 @@ export class SlateSpecificationFixtures extends BaseFixture {
         slateOid: data.slateOid,
         mostRecentSpecificationOid: data.specificationOid,
         ...data.overrides
+      } as SlateAction,
+      {
+        persist: value => db.slateAction.create({ data: value })
       }
-    });
-  }
+    );
 
-  async linkAction(data: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const linkAction = async (data: {
     specificationOid: bigint;
     actionOid: bigint;
-  }): Promise<SlateSpecificationAction> {
-    return this.db.slateSpecificationAction.create({
+  }): Promise<SlateSpecificationAction> =>
+    db.slateSpecificationAction.create({
       data: {
         oid: snowflake.nextId(),
         specificationOid: data.specificationOid,
         actionOid: data.actionOid
       }
     });
-  }
 
-  async withTriggerAction(data: {
+  const withTriggerAction = async (data: {
     slateOid: bigint;
     specificationOid: bigint;
     identifier?: string;
@@ -160,8 +175,8 @@ export class SlateSpecificationFixtures extends BaseFixture {
       autoUnregistration?: boolean;
     };
     actionOverrides?: Partial<SlateAction>;
-  }): Promise<SlateAction> {
-    const action = await this.createTriggerAction({
+  }): Promise<SlateAction> => {
+    const action = await createTriggerAction({
       slateOid: data.slateOid,
       specificationOid: data.specificationOid,
       identifier: data.identifier,
@@ -170,11 +185,19 @@ export class SlateSpecificationFixtures extends BaseFixture {
       overrides: data.actionOverrides
     });
 
-    await this.linkAction({
+    await linkAction({
       specificationOid: data.specificationOid,
       actionOid: action.oid
     });
 
     return action;
-  }
-}
+  };
+
+  return {
+    default: defaultSpecification,
+    createAction,
+    createTriggerAction,
+    linkAction,
+    withTriggerAction
+  };
+};

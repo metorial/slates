@@ -9,6 +9,11 @@ import { encryption } from './encryption';
 import { env } from './env';
 import { getId } from './id';
 
+type RegistryClient = {
+  slates: any;
+  'change-notifications': any;
+};
+
 let predefinedRegistrySchema = v.array(
   v.union([
     v.object({
@@ -106,11 +111,11 @@ let getReaderToken = async (registry: Registry) => {
   return prom;
 };
 
-export let getRegistryClient = async (registry: Registry) => {
+export let getRegistryClient = async (registry: Registry): Promise<RegistryClient> => {
   let token = await getReaderToken(registry);
 
   return createSlatesRegistryClient({
     endpoint: registry.url,
     token
-  });
+  }) as unknown as RegistryClient;
 };

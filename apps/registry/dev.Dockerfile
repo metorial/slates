@@ -15,7 +15,10 @@ RUN bun install
 COPY . .
 
 # Build admin frontend
-RUN bun run build:admin
+RUN bun run admin:build
+
+# Generate Prisma client
+RUN bun prisma generate
 
 # Expose port
 EXPOSE 51001

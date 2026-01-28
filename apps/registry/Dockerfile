@@ -39,7 +39,7 @@ COPY tsconfig.json ./tsconfig.json
 
 # Copy admin panel source and build
 COPY admin ./admin
-RUN bun run build:admin
+RUN bun run admin:build
 
 # Production stage
 FROM base AS runner

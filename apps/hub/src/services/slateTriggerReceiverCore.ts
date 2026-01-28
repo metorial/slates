@@ -4,7 +4,7 @@ import {
   SlateTriggerEventDeliveryStatus,
   type Slate,
   type SlateAction,
-  type SlateTriggerInvocationType
+  type SlateTriggerInvocationType,
 } from '../../prisma/generated/client';
 import { db } from '../db';
 import { getId } from '../id';

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SlateStatus } from '../../../../prisma/generated/client';
+import { SlateDeploymentStatus, SlateStatus } from '../../../../prisma/generated/client';
 import { testDb, cleanDatabase } from '../../../test/setup';
 import { fixtures } from '../../../test/fixtures';
 import { slatesHubClient } from '../../../test/client';
@@ -33,6 +33,10 @@ describe('slateDeployment:list E2E', () => {
       id: deployment.id,
       status: 'succeeded',
       error: null,
+      slate: {
+        object: 'slate',
+        id: slate.id
+      },
       version: {
         object: 'slate.version',
         id: slate.currentVersion.id
@@ -58,6 +62,33 @@ describe('slateDeployment:list E2E', () => {
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0]!.id).toBe(deployment.id);
+  });
+
+  it('filters by status without slateId', async () => {
+    const slate1 = await f.slate.complete();
+    const slate2 = await f.slate.complete();
+    const provider = await f.deploymentProvider.default();
+
+    const succeeded = await f.slateDeployment.succeeded({
+      slateOid: slate1.oid,
+      slateVersionOid: slate1.currentVersion.oid,
+      providerOid: provider.oid
+    });
+
+    await f.slateDeployment.default({
+      slateOid: slate2.oid,
+      slateVersionOid: slate2.currentVersion.oid,
+      providerOid: provider.oid,
+      status: SlateDeploymentStatus.failed
+    });
+
+    const result = await slatesHubClient.slateDeployment.list({
+      status: SlateDeploymentStatus.succeeded,
+      limit: 10
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]!.id).toBe(succeeded.id);
   });
 });
 
@@ -86,7 +117,11 @@ describe('slateDeployment:get E2E', () => {
 
     expect(result).toMatchObject({
       object: 'slate.deployment',
-      id: deployment.id
+      id: deployment.id,
+      slate: {
+        object: 'slate',
+        id: slate.id
+      }
     });
   });
 });

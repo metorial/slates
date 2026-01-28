@@ -25,7 +25,8 @@ describe('slateSpecification:list E2E', () => {
     expect(result.items).toHaveLength(2);
     expect(result.items[0]).toMatchObject({
       object: 'slate.specification',
-      id: slate.currentVersion.specification.id
+      id: slate.currentVersion.specification.id,
+      protocolVersion: '1.0'
     });
   });
 
@@ -40,6 +41,7 @@ describe('slateSpecification:list E2E', () => {
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0]!.id).toBe(slate1.currentVersion.specification.id);
+    expect(result.items[0]!.protocolVersion).toBe('1.0');
   });
 
   it('filters by versionIds', async () => {
@@ -52,6 +54,7 @@ describe('slateSpecification:list E2E', () => {
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0]!.id).toBe(slate.currentVersion.specification.id);
+    expect(result.items[0]!.protocolVersion).toBe('1.0');
   });
 });
 
@@ -73,7 +76,8 @@ describe('slateSpecification:get E2E', () => {
 
     expect(result).toMatchObject({
       object: 'slate.specification',
-      id: slate.currentVersion.specification.id
+      id: slate.currentVersion.specification.id,
+      protocolVersion: '1.0'
     });
   });
 });
@@ -97,8 +101,8 @@ describe('slateSpecification:getMany E2E', () => {
     });
 
     expect(result).toMatchObject([
-      { id: slate1.currentVersion.specification.id },
-      { id: slate2.currentVersion.specification.id }
+      { id: slate1.currentVersion.specification.id, protocolVersion: '1.0' },
+      { id: slate2.currentVersion.specification.id, protocolVersion: '1.0' }
     ]);
   });
 });

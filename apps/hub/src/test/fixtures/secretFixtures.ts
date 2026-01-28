@@ -1,20 +1,20 @@
 import { randomBytes } from 'crypto';
-import type { Secret, Tenant } from '../../../prisma/generated/client';
+import type { PrismaClient, Secret, Tenant } from '../../../prisma/generated/client';
 import { SecretStatus, SecretType } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { TenantFixtures } from './tenantFixtures';
 
-export class SecretFixtures extends BaseFixture {
-  async default(data: {
+export const SecretFixtures = (db: PrismaClient) => {
+  const defaultSecret = async (data: {
     tenantOid: bigint;
     type?: SecretType;
     overrides?: Partial<Secret>;
-  }): Promise<Secret> {
+  }): Promise<Secret> => {
     const { oid, id } = getId('secret');
 
-    return this.db.secret.create({
-      data: {
+    const factory = defineFactory<Secret>(
+      {
         oid,
         id,
         type: data.type ?? SecretType.slate_authentication_configuration,
@@ -22,27 +22,37 @@ export class SecretFixtures extends BaseFixture {
         tenantOid: data.tenantOid,
         encryptedSecret: `encrypted_${randomBytes(16).toString('hex')}`,
         ...data.overrides
+      } as Secret,
+      {
+        persist: value => db.secret.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withTenant(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withTenant = async (data?: {
     type?: SecretType;
     tenantOverrides?: Partial<Tenant>;
     secretOverrides?: Partial<Secret>;
-  }): Promise<Secret & { tenant: Tenant }> {
-    const tenantFixtures = new TenantFixtures(this.db);
+  }): Promise<Secret & { tenant: Tenant }> => {
+    const tenantFixtures = TenantFixtures(db);
     const tenant = await tenantFixtures.default(data?.tenantOverrides);
 
-    const secret = await this.default({
+    const secret = await defaultSecret({
       tenantOid: tenant.oid,
       type: data?.type,
       overrides: data?.secretOverrides
     });
 
-    return this.db.secret.findUniqueOrThrow({
+    return db.secret.findUniqueOrThrow({
       where: { id: secret.id },
       include: { tenant: true }
     }) as Promise<Secret & { tenant: Tenant }>;
-  }
-}
+  };
+
+  return {
+    default: defaultSecret,
+    withTenant
+  };
+};

@@ -1,26 +1,27 @@
 import type {
+  PrismaClient,
   ChangeNotification,
   Slate,
   SlateVersion
 } from '../../../prisma/generated/client';
 import { ChangeNotificationType, SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateFixtures } from './slateFixtures';
 
-export class ChangeNotificationFixtures extends BaseFixture {
-  async default(data: {
+export const ChangeNotificationFixtures = (db: PrismaClient) => {
+  const defaultNotification = async (data: {
     slateOid: bigint;
     slateId: string;
     slateVersionOid?: bigint;
     slateVersionId?: string;
     type?: ChangeNotificationType;
     overrides?: Partial<ChangeNotification>;
-  }): Promise<ChangeNotification> {
+  }): Promise<ChangeNotification> => {
     const { oid, id } = getId('changeNotification');
 
-    return this.db.changeNotification.create({
-      data: {
+    const factory = defineFactory<ChangeNotification>(
+      {
         oid,
         id,
         type: data.type ?? ChangeNotificationType.slate_version_created,
@@ -29,11 +30,16 @@ export class ChangeNotificationFixtures extends BaseFixture {
         slateVersionOid: data.slateVersionOid,
         slateVersionId: data.slateVersionId,
         ...data.overrides
+      } as ChangeNotification,
+      {
+        persist: value => db.changeNotification.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withSlate(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withSlate = async (data?: {
     type?: ChangeNotificationType;
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
@@ -41,14 +47,14 @@ export class ChangeNotificationFixtures extends BaseFixture {
   }): Promise<{
     notification: ChangeNotification;
     slate: Slate & { currentVersion: SlateVersion };
-  }> {
-    const slateFixtures = new SlateFixtures(this.db);
+  }> => {
+    const slateFixtures = SlateFixtures(db);
     const slate = await slateFixtures.complete({
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus ?? SlateStatus.active
     });
 
-    const notification = await this.default({
+    const notification = await defaultNotification({
       slateOid: slate.oid,
       slateId: slate.id,
       slateVersionOid: slate.currentVersion.oid,
@@ -58,5 +64,10 @@ export class ChangeNotificationFixtures extends BaseFixture {
     });
 
     return { notification, slate };
-  }
-}
+  };
+
+  return {
+    default: defaultNotification,
+    withSlate
+  };
+};

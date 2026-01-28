@@ -1,4 +1,5 @@
 import type {
+  PrismaClient,
   SlateVersionDiscovery,
   Slate,
   SlateVersion,
@@ -6,31 +7,36 @@ import type {
 } from '../../../prisma/generated/client';
 import { SlateVersionDiscoveryStatus, SlateStatus } from '../../../prisma/generated/client';
 import { getId } from '../../id';
-import { BaseFixture } from './base';
+import { defineFactory } from '@lowerdeck/testing-tools';
 import { SlateFixtures } from './slateFixtures';
 
-export class SlateVersionDiscoveryFixtures extends BaseFixture {
-  async default(data: {
+export const SlateVersionDiscoveryFixtures = (db: PrismaClient) => {
+  const defaultDiscovery = async (data: {
     slateVersionOid: bigint;
     specificationOid?: bigint;
     status?: SlateVersionDiscoveryStatus;
     overrides?: Partial<SlateVersionDiscovery>;
-  }): Promise<SlateVersionDiscovery> {
+  }): Promise<SlateVersionDiscovery> => {
     const { oid, id } = getId('slateVersionDiscovery');
 
-    return this.db.slateVersionDiscovery.create({
-      data: {
+    const factory = defineFactory<SlateVersionDiscovery>(
+      {
         oid,
         id,
         status: data.status ?? SlateVersionDiscoveryStatus.succeeded,
         slateVersionOid: data.slateVersionOid,
         specificationOid: data.specificationOid,
         ...data.overrides
+      } as SlateVersionDiscovery,
+      {
+        persist: value => db.slateVersionDiscovery.create({ data: value })
       }
-    });
-  }
+    );
 
-  async withSlate(data?: {
+    return factory.create(data.overrides ?? {});
+  };
+
+  const withSlate = async (data?: {
     status?: SlateVersionDiscoveryStatus;
     slateIdentifier?: string;
     slateStatus?: SlateStatus;
@@ -38,14 +44,14 @@ export class SlateVersionDiscoveryFixtures extends BaseFixture {
   }): Promise<{
     discovery: SlateVersionDiscovery;
     slate: Slate & { currentVersion: SlateVersion & { specification: SlateSpecification } };
-  }> {
-    const slateFixtures = new SlateFixtures(this.db);
+  }> => {
+    const slateFixtures = SlateFixtures(db);
     const slate = await slateFixtures.complete({
       slateIdentifier: data?.slateIdentifier,
       slateStatus: data?.slateStatus ?? SlateStatus.active
     });
 
-    const discovery = await this.default({
+    const discovery = await defaultDiscovery({
       slateVersionOid: slate.currentVersion.oid,
       specificationOid: slate.currentVersion.specification.oid,
       status: data?.status,
@@ -53,20 +59,27 @@ export class SlateVersionDiscoveryFixtures extends BaseFixture {
     });
 
     return { discovery, slate };
-  }
+  };
 
-  async failed(data: {
+  const failed = async (data: {
     slateVersionOid: bigint;
     errorMessage?: string;
+    errorCode?: string;
     overrides?: Partial<SlateVersionDiscovery>;
-  }): Promise<SlateVersionDiscovery> {
-    return this.default({
+  }): Promise<SlateVersionDiscovery> =>
+    defaultDiscovery({
       slateVersionOid: data.slateVersionOid,
       status: SlateVersionDiscoveryStatus.failed,
       overrides: {
         errorMessage: data.errorMessage ?? 'Discovery failed',
+        ...(data.errorCode ? { errorCode: data.errorCode } : {}),
         ...data.overrides
       }
     });
-  }
-}
+
+  return {
+    default: defaultDiscovery,
+    withSlate,
+    failed
+  };
+};
