@@ -202,7 +202,6 @@ services:
     build:
       context: ../..
       dockerfile: ./apps/hub/dev.Dockerfile
-      target: test
     container_name: slates-hub-service
     restart: unless-stopped
     ports:
