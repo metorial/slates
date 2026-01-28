@@ -44,6 +44,7 @@ FROM base AS runner
 
 WORKDIR /app
 
+# Ensure curl is present for health checks
 RUN apt-get update && \
     apt-get install -y curl && \
     apt-get clean && \
@@ -81,3 +82,22 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
 
 # Start command: push schema and start service
 CMD ["sh", "-c", "cd apps/hub && bun prisma db push && bun src/server.ts"]
+
+# Dependencies stage (dev/test)
+FROM base AS dev-deps
+
+COPY package.json bun.lock* ./
+COPY apps/hub/package.json ./apps/hub/package.json
+
+RUN bun install --frozen-lockfile --filter slates-hub
+
+# Dev/test stage for docker-compose and CI e2e
+FROM base AS test
+
+WORKDIR /app
+
+COPY --from=dev-deps /app/node_modules ./node_modules
+COPY apps/hub ./apps/hub
+COPY clients/hub ./clients/hub
+
+CMD ["sh", "-c", "cd apps/hub && bun prisma generate && bun prisma db push --accept-data-loss && tail -f /dev/null"]

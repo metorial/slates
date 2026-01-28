@@ -47,8 +47,9 @@ services:
 
   slates-registry:
     build:
-      context: .
-      dockerfile: dev.Dockerfile
+      context: ../..
+      dockerfile: ./apps/registry/Dockerfile
+      target: dev
     container_name: slates-registry-service
     restart: unless-stopped
     ports:
@@ -63,9 +64,9 @@ services:
       SERVICE_PUBLIC_URL: http://localhost:52040
       PUBLIC_ACCESS_PERMITTED: 'true'
     volumes:
-      - ./src:/app/src:ro
-      - ./package.json:/app/package.json:ro
-      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./src:/app/apps/registry/src:ro
+      - ./package.json:/app/apps/registry/package.json:ro
+      - ./tsconfig.json:/app/apps/registry/tsconfig.json:ro
     depends_on:
       - postgres
       - redis

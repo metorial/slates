@@ -32,7 +32,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           cd apps/hub
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci --profile hub --profile infra up -d --build
+          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci --profile hub --profile infra up -d --build
 
       - name: Wait for services to be healthy
         env:
@@ -65,7 +65,7 @@ jobs:
           done
           if [ "$all_healthy" != true ]; then
             echo "Timed out waiting for services to be healthy."
-            docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci ps
+            docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci ps
             echo "=== Unhealthy Service Logs ==="
             for service in "${services[@]}"; do
               status=$(docker inspect -f '{{.State.Health.Status}}' "$service" 2>/dev/null || echo "missing")
@@ -77,7 +77,7 @@ jobs:
             exit 1
           fi
           echo "Services are healthy!"
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci ps
+          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci ps
 
       - name: Run E2E tests
         run: |
@@ -90,13 +90,13 @@ jobs:
         run: |
           cd apps/hub
           echo "=== Docker Compose Logs ==="
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci logs --tail=100
+          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci logs --tail=100
 
           echo "=== Hub Container Logs ==="
           docker logs slates-hub-service --tail=200
 
           echo "=== Service Status ==="
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci ps
+          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci ps
 
       - name: Cleanup
         if: always()
@@ -104,4 +104,4 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           cd apps/hub
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.yml --env-file .env.ci down -v
+          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci down -v

@@ -5,12 +5,11 @@
   "private": true,
   "scripts": {
     "start": "bun ./src/server.ts",
-    "dev": "docker compose -p slates-registry -f ./docker-compose.dev.yml up --pull always --build slates-registry object-storage",
-    "build:admin": "vite build --config admin/vite.config.ts",
-    "dev:admin": "vite --config admin/vite.config.ts",
-    "typecheck": "tsc --noEmit",
-    "typecheck:admin": "tsc --noEmit --project admin/tsconfig.json",
-    "typecheck:all": "bun run typecheck && bun run typecheck:admin"
+    "infra:up": "docker compose -p slates-registry -f ./docker-compose.dev.yml up --pull always --build slates-registry object-storage",
+    "admin:build": "vite build --config admin/vite.config.ts",
+    "admin:dev": "vite --config admin/vite.config.ts",
+    "typecheck": "tsc --noEmit && bun run admin:typecheck",
+    "admin:typecheck": "tsc --noEmit --project admin/tsconfig.json"
   },
   "devDependencies": {
     "@types/bun": "latest",
