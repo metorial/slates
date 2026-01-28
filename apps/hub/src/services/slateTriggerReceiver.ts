@@ -25,6 +25,8 @@ import {
 
 let Sentry = getSentry();
 
+const MIN_POLL_INTERVAL_SECONDS = 10 * 60;
+
 class slateTriggerReceiverServiceImpl {
   private readonly core: SlateTriggerReceiverCore;
   private readonly runtime: SlateTriggerReceiverRuntime;
@@ -204,7 +206,7 @@ class slateTriggerReceiverServiceImpl {
         triggerActions.map(async trigger => {
           let pollIntervalSeconds: number | null = null;
           if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
-            pollIntervalSeconds = trigger.invocation.intervalSeconds;
+            pollIntervalSeconds = Math.max(trigger.invocation.intervalSeconds, MIN_POLL_INTERVAL_SECONDS);
           }
 
           return await prisma.slateTriggerReceiverTrigger.create({
@@ -391,7 +393,7 @@ class slateTriggerReceiverServiceImpl {
         toAdd.map(async trigger => {
           let pollIntervalSeconds: number | null = null;
           if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
-            pollIntervalSeconds = trigger.invocation.intervalSeconds;
+            pollIntervalSeconds = Math.max(trigger.invocation.intervalSeconds, MIN_POLL_INTERVAL_SECONDS);
           }
 
           return await db.slateTriggerReceiverTrigger.create({
