@@ -31,7 +31,7 @@ export let slatesActionTrigger = slatesActionBase.extend({
   invocation: z.union([
     z.object({
       type: z.literal('polling'),
-      intervalSeconds: z.number().min(15)
+      intervalSeconds: z.number().min(60 * 10)
     }),
     z.object({
       type: z.literal('webhook'),
