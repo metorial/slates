@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "@slates/root",
@@ -167,6 +166,7 @@
         "@lowerdeck/rpc-client": "^1.0.2",
       },
       "devDependencies": {
+        "@metorial-services/slates-registry-client": "^1.0.0",
         "dts-bundle-generator": "^9.5.1",
         "microbundle": "^0.15.1",
         "typescript": "^5.8.3",
