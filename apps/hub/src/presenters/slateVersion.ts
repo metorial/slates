@@ -23,7 +23,7 @@ export let slateVersionPresenter = (
     ? {
         object: 'slate.version.specification',
 
-        id: shadowId('shsvsp', [slateVersion.id], [slateVersion.specification.id]),
+        id: shadowId('shsvsp_', [slateVersion.id], [slateVersion.specification.id]),
         versionId: slateVersion.id,
         specificationId: slateVersion.specification.id,
 

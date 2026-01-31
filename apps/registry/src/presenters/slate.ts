@@ -1,5 +1,14 @@
-import type { Scope, Slate, SlateVersion, Tenant, User } from '../../prisma/generated/client';
+import type {
+  Scope,
+  Slate,
+  SlateCategory,
+  SlateCategoryAssignment,
+  SlateVersion,
+  Tenant,
+  User
+} from '../../prisma/generated/client';
 import { scopePresenter } from './scope';
+import { slateCategoryPresenter } from './slateCategory';
 import { userPresenter } from './user';
 
 export let slatePresenter = (
@@ -8,6 +17,9 @@ export let slatePresenter = (
     tenant: Tenant;
     currentVersion: SlateVersion | null;
     createdByUser: User & { scope: Scope };
+    categories: (SlateCategoryAssignment & {
+      category: SlateCategory;
+    })[];
   }
 ) => ({
   object: 'slate',
@@ -21,6 +33,8 @@ export let slatePresenter = (
 
   logoUrl: slate.logoUrl,
   skills: slate.skills,
+
+  categories: slate.categories.map(ca => slateCategoryPresenter(ca.category)),
 
   identifier: slate.identifier,
   fullIdentifier: slate.fullIdentifier,

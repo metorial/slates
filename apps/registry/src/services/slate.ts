@@ -9,11 +9,16 @@ let include = {
   scope: true,
   tenant: true,
   currentVersion: true,
-  createdByUser: { include: { scope: true } }
+  createdByUser: { include: { scope: true } },
+  categories: { include: { category: true } }
 };
 
 class slateServiceImpl {
-  async getSlateById(d: { id: string; tenant?: Tenant; subRegistry?: SubRegistryWithFilters | null }) {
+  async getSlateById(d: {
+    id: string;
+    tenant?: Tenant;
+    subRegistry?: SubRegistryWithFilters | null;
+  }) {
     let filterClause = buildSlateFilterClause(d.subRegistry, d.tenant?.oid);
 
     let slate = await db.slate.findFirst({

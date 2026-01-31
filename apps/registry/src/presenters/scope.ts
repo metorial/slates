@@ -14,7 +14,7 @@ export let scopePresenter = (scope: Scope & { tenant: Tenant }) => ({
   name: scope.name,
   description: scope.description,
   links: scope.links.map((link, i) => ({
-    id: shadowId('srsopln', [scope.id], [link.url, i]),
+    id: shadowId('srsopln_', [scope.id], [link.url, i]),
     ...link
   })),
 

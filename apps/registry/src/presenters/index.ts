@@ -2,6 +2,7 @@ export * from './changeNotification';
 export * from './readerToken';
 export * from './scope';
 export * from './slate';
+export * from './slateCategory';
 export * from './slateVersion';
 export * from './subRegistry';
 export * from './subRegistryFilter';
