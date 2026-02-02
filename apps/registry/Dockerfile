@@ -11,34 +11,38 @@ WORKDIR /app
 # Dependencies stage
 FROM base AS deps
 
-# Copy package files
+# Copy root workspace configuration
 COPY package.json bun.lock* ./
+COPY apps/registry/package.json ./apps/registry/
 
-# Install dependencies (production only)
+# Install dependencies from the registry app directory (production only)
+WORKDIR /app/apps/registry
 RUN bun install --frozen-lockfile --production
 
 # Build stage
 FROM base AS builder
 
-# Copy package files
+# Copy root workspace configuration
 COPY package.json bun.lock* ./
+COPY apps/registry/package.json ./apps/registry/
 
 # Install all dependencies (including devDependencies for Prisma generation)
+WORKDIR /app/apps/registry
 RUN bun install --frozen-lockfile
 
 # Copy Prisma schema
-COPY prisma ./prisma
-COPY prisma.config.ts ./prisma.config.ts
+COPY apps/registry/prisma ./prisma
+COPY apps/registry/prisma.config.ts ./prisma.config.ts
 
 # Generate Prisma client
 RUN bun prisma generate
 
 # Copy source code
-COPY src ./src
-COPY tsconfig.json ./tsconfig.json
+COPY apps/registry/src ./src
+COPY apps/registry/tsconfig.json ./tsconfig.json
 
 # Copy admin panel source and build
-COPY admin ./admin
+COPY apps/registry/admin ./admin
 RUN bun run admin:build
 
 # Production stage
@@ -47,22 +51,22 @@ FROM base AS runner
 WORKDIR /app
 
 # Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/registry/node_modules ./node_modules
 
 # Copy generated Prisma client from builder
-COPY --from=builder /app/prisma/generated ./prisma/generated
+COPY --from=builder /app/apps/registry/prisma/generated ./prisma/generated
 
 # Copy Prisma schema (needed for db push)
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/apps/registry/prisma ./prisma
+COPY --from=builder /app/apps/registry/prisma.config.ts ./prisma.config.ts
 
 # Copy source code
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/apps/registry/src ./src
+COPY --from=builder /app/apps/registry/package.json ./package.json
+COPY --from=builder /app/apps/registry/tsconfig.json ./tsconfig.json
 
 # Copy built admin panel
-COPY --from=builder /app/dist/admin ./dist/admin
+COPY --from=builder /app/apps/registry/dist/admin ./dist/admin
 
 # Create non-root user for security
 RUN groupadd -r metorial && useradd -r -g metorial metorial && \

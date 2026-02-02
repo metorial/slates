@@ -11,31 +11,43 @@ WORKDIR /app
 # Dependencies stage
 FROM base AS deps
 
-# Copy package files
+# Copy root workspace configuration
 COPY package.json bun.lock* ./
+COPY apps/hub/package.json ./apps/hub/
 
-# Install dependencies (production only)
+# Copy workspace package.json files that are dependencies
+COPY clients/registry/package.json ./clients/registry/
+COPY clients/registry-internal/package.json ./clients/registry-internal/
+
+# Install dependencies from the hub app directory (production only)
+WORKDIR /app/apps/hub
 RUN bun install --frozen-lockfile --production
 
 # Build stage
 FROM base AS builder
 
-# Copy package files
+# Copy root workspace configuration
 COPY package.json bun.lock* ./
+COPY apps/hub/package.json ./apps/hub/
+
+# Copy workspace package.json files that are dependencies
+COPY clients/registry/package.json ./clients/registry/
+COPY clients/registry-internal/package.json ./clients/registry-internal/
 
 # Install all dependencies (including devDependencies for Prisma generation)
+WORKDIR /app/apps/hub
 RUN bun install --frozen-lockfile
 
 # Copy Prisma schema
-COPY prisma ./prisma
-COPY prisma.config.ts ./prisma.config.ts
+COPY apps/hub/prisma ./prisma
+COPY apps/hub/prisma.config.ts ./prisma.config.ts
 
 # Generate Prisma client
 RUN bun prisma generate
 
 # Copy source code
-COPY src ./src
-COPY tsconfig.json ./tsconfig.json
+COPY apps/hub/src ./src
+COPY apps/hub/tsconfig.json ./tsconfig.json
 
 # Production stage
 FROM base AS runner
@@ -48,19 +60,19 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/hub/node_modules ./node_modules
 
 # Copy generated Prisma client from builder
-COPY --from=builder /app/prisma/generated ./prisma/generated
+COPY --from=builder /app/apps/hub/prisma/generated ./prisma/generated
 
 # Copy Prisma schema (needed for db push)
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/apps/hub/prisma ./prisma
+COPY --from=builder /app/apps/hub/prisma.config.ts ./prisma.config.ts
 
 # Copy source code
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/apps/hub/src ./src
+COPY --from=builder /app/apps/hub/package.json ./package.json
+COPY --from=builder /app/apps/hub/tsconfig.json ./tsconfig.json
 
 # Create non-root user for security
 RUN groupadd -r metorial && useradd -r -g metorial metorial && \
