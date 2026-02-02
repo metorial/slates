@@ -13,7 +13,18 @@ FROM base AS deps
 
 # Copy root workspace configuration
 COPY package.json bun.lock* ./
+
+# Copy all workspace package.json files
+COPY apps/hub/package.json ./apps/hub/
 COPY apps/registry/package.json ./apps/registry/
+COPY clients/hub/package.json ./clients/hub/
+COPY clients/registry/package.json ./clients/registry/
+COPY clients/registry-internal/package.json ./clients/registry-internal/
+COPY packages/proto/package.json ./packages/proto/
+COPY packages/provider/package.json ./packages/provider/
+COPY packages/provider-handler/package.json ./packages/provider-handler/
+COPY packages/slates/package.json ./packages/slates/
+COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 # Install dependencies from workspace root (production only)
 RUN bun install --frozen-lockfile --production
@@ -23,7 +34,18 @@ FROM base AS builder
 
 # Copy root workspace configuration
 COPY package.json bun.lock* ./
+
+# Copy all workspace package.json files
+COPY apps/hub/package.json ./apps/hub/
 COPY apps/registry/package.json ./apps/registry/
+COPY clients/hub/package.json ./clients/hub/
+COPY clients/registry/package.json ./clients/registry/
+COPY clients/registry-internal/package.json ./clients/registry-internal/
+COPY packages/proto/package.json ./packages/proto/
+COPY packages/provider/package.json ./packages/provider/
+COPY packages/provider-handler/package.json ./packages/provider-handler/
+COPY packages/slates/package.json ./packages/slates/
+COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 # Install all dependencies from workspace root (including devDependencies)
 RUN bun install --frozen-lockfile
