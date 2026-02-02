@@ -72,8 +72,6 @@ FROM base AS runner
 WORKDIR /app
 
 # Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/registry/node_modules ./apps/registry/node_modules
 
 # Copy generated Prisma client from builder
 COPY --from=builder /app/apps/registry/prisma/generated ./apps/registry/prisma/generated
