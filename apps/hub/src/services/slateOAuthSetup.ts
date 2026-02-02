@@ -28,6 +28,7 @@ class slateOAuthSetupServiceImpl {
       authMethodId?: string;
       redirectUrl: string;
       input: Record<string, any>;
+      callbackUrlOverride?: string;
     };
   }) {
     if (d.input.slateVersion && d.input.slateVersion.slateOid !== d.input.slate.oid) {
@@ -86,6 +87,7 @@ class slateOAuthSetupServiceImpl {
         status: 'unused',
 
         redirectUrl: d.input.redirectUrl,
+        callbackUrlOverride: d.input.callbackUrlOverride,
 
         slateOid: d.input.slate.oid,
         tenantOid: d.tenant.oid,

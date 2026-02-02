@@ -56,7 +56,7 @@ class slateOAuthHandlerServiceImpl {
       }),
 
       authenticationMethodId: setup.authMethod.key,
-      redirectUri: callbackUrl,
+      redirectUri: setup.callbackUrlOverride ?? callbackUrl,
       state: setup.id,
       input: oauthSecret.input,
       clientId: credentialsSecrets.clientId,
@@ -202,7 +202,7 @@ class slateOAuthHandlerServiceImpl {
       code: d.input.code,
       state: setup.id,
       authenticationMethodId: setup.authMethod.key,
-      redirectUri: callbackUrl,
+      redirectUri: setup.callbackUrlOverride ?? callbackUrl,
       input: oauthSecret.input,
       callbackState: oauthSecret.callbackState,
       clientId: credentialsSecrets.clientId,

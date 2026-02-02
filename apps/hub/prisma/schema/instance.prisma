@@ -211,7 +211,8 @@ model SlateInstanceOAuthSetup {
   id     String                        @unique
   status SlateInstanceOAuthSetupStatus @default(unused)
 
-  redirectUrl String
+  redirectUrl         String
+  callbackUrlOverride String?
 
   errorCode    String?
   errorMessage String?
