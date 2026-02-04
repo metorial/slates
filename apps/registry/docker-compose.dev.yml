@@ -24,7 +24,7 @@ services:
   object-storage:
     image: ghcr.io/metorial/object-storage:latest
     ports:
-      - '52010:52010'
+      - '65010:52010'
     volumes:
       - object-store-data:/app/data
     environment:
@@ -51,15 +51,15 @@ services:
     container_name: slates-registry-service
     restart: unless-stopped
     ports:
-      - '52040:52040'
-      - '52041:52041'
-      - '52042:52042'
+      - '65040:52040'
+      - '65041:52041'
+      - '65042:52042'
     environment:
       DATABASE_URL: postgresql://slates-registry:slates-registry@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0
       OBJECT_STORAGE_URL: http://object-storage:52010
       PACKAGE_BUCKET_NAME: slates-registry-packages
-      SERVICE_PUBLIC_URL: http://localhost:52040
+      SERVICE_PUBLIC_URL: http://localhost:65040
       PUBLIC_ACCESS_PERMITTED: 'true'
     volumes:
       - ./src:/app/src:ro

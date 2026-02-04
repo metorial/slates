@@ -9,6 +9,7 @@ on:
       - 'packages/**'
       - 'clients/**'
       - '.github/workflows/hub-e2e-tests.yml'
+      - '.github/workflows/reusable-e2e-tests.yml'
   pull_request:
     branches: [main]
     paths:
@@ -16,92 +17,25 @@ on:
       - 'apps/registry/**'
       - 'packages/**'
       - 'clients/**'
+      - '.github/workflows/hub-e2e-tests.yml'
+      - '.github/workflows/reusable-e2e-tests.yml'
 
 jobs:
   e2e-tests:
     name: Run Hub E2E Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Start Docker services
-        env:
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          cd apps/hub
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci --profile hub --profile infra up -d --build
-
-      - name: Wait for services to be healthy
-        env:
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          cd apps/hub
-          echo "Waiting for all services to be healthy..."
-          services=(
-            slates-hub-postgres
-            slates-hub-redis
-            slates-hub-object-storage
-            slates-hub-forge
-            slates-hub-signal
-            slates-hub-function-bay
-            slates-hub-registry
-          )
-          for i in {1..60}; do
-            all_healthy=true
-            for service in "${services[@]}"; do
-              status=$(docker inspect -f '{{.State.Health.Status}}' "$service" 2>/dev/null || echo "missing")
-              if [ "$status" != "healthy" ]; then
-                all_healthy=false
-                break
-              fi
-            done
-            if [ "$all_healthy" = true ]; then
-              break
-            fi
-            sleep 5
-          done
-          if [ "$all_healthy" != true ]; then
-            echo "Timed out waiting for services to be healthy."
-            docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci ps
-            echo "=== Unhealthy Service Logs ==="
-            for service in "${services[@]}"; do
-              status=$(docker inspect -f '{{.State.Health.Status}}' "$service" 2>/dev/null || echo "missing")
-              if [ "$status" != "healthy" ]; then
-                echo "--- $service ($status) ---"
-                docker logs "$service" --tail=200 || true
-              fi
-            done
-            exit 1
-          fi
-          echo "Services are healthy!"
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci ps
-
-      - name: Run E2E tests
-        run: |
-          docker exec slates-hub-service sh -c "cd apps/hub && bun run test -- --mode ci"
-
-      - name: Collect logs on failure
-        if: failure()
-        env:
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          cd apps/hub
-          echo "=== Docker Compose Logs ==="
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci logs --tail=100
-
-          echo "=== Hub Container Logs ==="
-          docker logs slates-hub-service --tail=200
-
-          echo "=== Service Status ==="
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci ps
-
-      - name: Cleanup
-        if: always()
-        env:
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          cd apps/hub
-          docker compose -p slates-hub-ci-$RUN_ID -f docker-compose.dev.yml --env-file .env.ci down -v
+    uses: ./.github/workflows/reusable-e2e-tests.yml
+    with:
+      service_directory: apps/hub
+      compose_project_prefix: slates-hub-ci
+      compose_profiles: 'hub infra'
+      wait_mode: healthy
+      wait_services: |
+        slates-hub-postgres
+        slates-hub-redis
+        slates-hub-object-storage
+        slates-hub-forge
+        slates-hub-signal
+        slates-hub-function-bay
+        slates-hub-registry
+      test_container: slates-hub-service
+      test_command: cd apps/hub && bun run test -- --mode ci
