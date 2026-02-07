@@ -38,11 +38,7 @@ export let registryController = app.controller({
 
   listAll: app
     .handler()
-    .input(
-      v.object({
-        tenantId: v.string()
-      })
-    )
+    .input(v.object({}))
     .do(async _ctx => {
       let res = await registryService.listAllRegistries({});
 
@@ -62,5 +58,20 @@ export let registryController = app.controller({
       });
 
       return registries.map(registryPresenter);
+    }),
+
+  create: app
+    .handler()
+    .input(
+      v.object({
+        registryUrl: v.string(),
+        name: v.optional(v.string())
+      })
+    )
+    .do(async ctx => {
+      await registryService.createRegistry({
+        registryUrl: ctx.input.registryUrl,
+        name: ctx.input.name
+      });
     })
 });
