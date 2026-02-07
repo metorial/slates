@@ -49,7 +49,7 @@ let predefinedRegistries = predefinedRegistryRes.value.map(r =>
 );
 let predefinedRegistryMap = new Map(predefinedRegistries.map(r => [r.registryUrl, r]));
 
-for (let registry of predefinedRegistries) {
+export let upsertRegistry = async (registry: { registryUrl: string; name?: string }) => {
   let identifier = `reg::default::${await Hash.sha256(JSON.stringify([registry.registryUrl]))}`;
   await db.registry.upsert({
     where: { identifier },
@@ -68,6 +68,10 @@ for (let registry of predefinedRegistries) {
       name: registry.name ?? `Default Registry ${registry.registryUrl}`
     }
   });
+};
+
+for (let registry of predefinedRegistries) {
+  await upsertRegistry(registry);
 }
 
 let readerToken = new Map<string, { token: Promise<string | null>; expiresAt: number }>();
