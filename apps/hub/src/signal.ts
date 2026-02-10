@@ -1,3 +1,4 @@
+import { ProgrammablePromise } from '@lowerdeck/programmable-promise';
 import { createSignalClient } from '@metorial-services/signal-client';
 import type { Tenant } from '../prisma/generated/client';
 import { db } from './db';
@@ -7,10 +8,10 @@ export let signal: ReturnType<typeof createSignalClient> = createSignalClient({
   endpoint: env.signal.SIGNAL_API_URL
 });
 
-export let signalTriggerSender = await signal.sender.upsert({
-  name: 'Slates Triggers',
-  identifier: env.signal.SIGNAL_SENDER_IDENTIFIER
-});
+let signalTriggerSenderPromise = new ProgrammablePromise<
+  Awaited<ReturnType<typeof signal.sender.upsert>>
+>();
+export let signalTriggerSender = signalTriggerSenderPromise.promise;
 
 export let getTenantAndSenderForSignal = async (tenant: Tenant) => {
   if (!tenant.signalTenantId) {
@@ -34,4 +35,18 @@ export let getTenantAndSenderForSignal = async (tenant: Tenant) => {
   };
 };
 
-console.log(`Signal sender ID: ${signalTriggerSender.id}`);
+async () => {
+  while (true) {
+    try {
+      let sender = await signal.sender.upsert({
+        name: 'Slates Triggers',
+        identifier: env.signal.SIGNAL_SENDER_IDENTIFIER
+      });
+      signalTriggerSenderPromise.resolve(sender);
+
+      console.log(`Signal sender ID: ${signalTriggerSender.id}`);
+    } catch (err) {
+      console.log('Unable to create signal sender', err);
+    }
+  }
+};

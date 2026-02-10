@@ -1,3 +1,4 @@
+import { ProgrammablePromise } from '@lowerdeck/programmable-promise';
 import { createFunctionBayClient } from '@metorial-services/function-bay-client';
 import { db } from './db';
 import { env } from './env';
@@ -7,10 +8,10 @@ export let functionBay: ReturnType<typeof createFunctionBayClient> = createFunct
   endpoint: env.functionBay.FUNCTION_BAY_API_URL
 });
 
-export let functionBayTenant = await functionBay.tenant.upsert({
-  name: 'Slates Hub Tenant',
-  identifier: env.functionBay.FUNCTION_BAY_TENANT_IDENTIFIER
-});
+let functionBayTenantPromise = new ProgrammablePromise<
+  Awaited<ReturnType<typeof functionBay.tenant.upsert>>
+>();
+export let functionBayTenant = functionBayTenantPromise.promise;
 
 export let functionBayProvider = await db.deploymentProvider.upsert({
   where: { identifier: 'function-bay' },
@@ -21,3 +22,19 @@ export let functionBayProvider = await db.deploymentProvider.upsert({
   },
   update: {}
 });
+
+async () => {
+  while (true) {
+    try {
+      let ten = await functionBay.tenant.upsert({
+        name: 'Slates Hub Tenant',
+        identifier: env.functionBay.FUNCTION_BAY_TENANT_IDENTIFIER
+      });
+      functionBayTenantPromise.resolve(ten);
+
+      console.log(`Function Bay tenant ID: ${ten.id}`);
+    } catch (err) {
+      console.log('Unable to create function bay tenant', err);
+    }
+  }
+};
