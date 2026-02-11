@@ -42,7 +42,7 @@ class slateDeploymentServiceImpl {
     }
 
     let res = await functionBay.functionDeployment.getOutput({
-      tenantId: functionBayTenant.id,
+      tenantId: (await functionBayTenant).id,
       functionId: d.slateDeployment.providerDeploymentInfo.functionId,
       functionDeploymentId: d.slateDeployment.providerDeploymentInfo.functionDeploymentId
     });
@@ -55,17 +55,18 @@ class slateDeploymentServiceImpl {
     versionIds?: string[];
     status?: 'pending' | 'running' | 'succeeded' | 'failed';
   }) {
-    let versions = (d.slate || d.versionIds)
-      ? await db.slateVersion.findMany({
-          where: {
-            slateOid: d.slate?.oid,
-            OR: d.versionIds
-              ? [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
-              : undefined
-          },
-          select: { oid: true }
-        })
-      : undefined;
+    let versions =
+      d.slate || d.versionIds
+        ? await db.slateVersion.findMany({
+            where: {
+              slateOid: d.slate?.oid,
+              OR: d.versionIds
+                ? [{ id: { in: d.versionIds } }, { version: { in: d.versionIds } }]
+                : undefined
+            },
+            select: { oid: true }
+          })
+        : undefined;
 
     return Paginator.create(({ prisma }) =>
       prisma(

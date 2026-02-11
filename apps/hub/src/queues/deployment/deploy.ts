@@ -136,7 +136,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
     let func = await functionBay.function.upsert({
       identifier: `slates::slate_version::${version.id}::${generateCode(6)}`,
       name: `Slate Version ${version.id} Deployment`,
-      tenantId: functionBayTenant.id
+      tenantId: (await functionBayTenant).id
     });
 
     let initialFiles = [
@@ -235,7 +235,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
 
     let functionDeployment = await functionBay.functionDeployment.create({
       functionId: func.id,
-      tenantId: functionBayTenant.id,
+      tenantId: (await functionBayTenant).id,
       name: `Deployment for Slate Version ${version.id}`,
       runtime: {
         identifier: 'nodejs',
@@ -295,7 +295,7 @@ export let deploySlateVersionMonitorQueueProcessor = deploySlateVersionMonitorQu
 
     let funcDep = await functionBay.functionDeployment.get({
       functionId: data.functionId,
-      tenantId: functionBayTenant.id,
+      tenantId: (await functionBayTenant).id,
       functionDeploymentId: data.functionDeploymentId
     });
 
@@ -338,7 +338,7 @@ export let deploySlateVersionProviderCompletedQueueProcessor =
 
     let funcDep = await functionBay.functionDeployment.get({
       functionId: data.functionId,
-      tenantId: functionBayTenant.id,
+      tenantId: (await functionBayTenant).id,
       functionDeploymentId: data.functionDeploymentId
     });
 
@@ -437,7 +437,7 @@ export let deploySlateVersionCompletedQueueProcessor =
 
       let funcDep = await functionBay.functionDeployment.get({
         functionId: data.functionId,
-        tenantId: functionBayTenant.id,
+        tenantId: (await functionBayTenant).id,
         functionDeploymentId: data.functionDeploymentId
       });
 

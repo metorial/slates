@@ -37,7 +37,7 @@ let getFunctionBayInvocationResultWithRetry = async (
     attempt++;
     try {
       return await functionBay.functionInvocation.get({
-        tenantId: functionBayTenant.id,
+        tenantId: (await functionBayTenant).id,
         functionId: d.slateVersion.providerDeploymentInfo?.functionId!,
         functionInvocationId: d.invocationId
       });

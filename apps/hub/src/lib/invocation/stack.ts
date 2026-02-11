@@ -77,7 +77,7 @@ export class SlateInvocationStack {
     let invocationId = await ID.generateId('slateInvocation');
     let [providerInvocation, invocationRecord] = await Promise.all([
       functionBay.function.invoke({
-        tenantId: functionBayTenant.id,
+        tenantId: (await functionBayTenant).id,
         functionId: this.#slateVersion.providerDeploymentInfo.functionId,
         payload: { messages, invocationId }
       }),

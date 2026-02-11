@@ -65,7 +65,7 @@ class slateVersionDiscoveryServiceImpl {
     }
 
     return await functionBay.functionInvocation.get({
-      tenantId: functionBayTenant.id,
+      tenantId: (await functionBayTenant).id,
       functionId: version.providerDeploymentInfo.functionId,
       functionInvocationId: invocation.providerInvocationId
     });
