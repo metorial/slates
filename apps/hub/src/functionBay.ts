@@ -29,12 +29,18 @@ export let functionBayProvider = await db.deploymentProvider.upsert({
 
   while (true) {
     try {
-      let ten = await functionBay.tenant.upsert({
-        name: 'Slates Hub Tenant',
-        identifier: env.functionBay.FUNCTION_BAY_TENANT_IDENTIFIER
-      });
-      functionBayTenantPromise.resolve(ten);
-      console.log(`Function Bay tenant ID: ${ten.id}`);
+      let tenant = await Promise.race([
+        functionBay.tenant.upsert({
+          name: 'Slates Hub Tenant',
+          identifier: env.functionBay.FUNCTION_BAY_TENANT_IDENTIFIER
+        }),
+        delay(10000).then(() => {
+          throw new Error('Function Bay tenant initialization timed out');
+        })
+      ]);
+
+      functionBayTenantPromise.resolve(tenant);
+      console.log(`Function Bay tenant ID: ${tenant.id}`);
       return;
     } catch (err) {
       console.log('Unable to create function bay tenant', err);

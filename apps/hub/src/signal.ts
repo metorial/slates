@@ -41,10 +41,16 @@ export let getTenantAndSenderForSignal = async (tenant: Tenant) => {
 
   while (true) {
     try {
-      let sender = await signal.sender.upsert({
-        name: 'Slates Triggers',
-        identifier: env.signal.SIGNAL_SENDER_IDENTIFIER
-      });
+      let sender = await Promise.race([
+        signal.sender.upsert({
+          name: 'Slates Triggers',
+          identifier: env.signal.SIGNAL_SENDER_IDENTIFIER
+        }),
+        delay(10000).then(() => {
+          throw new Error('Signal sender initialization timed out');
+        })
+      ]);
+
       signalTriggerSenderPromise.resolve(sender);
       console.log(`Signal sender ID: ${sender.id}`);
       return;

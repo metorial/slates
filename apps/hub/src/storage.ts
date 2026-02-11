@@ -14,11 +14,16 @@ let initBuckets = async () => {
 
   while (true) {
     try {
-      await initBuckets();
+      await Promise.race([
+        initBuckets(),
+        delay(10000).then(() => {
+          throw new Error('Storage bucket initialization timed out');
+        })
+      ]);
       console.log('Storage buckets are ready');
       return;
-    } catch (_err) {
-      console.error('Error initializing storage buckets, retrying...');
+    } catch (err) {
+      console.error('Error initializing storage buckets, retrying...', err);
     }
 
     await delay(5000);
