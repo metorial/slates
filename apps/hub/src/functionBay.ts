@@ -1,3 +1,4 @@
+import { delay } from '@lowerdeck/delay';
 import { ProgrammablePromise } from '@lowerdeck/programmable-promise';
 import { createFunctionBayClient } from '@metorial-services/function-bay-client';
 import { db } from './db';
@@ -23,7 +24,9 @@ export let functionBayProvider = await db.deploymentProvider.upsert({
   update: {}
 });
 
-async () => {
+(async () => {
+  console.log('Ensuring function bay tenant exists...');
+
   while (true) {
     try {
       let ten = await functionBay.tenant.upsert({
@@ -31,10 +34,12 @@ async () => {
         identifier: env.functionBay.FUNCTION_BAY_TENANT_IDENTIFIER
       });
       functionBayTenantPromise.resolve(ten);
-
       console.log(`Function Bay tenant ID: ${ten.id}`);
+      return;
     } catch (err) {
       console.log('Unable to create function bay tenant', err);
     }
+
+    await delay(5000);
   }
-};
+})();

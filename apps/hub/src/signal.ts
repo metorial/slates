@@ -1,3 +1,4 @@
+import { delay } from '@lowerdeck/delay';
 import { ProgrammablePromise } from '@lowerdeck/programmable-promise';
 import { createSignalClient } from '@metorial-services/signal-client';
 import type { Tenant } from '../prisma/generated/client';
@@ -35,7 +36,9 @@ export let getTenantAndSenderForSignal = async (tenant: Tenant) => {
   };
 };
 
-async () => {
+(async () => {
+  console.log('Ensuring signal sender exists...');
+
   while (true) {
     try {
       let sender = await signal.sender.upsert({
@@ -43,10 +46,12 @@ async () => {
         identifier: env.signal.SIGNAL_SENDER_IDENTIFIER
       });
       signalTriggerSenderPromise.resolve(sender);
-
-      console.log(`Signal sender ID: ${signalTriggerSender.id}`);
+      console.log(`Signal sender ID: ${sender.id}`);
+      return;
     } catch (err) {
       console.log('Unable to create signal sender', err);
     }
+
+    await delay(5000);
   }
-};
+})();

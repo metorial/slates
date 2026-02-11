@@ -10,9 +10,12 @@ let initBuckets = async () => {
 };
 
 (async () => {
+  console.log('Ensuring storage buckets exist...');
+
   while (true) {
     try {
       await initBuckets();
+      console.log('Storage buckets are ready');
       return;
     } catch (_err) {
       console.error('Error initializing storage buckets, retrying...');
