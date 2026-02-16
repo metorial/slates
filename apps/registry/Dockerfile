@@ -20,6 +20,9 @@ RUN bun install --frozen-lockfile --production
 # Build stage
 FROM base AS builder
 
+ARG SENTRY_AUTH_TOKEN
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+
 # Copy package files
 COPY package.json bun.lock* ./
 
@@ -56,6 +59,9 @@ COPY tsconfig.json ./tsconfig.json
 COPY admin ./admin
 RUN bun run admin:build
 
+# Build server bundle
+RUN bun run server:build
+
 # Production stage
 FROM base AS runner
 
@@ -71,13 +77,9 @@ COPY --from=builder /app/prisma/generated ./prisma/generated
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
-# Copy source code
-COPY --from=builder /app/src ./src
+# Copy built bundle (includes server bundle and admin panel)
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-
-# Copy built admin panel
-COPY --from=builder /app/dist/admin ./dist/admin
 
 # Create non-root user for security
 RUN groupadd -r metorial && useradd -r -g metorial metorial && \
@@ -97,4 +99,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
     curl -f http://localhost:12121/ || exit 1
 
 # Start command: push schema and start service
-CMD ["sh", "-c", "bun prisma db push --accept-data-loss && bun src/server.ts"]
+CMD ["sh", "-c", "bun prisma db push --accept-data-loss && bun ./dist/index.js"]
