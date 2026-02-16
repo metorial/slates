@@ -1,4 +1,4 @@
-import { createSlatesHubInternalClient } from '../../../../clients/hub/src/index.ts';
+import { createSlatesHubInternalClient } from '../../../../clients/hub/src/index';
 import { createFetchRouter } from '@lowerdeck/testing-tools';
 import { slatesHubApi } from '../apis/internal';
 
