@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { AuthCallback } from './pages/auth/AuthCallback';
 import { SlateCreate } from './pages/slates/SlateCreate';
 import { SlateDetail } from './pages/slates/SlateDetail';
 import { SlateList } from './pages/slates/SlateList';
@@ -20,6 +21,8 @@ import { WorkspaceList } from './pages/workspaces/WorkspaceList';
 export let App = () => {
   return (
     <Routes>
+      <Route path="/auth/callback" element={<AuthCallback />} />
+
       <Route element={<Layout />}>
         <Route path="/" element={<Navigate to="/tenants" replace />} />
 
@@ -48,4 +51,4 @@ export let App = () => {
       </Route>
     </Routes>
   );
-}
+};

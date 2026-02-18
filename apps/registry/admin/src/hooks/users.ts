@@ -1,11 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
 import { useMemo, useState } from 'react';
-import { adminClient } from './client';
+import { adminClient, withAuthRedirect } from './client';
 
 export let usersLoader = createLoader({
   name: 'users',
   fetch: (params: { tenantId: string; after?: string; before?: string }) =>
-    adminClient.user.list(params),
+    withAuthRedirect(() => adminClient.user.list(params)),
   hash: params => `${params.tenantId}:${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {}
 });
@@ -46,12 +46,13 @@ export let useUsers = (tenantId: string | undefined) => {
 
 export let useCreateUser = usersLoader.createExternalMutator(
   (data: { tenantId: string; name: string; identifier: string }) =>
-    adminClient.user.create(data)
+    withAuthRedirect(() => adminClient.user.create(data))
 );
 
 export let userLoader = createLoader({
   name: 'user',
-  fetch: (params: { tenantId: string; userId: string }) => adminClient.user.get(params),
+  fetch: (params: { tenantId: string; userId: string }) =>
+    withAuthRedirect(() => adminClient.user.get(params)),
   hash: params => `${params.tenantId}:${params.userId}`,
   mutators: {},
   parents: [usersLoader]
@@ -63,7 +64,7 @@ export let useUser = (tenantId: string | undefined, userId: string | undefined) 
 export let userTokensLoader = createLoader({
   name: 'userTokens',
   fetch: (params: { tenantId: string; userId: string; after?: string; before?: string }) =>
-    adminClient.user.token.list(params),
+    withAuthRedirect(() => adminClient.user.token.list(params)),
   hash: params => `${params.tenantId}:${params.userId}:${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {},
   parents: [userLoader]
@@ -107,10 +108,10 @@ export let useUserTokens = (tenantId: string | undefined, userId: string | undef
 
 export let useCreateUserToken = userTokensLoader.createExternalMutator(
   (data: { tenantId: string; userId: string; name: string; expiresAt?: string }) =>
-    adminClient.user.token.create(data)
+    withAuthRedirect(() => adminClient.user.token.create(data))
 );
 
 export let useRevokeUserToken = userTokensLoader.createExternalMutator(
   (data: { tenantId: string; userId: string; tokenId: string }) =>
-    adminClient.user.token.delete(data)
+    withAuthRedirect(() => adminClient.user.token.delete(data))
 );

@@ -1,11 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
 import { useMemo, useState } from 'react';
-import { adminClient } from './client';
+import { adminClient, withAuthRedirect } from './client';
 
 export let workspacesLoader = createLoader({
   name: 'workspaces',
   fetch: (params: { tenantId: string; after?: string; before?: string }) =>
-    adminClient.workspace.list(params),
+    withAuthRedirect(() => adminClient.workspace.list(params)),
   hash: params => `${params.tenantId}:${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {}
 });
@@ -47,7 +47,7 @@ export let useWorkspaces = (tenantId: string | undefined) => {
 export let workspaceLoader = createLoader({
   name: 'workspace',
   fetch: (params: { tenantId: string; workspaceId: string }) =>
-    adminClient.workspace.get(params),
+    withAuthRedirect(() => adminClient.workspace.get(params)),
   hash: params => `${params.tenantId}:${params.workspaceId}`,
   mutators: {},
   parents: [workspacesLoader]
@@ -58,10 +58,10 @@ export let useWorkspace = (tenantId: string | undefined, workspaceId: string) =>
 
 export let useCreateWorkspace = workspacesLoader.createExternalMutator(
   (data: { tenantId: string; name: string; identifier: string; description?: string }) =>
-    adminClient.workspace.create(data)
+    withAuthRedirect(() => adminClient.workspace.create(data))
 );
 
 export let useUpdateWorkspace = workspaceLoader.createExternalMutator(
   (data: { tenantId: string; workspaceId: string; name?: string; description?: string }) =>
-    adminClient.workspace.update(data)
+    withAuthRedirect(() => adminClient.workspace.update(data))
 );

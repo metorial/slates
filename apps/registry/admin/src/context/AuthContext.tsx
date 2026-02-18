@@ -1,36 +1,53 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { adminClient, withAuthRedirect } from '../hooks/client';
+
+interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+}
 
 interface AuthContextValue {
   isAuthenticated: boolean;
-  user: { id: string; name: string } | null;
-  login: (credentials: { username: string; password: string }) => Promise<void>;
-  logout: () => void;
+  isLoading: boolean;
+  user: AdminUser | null;
+  logout: () => Promise<void>;
 }
 
 let AuthContext = createContext<AuthContextValue | null>(null);
 
 export let AuthProvider = ({ children }: { children: ReactNode }) => {
-  // STUB: Always authenticated for now
-  let [isAuthenticated] = useState(true);
-  let [user] = useState({ id: 'admin', name: 'Admin User' });
+  let [isLoading, setIsLoading] = useState(true);
+  let [user, setUser] = useState<AdminUser | null>(null);
 
-  let login = async (_credentials: { username: string; password: string }) => {
-    console.log('Auth: login called');
-  };
+  useEffect(() => {
+    withAuthRedirect(async () => {
+      let { user } = await adminClient.auth.me({});
+      setUser(user);
+      setIsLoading(false);
+    }).catch(() => {
+      setIsLoading(false);
+    });
+  }, []);
 
-  let logout = () => {
-    console.log('Auth: logout called');
+  let logout = async () => {
+    await adminClient.auth.logout({});
+    setUser(null);
+    let { authUrl } = await adminClient.auth.getAuthUrl({
+      redirectUri: `${window.location.origin}/admin/auth/callback`
+    });
+    window.location.href = authUrl;
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!user, isLoading, user, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
 export let useAuth = () => {
   let ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
-}
+};

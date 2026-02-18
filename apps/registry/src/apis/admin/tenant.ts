@@ -2,9 +2,9 @@ import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { tenantPresenter } from '../../presenters';
 import { tenantService } from '../../services';
-import { app } from './_app';
+import { app, authedApp } from './_app';
 
-export let tenantApp = app.use(async ctx => {
+export let tenantApp = authedApp.use(async ctx => {
   let tenantId = ctx.body.tenantId;
   if (!tenantId) throw new Error('Tenant ID is required');
 
@@ -14,7 +14,7 @@ export let tenantApp = app.use(async ctx => {
 });
 
 export let tenantController = app.controller({
-  list: app
+  list: authedApp
     .handler()
     .input(Paginator.validate(v.object({})))
     .do(async ctx => {
@@ -23,7 +23,7 @@ export let tenantController = app.controller({
       return Paginator.presentLight(list, tenantPresenter);
     }),
 
-  upsert: app
+  upsert: authedApp
     .handler()
     .input(
       v.object({
