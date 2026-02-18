@@ -152,7 +152,7 @@ export let deploySlateAfterSyncQueue = createQueue<{
   workerOpts: {
     concurrency: 2,
     limiter: {
-      max: 10,
+      max: 1,
       duration: 60 * 1000
     }
   }
