@@ -9,7 +9,15 @@ import { getId } from '../id';
 let SESSION_DURATION_HOURS = 1;
 
 class adminAuthServiceImpl {
+  isEnabled() {
+    return !!(env.ares.ARES_AUTH_URL && env.ares.ARES_CLIENT_ID);
+  }
+
   getAuthUrl(d: { redirectUri: string }) {
+    if (!env.ares.ARES_AUTH_URL || !env.ares.ARES_CLIENT_ID) {
+      throw new Error('Admin auth is not configured');
+    }
+
     let url = new URL(`${env.ares.ARES_AUTH_URL}/login`);
     url.searchParams.set('redirect_uri', d.redirectUri);
     url.searchParams.set('client_id', env.ares.ARES_CLIENT_ID);
@@ -17,6 +25,10 @@ class adminAuthServiceImpl {
   }
 
   async exchangeCode(d: { code: string }) {
+    if (!aresClient || !env.ares.ARES_CLIENT_ID) {
+      throw new Error('Admin auth is not configured');
+    }
+
     let result = await aresClient.oauth.exchange({
       clientId: env.ares.ARES_CLIENT_ID,
       authorizationCode: d.code

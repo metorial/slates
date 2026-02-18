@@ -5,6 +5,13 @@ import { app, authedApp } from './_app';
 let ADMIN_SESSION_COOKIE = 'slates_admin_session';
 
 export let authController = app.controller({
+  authEnabled: app
+    .handler()
+    .input(v.object({}))
+    .do(async () => {
+      return { enabled: adminAuthService.isEnabled() };
+    }),
+
   getAuthUrl: app
     .handler()
     .input(
@@ -53,6 +60,10 @@ export let authController = app.controller({
     .handler()
     .input(v.object({}))
     .do(async ctx => {
+      if (!ctx.adminUser) {
+        return { user: null };
+      }
+
       return {
         user: {
           id: ctx.adminUser.id,

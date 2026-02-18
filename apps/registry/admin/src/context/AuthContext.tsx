@@ -21,13 +21,23 @@ export let AuthProvider = ({ children }: { children: ReactNode }) => {
   let [user, setUser] = useState<AdminUser | null>(null);
 
   useEffect(() => {
-    withAuthRedirect(async () => {
-      let { user } = await adminClient.auth.me({});
-      setUser(user);
-      setIsLoading(false);
-    }).catch(() => {
-      setIsLoading(false);
-    });
+    adminClient.auth
+      .authEnabled({})
+      .then(async ({ enabled }) => {
+        if (!enabled) {
+          setIsLoading(false);
+          return;
+        }
+
+        await withAuthRedirect(async () => {
+          let { user } = await adminClient.auth.me({});
+          setUser(user);
+          setIsLoading(false);
+        });
+      })
+      .catch(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   let logout = async () => {
