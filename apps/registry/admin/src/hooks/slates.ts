@@ -1,11 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
 import { useMemo, useState } from 'react';
-import { adminClient } from './client';
+import { adminClient, withAuthRedirect } from './client';
 
 export let slatesLoader = createLoader({
   name: 'slates',
   fetch: (params: { tenantId: string; after?: string; before?: string }) =>
-    adminClient.slate.list(params),
+    withAuthRedirect(() => adminClient.slate.list(params)),
   hash: params => `${params.tenantId}:${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {}
 });
@@ -46,7 +46,8 @@ export let useSlates = (tenantId: string | undefined) => {
 
 export let slateLoader = createLoader({
   name: 'slate',
-  fetch: (params: { tenantId: string; slateId: string }) => adminClient.slate.get(params),
+  fetch: (params: { tenantId: string; slateId: string }) =>
+    withAuthRedirect(() => adminClient.slate.get(params)),
   hash: params => `${params.tenantId}:${params.slateId}`,
   mutators: {},
   parents: [slatesLoader]
@@ -58,7 +59,7 @@ export let useSlate = (tenantId: string | undefined, slateId: string) =>
 export let slateVersionsLoader = createLoader({
   name: 'slateVersions',
   fetch: (params: { tenantId: string; slateId: string; after?: string; before?: string }) =>
-    adminClient.slate.version.list(params),
+    withAuthRedirect(() => adminClient.slate.version.list(params)),
   hash: params => `${params.tenantId}:${params.slateId}:${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {},
   parents: [slateLoader]
@@ -108,7 +109,7 @@ export let usePublishSlate = slatesLoader.createExternalMutator(
     slateIdentifier: string;
     contentBase64: string;
     access: 'public' | 'private';
-  }) => adminClient.slate.version.create(data)
+  }) => withAuthRedirect(() => adminClient.slate.version.create(data))
 );
 
 export let usePublishNewSlate = slatesLoader.createExternalMutator(
@@ -118,5 +119,5 @@ export let usePublishNewSlate = slatesLoader.createExternalMutator(
     slateIdentifier: string;
     contentBase64: string;
     access: 'public' | 'private';
-  }) => adminClient.slate.version.create({ ...data, slateId: '' })
+  }) => withAuthRedirect(() => adminClient.slate.version.create({ ...data, slateId: '' }))
 );

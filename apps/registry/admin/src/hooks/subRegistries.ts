@@ -1,11 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
 import { useMemo, useState } from 'react';
-import { adminClient } from './client';
+import { adminClient, withAuthRedirect } from './client';
 
 export let subRegistriesLoader = createLoader({
   name: 'subRegistries',
   fetch: (params: { tenantId: string; after?: string; before?: string }) =>
-    adminClient.subRegistry.list(params),
+    withAuthRedirect(() => adminClient.subRegistry.list(params)),
   hash: params => `${params.tenantId}:${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {}
 });
@@ -47,7 +47,7 @@ export let useSubRegistries = (tenantId: string | undefined) => {
 export let subRegistryLoader = createLoader({
   name: 'subRegistry',
   fetch: (params: { tenantId: string; subRegistryId: string }) =>
-    adminClient.subRegistry.get(params),
+    withAuthRedirect(() => adminClient.subRegistry.get(params)),
   hash: params => `${params.tenantId}:${params.subRegistryId}`,
   mutators: {},
   parents: [subRegistriesLoader]
@@ -58,7 +58,7 @@ export let useSubRegistry = (tenantId: string | undefined, subRegistryId: string
 
 export let useCreateSubRegistry = subRegistriesLoader.createExternalMutator(
   (data: { tenantId: string; name: string; identifier: string }) =>
-    adminClient.subRegistry.create(data)
+    withAuthRedirect(() => adminClient.subRegistry.create(data))
 );
 
 export let useSetSubRegistryFilters = subRegistryLoader.createExternalMutator(
@@ -66,7 +66,7 @@ export let useSetSubRegistryFilters = subRegistryLoader.createExternalMutator(
     tenantId: string;
     subRegistryId: string;
     filters: Array<{ type: 'scope' | 'prefix' | 'package'; value: string }>;
-  }) => adminClient.subRegistry.setFilters(data)
+  }) => withAuthRedirect(() => adminClient.subRegistry.setFilters(data))
 );
 
 export let useAddSubRegistryFilter = subRegistryLoader.createExternalMutator(
@@ -75,10 +75,10 @@ export let useAddSubRegistryFilter = subRegistryLoader.createExternalMutator(
     subRegistryId: string;
     type: 'scope' | 'prefix' | 'package';
     value: string;
-  }) => adminClient.subRegistry.addFilter(data)
+  }) => withAuthRedirect(() => adminClient.subRegistry.addFilter(data))
 );
 
 export let useRemoveSubRegistryFilter = subRegistryLoader.createExternalMutator(
   (data: { tenantId: string; subRegistryId: string; filterId: string }) =>
-    adminClient.subRegistry.removeFilter(data)
+    withAuthRedirect(() => adminClient.subRegistry.removeFilter(data))
 );

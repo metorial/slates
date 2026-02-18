@@ -1257,4 +1257,3 @@ ALTER TABLE "SlateTriggerDelivery" ADD CONSTRAINT "SlateTriggerDelivery_eventOid
 
 -- AddForeignKey
 ALTER TABLE "SlateTriggerDelivery" ADD CONSTRAINT "SlateTriggerDelivery_destinationOid_fkey" FOREIGN KEY ("destinationOid") REFERENCES "SlateTriggerDestination"("oid") ON DELETE CASCADE ON UPDATE CASCADE;
-

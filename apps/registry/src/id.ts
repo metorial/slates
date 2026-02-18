@@ -15,7 +15,9 @@ export let ID = createIdGenerator({
   changeNotification: idType.sorted('srcn'),
   subRegistry: idType.sorted('srsr'),
   subRegistryFilter: idType.sorted('srsf'),
-  slateCategory: idType.sorted('srct')
+  slateCategory: idType.sorted('srct'),
+  adminUser: idType.sorted('srau'),
+  adminSession: idType.sorted('sras')
 });
 
 let workerIdBits = 12;

@@ -434,4 +434,3 @@ ALTER TABLE "ChangeNotification" ADD CONSTRAINT "ChangeNotification_tenantOid_fk
 
 -- AddForeignKey
 ALTER TABLE "ChangeNotification" ADD CONSTRAINT "ChangeNotification_slateVersionOid_fkey" FOREIGN KEY ("slateVersionOid") REFERENCES "SlateVersion"("oid") ON DELETE SET NULL ON UPDATE CASCADE;
-

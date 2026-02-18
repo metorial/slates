@@ -1,10 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
 import { useMemo, useState } from 'react';
-import { adminClient } from './client';
+import { adminClient, withAuthRedirect } from './client';
 
 export let tenantsLoader = createLoader({
   name: 'tenants',
-  fetch: (params: { after?: string; before?: string }) => adminClient.tenant.list(params),
+  fetch: (params: { after?: string; before?: string }) =>
+    withAuthRedirect(() => adminClient.tenant.list(params)),
   hash: params => `${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {}
 });
@@ -45,7 +46,7 @@ export let useTenants = () => {
 
 export let tenantLoader = createLoader({
   name: 'tenant',
-  fetch: (tenantId: string) => adminClient.tenant.get({ tenantId }),
+  fetch: (tenantId: string) => withAuthRedirect(() => adminClient.tenant.get({ tenantId })),
   hash: tenantId => tenantId,
   mutators: {},
   parents: [tenantsLoader]
@@ -54,9 +55,11 @@ export let tenantLoader = createLoader({
 export let useTenant = (tenantId: string) => tenantLoader.use(tenantId || null);
 
 export let useCreateTenant = tenantsLoader.createExternalMutator(
-  (data: { name: string; identifier: string }) => adminClient.tenant.upsert(data)
+  (data: { name: string; identifier: string }) =>
+    withAuthRedirect(() => adminClient.tenant.upsert(data))
 );
 
 export let useUpdateTenant = tenantsLoader.createExternalMutator(
-  (data: { tenantId: string; name?: string }) => adminClient.tenant.update(data)
+  (data: { tenantId: string; name?: string }) =>
+    withAuthRedirect(() => adminClient.tenant.update(data))
 );

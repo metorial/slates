@@ -10,6 +10,7 @@ import {
 } from '@remixicon/react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { useAuth } from '../context/AuthContext';
 import { useTenant } from '../hooks';
 
 let ContentWrapper = styled.div`
@@ -25,9 +26,14 @@ let isPrefixMatch = (pathname: string, to: string): boolean => {
 };
 
 export let Layout = () => {
+  let { isLoading } = useAuth();
   let { pathname } = useLocation();
   let { tenantId } = useParams<{ tenantId?: string }>();
   let { data: tenant } = useTenant(tenantId ?? '');
+
+  if (isLoading) {
+    return null;
+  }
 
   let isOnTenantPage = pathname.startsWith('/tenants') && tenantId;
 
