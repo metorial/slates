@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { slatePresenter, slateVersionPresenter } from '../../presenters';
-import { slateService, slateVersionService, userService } from '../../services';
+import { slatePresenter, slateVersionPresenter } from '../../../presenters';
+import { slateService, slateVersionService, userService } from '../../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
 

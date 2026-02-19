@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   root: __dirname,
-  base: '/admin/',
+  base: '/',
   resolve: {
     dedupe: ['react', 'react-dom', 'react-router-dom', 'styled-components']
   },
