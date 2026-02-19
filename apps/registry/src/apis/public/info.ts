@@ -1,7 +1,7 @@
 import { createHono } from '@lowerdeck/hono';
 import { paginatorSchema } from '../../lib/paginatorSchema';
 import { useValidation } from '../../lib/validator';
-import { tenantPresenter } from '../../presenters';
+import { subRegistryPresenter, tenantPresenter } from '../../presenters';
 import { useAuth } from './_app';
 
 export let infoController = createHono().get(
@@ -12,6 +12,7 @@ export let infoController = createHono().get(
 
     return c.json({
       tenant: auth.tenant ? tenantPresenter(auth.tenant) : null,
+      registry: auth.subRegistry ? subRegistryPresenter(auth.subRegistry) : null,
       user: auth.user
         ? { id: auth.user.id, identifier: auth.user.identifier, name: auth.user.name }
         : null
