@@ -1,5 +1,5 @@
 import { v } from '@lowerdeck/validation';
-import { adminAuthService } from '../../services';
+import { adminAuthService } from '../../../services';
 import { app, authedApp } from './_app';
 
 let ADMIN_SESSION_COOKIE = 'slates_admin_session';
@@ -9,7 +9,7 @@ export let authController = app.controller({
     .handler()
     .input(v.object({}))
     .do(async () => {
-      return { enabled: adminAuthService.isEnabled() };
+      return { enabled: await adminAuthService.isEnabled() };
     }),
 
   getAuthUrl: app
@@ -20,7 +20,7 @@ export let authController = app.controller({
       })
     )
     .do(async ctx => {
-      let authUrl = adminAuthService.getAuthUrl({
+      let authUrl = await adminAuthService.getAuthUrl({
         redirectUri: ctx.input.redirectUri
       });
 

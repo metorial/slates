@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "SubRegistryFilterType" AS ENUM ('scope', 'prefix', 'package');
 
@@ -229,6 +226,30 @@ CREATE TABLE "Artifact" (
 );
 
 -- CreateTable
+CREATE TABLE "AdminUser" (
+    "oid" BIGINT NOT NULL,
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AdminUser_pkey" PRIMARY KEY ("oid")
+);
+
+-- CreateTable
+CREATE TABLE "AdminSession" (
+    "oid" BIGINT NOT NULL,
+    "id" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "adminUserOid" BIGINT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AdminSession_pkey" PRIMARY KEY ("oid")
+);
+
+-- CreateTable
 CREATE TABLE "ChangeNotification" (
     "oid" BIGINT NOT NULL,
     "id" TEXT NOT NULL,
@@ -361,6 +382,24 @@ CREATE UNIQUE INDEX "SlateDocument_slateVersionOid_path_key" ON "SlateDocument"(
 CREATE UNIQUE INDEX "Artifact_id_key" ON "Artifact"("id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "AdminUser_id_key" ON "AdminUser"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AdminUser_email_key" ON "AdminUser"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AdminSession_id_key" ON "AdminSession"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AdminSession_token_key" ON "AdminSession"("token");
+
+-- CreateIndex
+CREATE INDEX "AdminSession_token_idx" ON "AdminSession"("token");
+
+-- CreateIndex
+CREATE INDEX "AdminSession_expiresAt_idx" ON "AdminSession"("expiresAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ChangeNotification_id_key" ON "ChangeNotification"("id");
 
 -- CreateIndex
@@ -425,6 +464,9 @@ ALTER TABLE "SlateVersion" ADD CONSTRAINT "SlateVersion_createdByUserOid_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "SlateDocument" ADD CONSTRAINT "SlateDocument_slateVersionOid_fkey" FOREIGN KEY ("slateVersionOid") REFERENCES "SlateVersion"("oid") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AdminSession" ADD CONSTRAINT "AdminSession_adminUserOid_fkey" FOREIGN KEY ("adminUserOid") REFERENCES "AdminUser"("oid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ChangeNotification" ADD CONSTRAINT "ChangeNotification_slateOid_fkey" FOREIGN KEY ("slateOid") REFERENCES "Slate"("oid") ON DELETE RESTRICT ON UPDATE CASCADE;

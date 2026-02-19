@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { subRegistryPresenter } from '../../presenters';
-import { subRegistryService } from '../../services';
+import { subRegistryPresenter } from '../../../presenters';
+import { subRegistryService } from '../../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
 

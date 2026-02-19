@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { tenantPresenter } from '../../presenters';
-import { tenantService } from '../../services';
+import { tenantPresenter } from '../../../presenters';
+import { tenantService } from '../../../services';
 import { app, authedApp } from './_app';
 
 export let tenantApp = authedApp.use(async ctx => {

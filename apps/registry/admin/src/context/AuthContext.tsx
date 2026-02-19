@@ -44,7 +44,7 @@ export let AuthProvider = ({ children }: { children: ReactNode }) => {
     await adminClient.auth.logout({});
     setUser(null);
     let { authUrl } = await adminClient.auth.getAuthUrl({
-      redirectUri: `${window.location.origin}/admin/auth/callback`
+      redirectUri: `${window.location.origin}/auth/callback`
     });
     window.location.href = authUrl;
   };

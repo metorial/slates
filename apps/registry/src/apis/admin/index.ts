@@ -1,25 +1,22 @@
 import { apiMux } from '@lowerdeck/api-mux';
-import { createServer, rpcMux, type InferClient } from '@lowerdeck/rpc-server';
-import { app } from './_app';
-import { authController } from './auth';
-import { slateController } from './slate';
-import { subRegistryController } from './subRegistry';
-import { tenantController } from './tenant';
-import { userController } from './user';
-import { workspaceController } from './workspace';
+import { slatesRegistryAdminApi } from './controllers';
 
-export let rootController = app.controller({
-  auth: authController,
-  tenant: tenantController,
-  user: userController,
-  workspace: workspaceController,
-  subRegistry: subRegistryController,
-  slate: slateController
-});
+let adminDir = './dist/admin';
 
-export let slatesRegistryAdminRPC = createServer({})(rootController);
-export let slatesRegistryAdminApi = apiMux([
-  { endpoint: rpcMux({ path: '/slates-registry-admin' }, [slatesRegistryAdminRPC]) }
-]);
+let frontendHandler = async (req: Request) => {
+  let url = new URL(req.url);
+  let path = url.pathname || '/index.html';
+  if (path === '/') path = '/index.html';
 
-export type SlatesRegistryAdminClient = InferClient<typeof rootController>;
+  let file = Bun.file(`${adminDir}${path}`);
+  if (await file.exists()) return new Response(file);
+
+  if (!path.includes('.')) {
+    let index = Bun.file(`${adminDir}/index.html`);
+    if (await index.exists()) return new Response(index);
+  }
+
+  return new Response('Not Found', { status: 404 });
+};
+
+export let adminApi = apiMux([{ endpoint: slatesRegistryAdminApi }], frontendHandler);

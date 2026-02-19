@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { workspacePresenter } from '../../presenters';
-import { workspaceService } from '../../services';
+import { workspacePresenter } from '../../../presenters';
+import { workspaceService } from '../../../services';
 import { app } from './_app';
 import { tenantApp } from './tenant';
 

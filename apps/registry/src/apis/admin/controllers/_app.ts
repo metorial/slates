@@ -1,13 +1,13 @@
 import { ServiceError, unauthorizedError } from '@lowerdeck/error';
 import { Group } from '@lowerdeck/rpc-server';
-import { adminAuthService } from '../../services';
+import { adminAuthService } from '../../../services';
 
 export let app = new Group();
 
 let ADMIN_SESSION_COOKIE = 'slates_admin_session';
 
 export let authedApp = app.use(async ctx => {
-  if (!adminAuthService.isEnabled()) {
+  if (!(await adminAuthService.isEnabled())) {
     return { adminUser: null };
   }
 

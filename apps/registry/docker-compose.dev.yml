@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: slates-registry
       POSTGRES_DB: slates-registry
     volumes:
-      - postgres_data2:/var/lib/postgresql/data
+      - postgres_data3:/var/lib/postgresql/data
     networks:
       - slates-registry-network
 
@@ -51,16 +51,18 @@ services:
     container_name: slates-registry-service
     restart: unless-stopped
     ports:
-      - '65040:52040'
-      - '65041:52041'
-      - '65042:52042'
+      - '52040:52040'
+      - '52041:52041'
+      - '52042:52042'
     environment:
       DATABASE_URL: postgresql://slates-registry:slates-registry@postgres:5432/slates-registry
       REDIS_URL: redis://redis:6379/0
       OBJECT_STORAGE_URL: http://object-storage:52010
       PACKAGE_BUCKET_NAME: slates-registry-packages
-      SERVICE_PUBLIC_URL: http://localhost:65040
+      SERVICE_PUBLIC_URL: http://localhost:52040
       PUBLIC_ACCESS_PERMITTED: 'true'
+      ARES_AUTH_URL: ${ARES_AUTH_URL}
+      ARES_CLIENT_ID: ${ARES_CLIENT_ID}
     volumes:
       - ./src:/app/src:ro
       - ./package.json:/app/package.json:ro
@@ -73,7 +75,7 @@ services:
       - slates-registry-network
 
 volumes:
-  postgres_data2:
+  postgres_data3:
     driver: local
   object-store-data:
     driver: local
