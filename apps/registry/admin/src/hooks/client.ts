@@ -15,15 +15,14 @@ export let withAuthRedirect = async <T>(cb: () => Promise<T>): Promise<T> => {
   } catch (err) {
     if (isServiceError(err) && err.data.status === 401) {
       let { enabled } = await adminClient.auth.authEnabled({});
-      if (!enabled) {
-        throw err;
-      }
+      if (!enabled) throw err;
 
       let { authUrl } = await adminClient.auth.getAuthUrl({
         redirectUri: `${window.location.origin}/admin/auth/callback`
       });
 
       window.location.href = authUrl;
+
       return new Promise<T>(() => {}); // never resolve
     }
 

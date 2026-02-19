@@ -9,11 +9,11 @@ import { getId } from '../id';
 let SESSION_DURATION_HOURS = 1;
 
 class adminAuthServiceImpl {
-  isEnabled() {
+  async isEnabled() {
     return !!(env.ares.ARES_AUTH_URL && env.ares.ARES_CLIENT_ID);
   }
 
-  getAuthUrl(d: { redirectUri: string }) {
+  async getAuthUrl(d: { redirectUri: string }) {
     if (!env.ares.ARES_AUTH_URL || !env.ares.ARES_CLIENT_ID) {
       throw new Error('Admin auth is not configured');
     }
