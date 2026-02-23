@@ -15,14 +15,15 @@ Bun.serve({
 
 console.log('Slates hub server is running');
 
+let redis = new RedisClient(process.env.REDIS_URL?.replace('rediss://', 'redis://'), {
+  tls: process.env.REDIS_URL?.startsWith('rediss://')
+});
+
 Bun.serve({
   fetch: async _ => {
     try {
       await db.hub.count();
 
-      let redis = new RedisClient(process.env.REDIS_URL?.replace('rediss://', 'redis://'), {
-        tls: process.env.REDIS_URL?.startsWith('rediss://')
-      });
       await redis.ping();
 
       return new Response('OK');

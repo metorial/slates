@@ -21,14 +21,15 @@ Bun.serve({
 
 console.log('Slates registry server is running');
 
+let redis = new RedisClient(process.env.REDIS_URL?.replace('rediss://', 'redis://'), {
+  tls: process.env.REDIS_URL?.startsWith('rediss://')
+});
+
 Bun.serve({
   fetch: async _ => {
     try {
       await db.tenant.count();
 
-      let redis = new RedisClient(process.env.REDIS_URL?.replace('rediss://', 'redis://'), {
-        tls: process.env.REDIS_URL?.startsWith('rediss://')
-      });
       await redis.ping();
 
       return new Response('OK');
