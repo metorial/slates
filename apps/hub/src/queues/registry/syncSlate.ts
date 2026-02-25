@@ -134,11 +134,11 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
             slateVersionOid: version.oid
           }
         });
-      }
 
-      // Only deploy current versions
-      if (slateVersionData.isCurrent) {
-        await deploySlateAfterSyncQueue.add({ versionId: version.id }, { id: version.id });
+        // Only deploy current versions
+        if (slateVersionData.isCurrent) {
+          await deploySlateAfterSyncQueue.add({ versionId: version.id }, { id: version.id });
+        }
       }
     }
   })
