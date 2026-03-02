@@ -52,7 +52,9 @@ let slateJsonValidation = v.object({
       }
     ]
   }),
-  categories: v.optional(v.array(v.string()))
+  categories: v.optional(v.array(v.string())),
+  skills: v.optional(v.array(v.string())),
+  logoUrl: v.optional(v.string())
 });
 
 class slateVersionServiceImpl {
@@ -210,7 +212,6 @@ class slateVersionServiceImpl {
               fullIdentifier: `${d.input.scopeIdentifier}/${d.input.slateIdentifier}`,
               name: d.input.slateIdentifier,
 
-              description: null,
               scopeOid: scope.oid,
               tenantOid: d.user.tenantOid,
               createdByUserOid: d.user.oid
@@ -218,6 +219,18 @@ class slateVersionServiceImpl {
             include: { currentVersion: true }
           });
         }
+
+        slate = await db.slate.update({
+          where: { oid: slate.oid },
+          data: {
+            access: d.input.access,
+            name: d.input.slateIdentifier,
+            description: slateJson.description,
+            skills: slateJson.skills,
+            logoUrl: slateJson.logoUrl
+          },
+          include: { currentVersion: true }
+        });
 
         let existingCategories = await db.slateCategory.findMany({
           where: { identifier: { in: slateJson.categories ?? [] } }
