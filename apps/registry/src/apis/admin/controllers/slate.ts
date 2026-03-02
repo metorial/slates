@@ -108,11 +108,10 @@ export let slateController = app.controller({
       .handler()
       .input(
         v.object({
-          slateId: v.string(),
           tenantId: v.string(),
 
-          scopeIdentifier: v.string(),
-          slateIdentifier: v.string(),
+          scopeIdentifier: v.optional(v.string()),
+          slateIdentifier: v.optional(v.string()),
 
           contentBase64: v.any(),
           access: v.enumOf(['public', 'private'])
@@ -128,8 +127,14 @@ export let slateController = app.controller({
         let slate = await slateVersionService.publishSlateVersion({
           user,
           input: {
-            scopeIdentifier: ctx.input.scopeIdentifier,
-            slateIdentifier: ctx.input.slateIdentifier,
+            identifier:
+              ctx.input.slateIdentifier && ctx.input.scopeIdentifier
+                ? {
+                    scopeIdentifier: ctx.input.scopeIdentifier,
+                    slateIdentifier: ctx.input.slateIdentifier
+                  }
+                : null,
+
             access: ctx.input.access,
             contentBase64: ctx.input.contentBase64
           }

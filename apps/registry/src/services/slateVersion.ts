@@ -61,8 +61,10 @@ class slateVersionServiceImpl {
   async publishSlateVersion(d: {
     user: User;
     input: {
-      scopeIdentifier: string;
-      slateIdentifier: string;
+      identifier: {
+        scopeIdentifier: string;
+        slateIdentifier: string;
+      } | null;
       contentBase64: string;
       access: SlateAccess;
       versionOverride?: string;
@@ -74,6 +76,8 @@ class slateVersionServiceImpl {
       content: string;
     }[] = [];
     let slateJson: ValidationTypeValue<typeof slateJsonValidation> | null = null;
+
+    let fullIdentifier = '';
 
     for (let entry of directory.files) {
       if (entry.type !== 'File') continue;
@@ -102,7 +106,13 @@ class slateVersionServiceImpl {
           );
         }
 
-        if (slateJson.name !== `@${d.input.scopeIdentifier}/${d.input.slateIdentifier}`) {
+        fullIdentifier = slateJson.name;
+
+        if (
+          d.input.identifier &&
+          slateJson.name !==
+            `@${d.input.identifier.scopeIdentifier}/${d.input.identifier.slateIdentifier}`
+        ) {
           throw new ServiceError(
             badRequestError({
               message: `slate.json name "${slateJson.name}" does not match scope/slate identifier.`
@@ -131,7 +141,19 @@ class slateVersionServiceImpl {
       );
     }
 
-    return packageLock.usingLock(`${d.input.scopeIdentifier}/${d.input.slateIdentifier}`, () =>
+    let fullParts = fullIdentifier.split('/');
+    if (!fullIdentifier.startsWith('@') || fullParts.length !== 2) {
+      throw new ServiceError(
+        badRequestError({
+          message: 'slate.json name must be in the format @scope/identifier.'
+        })
+      );
+    }
+
+    let scopeIdentifier = fullParts[0]!.substring(1);
+    let slateIdentifier = fullParts[1]!;
+
+    return packageLock.usingLock(slateJson.name, () =>
       db.$transaction(async db => {
         let valid = semver.valid(d.input.versionOverride ?? slateJson.version);
         if (!valid) {
@@ -161,7 +183,7 @@ class slateVersionServiceImpl {
 
         let scope = await db.scope.findFirst({
           where: {
-            identifier: d.input.scopeIdentifier,
+            identifier: scopeIdentifier,
             status: 'active'
           }
         });
@@ -177,7 +199,7 @@ class slateVersionServiceImpl {
 
         let slate = await db.slate.findFirst({
           where: {
-            identifier: d.input.slateIdentifier,
+            identifier: slateIdentifier,
             scopeOid: scope.oid,
             tenantOid: d.user.tenantOid
           },
@@ -208,9 +230,9 @@ class slateVersionServiceImpl {
               status: 'active',
               access: d.input.access,
 
-              identifier: d.input.slateIdentifier,
-              fullIdentifier: `${d.input.scopeIdentifier}/${d.input.slateIdentifier}`,
-              name: d.input.slateIdentifier,
+              identifier: slateIdentifier,
+              fullIdentifier: slateJson.name,
+              name: slateIdentifier,
 
               scopeOid: scope.oid,
               tenantOid: d.user.tenantOid,
