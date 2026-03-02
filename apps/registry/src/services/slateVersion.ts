@@ -106,7 +106,7 @@ class slateVersionServiceImpl {
           );
         }
 
-        fullIdentifier = slateJson.name;
+        fullIdentifier = slateJson.name.replace('@', '');
 
         if (
           d.input.identifier &&
@@ -150,7 +150,7 @@ class slateVersionServiceImpl {
       );
     }
 
-    let scopeIdentifier = fullParts[0]!.substring(1);
+    let scopeIdentifier = fullParts[0]!;
     let slateIdentifier = fullParts[1]!;
 
     return packageLock.usingLock(slateJson.name, () =>
@@ -231,7 +231,7 @@ class slateVersionServiceImpl {
               access: d.input.access,
 
               identifier: slateIdentifier,
-              fullIdentifier: slateJson.name,
+              fullIdentifier: fullIdentifier,
               name: slateIdentifier,
 
               scopeOid: scope.oid,
@@ -246,7 +246,7 @@ class slateVersionServiceImpl {
           where: { oid: slate.oid },
           data: {
             access: d.input.access,
-            name: d.input.slateIdentifier,
+            name: slateIdentifier,
             description: slateJson.description,
             skills: slateJson.skills,
             logoUrl: slateJson.logoUrl
