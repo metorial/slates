@@ -35,9 +35,14 @@ export let SlateList = () => {
             scope (user or workspace).
           </Text>
         </div>
-        <Button onClick={() => navigate(`/tenants/${tenantId}/slates/new`)}>
-          + New Slate
-        </Button>
+        <Flex gap={8}>
+          <Button variant="outline" onClick={() => navigate(`/tenants/${tenantId}/slates/bulk-new`)}>
+            Bulk Create
+          </Button>
+          <Button onClick={() => navigate(`/tenants/${tenantId}/slates/new`)}>
+            + New Slate
+          </Button>
+        </Flex>
       </Flex>
 
       {renderWithPagination(slates, { emptyState })(({ data }) => {
