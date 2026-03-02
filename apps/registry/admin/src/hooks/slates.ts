@@ -60,7 +60,8 @@ export let slateVersionsLoader = createLoader({
   name: 'slateVersions',
   fetch: (params: { tenantId: string; slateId: string; after?: string; before?: string }) =>
     withAuthRedirect(() => adminClient.slate.version.list(params)),
-  hash: params => `${params.tenantId}:${params.slateId}:${params.after ?? ''}:${params.before ?? ''}`,
+  hash: params =>
+    `${params.tenantId}:${params.slateId}:${params.after ?? ''}:${params.before ?? ''}`,
   mutators: {},
   parents: [slateLoader]
 });
@@ -115,9 +116,9 @@ export let usePublishSlate = slatesLoader.createExternalMutator(
 export let usePublishNewSlate = slatesLoader.createExternalMutator(
   (data: {
     tenantId: string;
-    scopeIdentifier: string;
-    slateIdentifier: string;
+    scopeIdentifier?: string;
+    slateIdentifier?: string;
     contentBase64: string;
     access: 'public' | 'private';
-  }) => withAuthRedirect(() => adminClient.slate.version.create({ ...data, slateId: '' }))
+  }) => withAuthRedirect(() => adminClient.slate.version.create({ ...data }))
 );
