@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { AuthCallback } from './pages/auth/AuthCallback';
 import { DeploymentDetail } from './pages/deployments/DeploymentDetail';
 import { DeploymentList } from './pages/deployments/DeploymentList';
 import { DiscoveryDetail } from './pages/discoveries/DiscoveryDetail';
@@ -13,6 +14,8 @@ import { VersionList } from './pages/versions/VersionList';
 export let App = () => {
   return (
     <Routes>
+      <Route path="/auth/callback" element={<AuthCallback />} />
+
       <Route element={<Layout />}>
         <Route path="/" element={<Navigate to="/slates" replace />} />
 

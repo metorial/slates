@@ -45,7 +45,10 @@ export let ID = createIdGenerator({
   slateTriggerDelivery: idType.sorted('shtdl'),
   slateTriggerWebhookRequest: idType.sorted('shtwr'),
 
-  changeNotification: idType.sorted('shcn')
+  changeNotification: idType.sorted('shcn'),
+
+  adminUser: idType.sorted('shadu'),
+  adminSession: idType.sorted('shads')
 });
 
 let workerIdBits = 12;
