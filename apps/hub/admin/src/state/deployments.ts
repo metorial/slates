@@ -1,5 +1,5 @@
 import { createLoader } from '@metorial-io/data-hooks';
-import { adminClient } from '../hooks/client.js';
+import { adminClient, withAuthRedirect } from '../hooks/client.js';
 import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allDeploymentsLoader = createLoader({
@@ -8,7 +8,7 @@ export let allDeploymentsLoader = createLoader({
     status?: 'pending' | 'running' | 'succeeded' | 'failed';
     after?: string;
     before?: string;
-  }) => adminClient.slateDeployment.list(params),
+  }) => withAuthRedirect(() => adminClient.slateDeployment.list(params)),
   mutators: {}
 });
 
@@ -22,7 +22,7 @@ export let slateDeploymentsLoader = createLoader({
     versionIds?: string[];
     after?: string;
     before?: string;
-  }) => adminClient.slateDeployment.list(params),
+  }) => withAuthRedirect(() => adminClient.slateDeployment.list(params)),
   mutators: {}
 });
 
@@ -32,7 +32,7 @@ export let useSlateDeployments = (slateId: string | undefined, versionIds?: stri
 export let slateDeploymentLoader = createLoader({
   name: 'slateDeployment',
   fetch: (params: { slateId: string; slateDeploymentId: string }) =>
-    adminClient.slateDeployment.get(params),
+    withAuthRedirect(() => adminClient.slateDeployment.get(params)),
   mutators: {},
   parents: [slateDeploymentsLoader]
 });
@@ -48,7 +48,7 @@ export let useSlateDeployment = (
 let buildOutputLoader = createLoader({
   name: 'buildOutput',
   fetch: (params: { slateId: string; slateDeploymentId: string }) =>
-    adminClient.slateDeployment.getBuildOutput(params),
+    withAuthRedirect(() => adminClient.slateDeployment.getBuildOutput(params)),
   mutators: {}
 });
 
@@ -60,7 +60,7 @@ export let useBuildOutput = (slateId: string | undefined, deploymentId: string |
 let internalLogsLoader = createLoader({
   name: 'internalLogs',
   fetch: (params: { slateId: string; slateDeploymentId: string }) =>
-    adminClient.slateDeployment.getInternalLogs(params),
+    withAuthRedirect(() => adminClient.slateDeployment.getInternalLogs(params)),
   mutators: {}
 });
 
@@ -70,7 +70,9 @@ export let useInternalLogs = (slateId: string | undefined, deploymentId: string 
   );
 
 export let redeploySlateDeployment = async (slateId: string, slateDeploymentId: string) => {
-  await adminClient.slateDeployment.redeploy({ slateId, slateDeploymentId });
+  await withAuthRedirect(() =>
+    adminClient.slateDeployment.redeploy({ slateId, slateDeploymentId })
+  );
   slateDeploymentLoader.refetchAll();
   allDeploymentsLoader.refetchAll();
   slateDeploymentsLoader.refetchAll();
