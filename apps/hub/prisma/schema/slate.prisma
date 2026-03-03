@@ -301,7 +301,7 @@ model SlateVersionDiscovery {
   status SlateVersionDiscoveryStatus
 
   errorMessage String?
-  errorCode   String?
+  errorCode    String?
 
   slateVersionOid BigInt
   slateVersion    SlateVersion @relation(fields: [slateVersionOid], references: [oid])
@@ -410,6 +410,8 @@ model SlateDeployment {
 
   /// [SlateDeploymentProviderDeploymentInfo]
   providerDeploymentInfo Json
+
+  internalLogs String[]
 
   createdAt DateTime @default(now())
 

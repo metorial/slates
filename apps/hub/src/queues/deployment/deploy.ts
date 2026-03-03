@@ -3,6 +3,7 @@ import { generateCode } from '@lowerdeck/id';
 import { createLock } from '@lowerdeck/lock';
 import { createQueue, QueueRetryError } from '@lowerdeck/queue';
 import { subDays } from 'date-fns';
+import SuperJSON from 'superjson';
 import unzipper from 'unzipper';
 import { db } from '../../db';
 import { env } from '../../env';
@@ -10,6 +11,37 @@ import { functionBay, functionBayProvider, functionBayTenant } from '../../funct
 import { getId } from '../../id';
 import { getRegistryClient } from '../../registry';
 import { discoverSlateQueue } from '../discovery/discover';
+
+let log = (deployment: { id: string } | string, message: string, ...args: any[]) => {
+  let deploymentId = typeof deployment === 'string' ? deployment : deployment.id;
+
+  return db.slateDeployment.updateMany({
+    where: { id: deploymentId },
+    data: {
+      internalLogs: {
+        push: JSON.stringify(SuperJSON.serialize({ message, args, ts: new Date() }).json)
+      }
+    }
+  });
+};
+
+let withErrorLogging = async <T>(
+  deployment: { id: string } | string,
+  fn: () => Promise<T>
+) => {
+  try {
+    return await fn();
+  } catch (e: any) {
+    await log(
+      deployment,
+      `Error in deployment process: ${(e as Error).message}\n${(e as Error).stack}\n${JSON.stringify(e)}\n${JSON.stringify(e?.data)}`
+    );
+
+    console.error(`Error in deployment ${JSON.stringify(deployment)}:`, e);
+
+    throw e;
+  }
+};
 
 export let deploySlateVersionQueue = createQueue<{ versionId: string }>({
   name: 'shub/slv/dep/init',
@@ -38,6 +70,11 @@ export let deploySlateVersionQueueProcessor = deploySlateVersionQueue.process(as
     }
   });
 
+  log(
+    deployment,
+    `Created deployment record with id ${deployment.id} for slate version ${version.version}`
+  );
+
   await db.slateVersion.update({
     where: { oid: version.oid },
     data: { status: 'deploying' }
@@ -65,102 +102,109 @@ let deploySlateVersionStartQueue = createQueue<{ deploymentId: string }>({
 });
 
 export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.process(
-  async data => {
-    let deployment = await db.slateDeployment.findUnique({
-      where: { id: data.deploymentId },
-      include: {
-        slateVersion: true,
-        slate: { include: { registry: true } }
-      }
-    });
-    if (!deployment) throw new QueueRetryError();
+  async data =>
+    withErrorLogging(data.deploymentId, async () => {
+      let deployment = await db.slateDeployment.findUnique({
+        where: { id: data.deploymentId },
+        include: {
+          slateVersion: true,
+          slate: { include: { registry: true } }
+        }
+      });
+      if (!deployment) throw new QueueRetryError();
 
-    let version = deployment.slateVersion;
-    let slate = deployment.slate;
+      let version = deployment.slateVersion;
+      let slate = deployment.slate;
 
-    let reg = await getRegistryClient(slate.registry);
-    let zipRes = await reg.slates[':scopeId'][':slateId'].versions[':versionId'].download.$get(
-      {
+      await log(deployment, `Starting deployment for slate version ${version.version}`);
+
+      let reg = await getRegistryClient(slate.registry);
+      let zipRes = await reg.slates[':scopeId'][':slateId'].versions[
+        ':versionId'
+      ].download.$get({
         param: {
           scopeId: slate.slateScopeIdentifierOnRegistry,
           slateId: slate.slateIdentifierOnRegistry,
           versionId: version.version
         }
-      }
-    );
-    if ((zipRes.status as any) !== 200)
-      throw new Error('Failed to download slate version zip');
-    let zipBuffer = await zipRes.arrayBuffer();
+      });
+      if ((zipRes.status as any) !== 200)
+        throw new Error('Failed to download slate version zip');
+      let zipBuffer = await zipRes.arrayBuffer();
 
-    let directory = await unzipper.Open.buffer(Buffer.from(zipBuffer));
+      let directory = await unzipper.Open.buffer(Buffer.from(zipBuffer));
 
-    let slatePackageJsonFile = directory.files.find(f => f.path === 'package.json');
-    let slateEntrypoint: string | undefined;
+      let slatePackageJsonFile = directory.files.find(f => f.path === 'package.json');
+      let slateEntrypoint: string | undefined;
 
-    if (slatePackageJsonFile) {
-      try {
-        let slatePackageJson = JSON.parse((await slatePackageJsonFile.buffer()).toString());
-        if (slatePackageJson.main) {
-          slateEntrypoint = './' + slatePackageJson.main.replace(/\.(js|ts)$/, '');
+      if (slatePackageJsonFile) {
+        try {
+          let slatePackageJson = JSON.parse((await slatePackageJsonFile.buffer()).toString());
+          if (slatePackageJson.main) {
+            slateEntrypoint = './' + slatePackageJson.main.replace(/\.(js|ts)$/, '');
+          }
+        } catch (e) {
+          console.warn(
+            `[Deployment]: Failed to parse slate package.json, using no dependencies`,
+            e
+          );
         }
-      } catch (e) {
-        console.warn(
-          `[Deployment]: Failed to parse slate package.json, using no dependencies`,
-          e
+      }
+
+      if (!slateEntrypoint) {
+        let commonEntrypoints = [
+          'src/index.ts',
+          'src/index.js',
+          'index.ts',
+          'index.js',
+          'dist/index.js'
+        ];
+        for (let entry of commonEntrypoints) {
+          if (directory.files.some(f => f.path === entry)) {
+            slateEntrypoint = './' + entry.replace(/\.(js|ts)$/, '');
+            break;
+          }
+        }
+      }
+
+      if (!slateEntrypoint) {
+        throw new Error(
+          'Could not determine slate entrypoint - no main field in package.json and no common entry files found'
         );
       }
-    }
 
-    if (!slateEntrypoint) {
-      let commonEntrypoints = [
-        'src/index.ts',
-        'src/index.js',
-        'index.ts',
-        'index.js',
-        'dist/index.js'
-      ];
-      for (let entry of commonEntrypoints) {
-        if (directory.files.some(f => f.path === entry)) {
-          slateEntrypoint = './' + entry.replace(/\.(js|ts)$/, '');
-          break;
-        }
-      }
-    }
+      await log(deployment, `Using entrypoint ${slateEntrypoint}`);
 
-    if (!slateEntrypoint) {
-      throw new Error(
-        'Could not determine slate entrypoint - no main field in package.json and no common entry files found'
-      );
-    }
+      let func = await functionBay.function.upsert({
+        identifier: `slates::slate_version::${version.id}::${generateCode(6)}`,
+        name: `Slate Version ${version.id} Deployment`,
+        tenantId: (await functionBayTenant).id
+      });
 
-    let func = await functionBay.function.upsert({
-      identifier: `slates::slate_version::${version.id}::${generateCode(6)}`,
-      name: `Slate Version ${version.id} Deployment`,
-      tenantId: (await functionBayTenant).id
-    });
+      await log(deployment, `Created function with id ${func.id} for deployment`);
 
-    let initialFiles = [
-      {
-        filename: 'package.json',
-        content: JSON.stringify(
-          {
-            name: 'slate-version-function',
-            version: '1.0.0',
-            main: 'slates_entry_point.js',
-            dependencies: {
-              '@slates/provider-handler': 'latest',
-              '@slates/proto': 'latest',
-              slates: 'latest',
-              '@lowerdeck/serialize': 'latest'
-            }
-          },
-          null,
-          2
-        )
-      },
-      {
-        filename: 'slates_entry_point.js',
-        content: `
+      let initialFiles = [
+        {
+          filename: 'package.json',
+          content: JSON.stringify(
+            {
+              name: 'slate-version-function',
+              version: '1.0.0',
+              main: 'slates_entry_point.js',
+              dependencies: {
+                '@slates/provider-handler': 'latest',
+                '@slates/proto': 'latest',
+                slates: 'latest',
+                '@lowerdeck/serialize': 'latest'
+              }
+            },
+            null,
+            2
+          )
+        },
+        {
+          filename: 'slates_entry_point.js',
+          content: `
           import { provider } from '${slateEntrypoint}';
           import { createProviderHandler } from '@slates/provider-handler';
           import { SlatesProviderProtoHandlerManager } from '@slates/proto';
@@ -229,51 +273,61 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
             return { messages };
           };
         `
-      }
-    ];
-    let initialFilenames = new Set(initialFiles.map(f => f.filename));
-
-    let functionDeployment = await functionBay.functionDeployment.create({
-      functionId: func.id,
-      tenantId: (await functionBayTenant).id,
-      name: `Deployment for Slate Version ${version.id}`,
-      runtime: {
-        identifier: 'nodejs',
-        version: '24.x'
-      },
-      config: {
-        memorySizeMb: env.functionBay.FUNCTION_BAY_DEFAULT_MEMORY_MB,
-        timeoutSeconds: env.functionBay.FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS
-      },
-      env: {},
-      files: [
-        ...initialFiles,
-        ...(await Promise.all(
-          directory.files.map(async f => ({
-            filename: initialFilenames.has(f.path) ? `_${f.path}` : f.path,
-            content: (await f.buffer()).toString('base64'),
-            encoding: 'base64' as const
-          }))
-        ))
-      ]
-    });
-
-    await db.slateDeployment.update({
-      where: { id: deployment.id },
-      data: {
-        providerDeploymentInfo: {
-          functionId: func.id,
-          functionDeploymentId: functionDeployment.id
         }
-      }
-    });
+      ];
+      let initialFilenames = new Set(initialFiles.map(f => f.filename));
 
-    await deploySlateVersionMonitorQueue.add({
-      deploymentId: deployment.id,
-      functionId: func.id,
-      functionDeploymentId: functionDeployment.id
-    });
-  }
+      await log(
+        deployment,
+        `Created function with id ${func.id} for deployment, creating deployment...`
+      );
+
+      let functionDeployment = await functionBay.functionDeployment.create({
+        functionId: func.id,
+        tenantId: (await functionBayTenant).id,
+        name: `Deployment for Slate Version ${version.id}`,
+        runtime: {
+          identifier: 'nodejs',
+          version: '24.x'
+        },
+        config: {
+          memorySizeMb: env.functionBay.FUNCTION_BAY_DEFAULT_MEMORY_MB,
+          timeoutSeconds: env.functionBay.FUNCTION_BAY_DEFAULT_TIMEOUT_SECONDS
+        },
+        env: {},
+        files: [
+          ...initialFiles,
+          ...(await Promise.all(
+            directory.files.map(async f => ({
+              filename: initialFilenames.has(f.path) ? `_${f.path}` : f.path,
+              content: (await f.buffer()).toString('base64'),
+              encoding: 'base64' as const
+            }))
+          ))
+        ]
+      });
+
+      await log(
+        deployment,
+        `Created function deployment with id ${functionDeployment.id} for deployment, updating deployment record...`
+      );
+
+      await db.slateDeployment.update({
+        where: { id: deployment.id },
+        data: {
+          providerDeploymentInfo: {
+            functionId: func.id,
+            functionDeploymentId: functionDeployment.id
+          }
+        }
+      });
+
+      await deploySlateVersionMonitorQueue.add({
+        deploymentId: deployment.id,
+        functionId: func.id,
+        functionDeploymentId: functionDeployment.id
+      });
+    })
 );
 
 let deploySlateVersionMonitorQueue = createQueue<{
@@ -287,36 +341,37 @@ let deploySlateVersionMonitorQueue = createQueue<{
 });
 
 export let deploySlateVersionMonitorQueueProcessor = deploySlateVersionMonitorQueue.process(
-  async data => {
-    let deployment = await db.slateDeployment.findUnique({
-      where: { id: data.deploymentId }
-    });
-    if (!deployment) throw new QueueRetryError();
+  async data =>
+    withErrorLogging(data.deploymentId, async () => {
+      let deployment = await db.slateDeployment.findUnique({
+        where: { id: data.deploymentId }
+      });
+      if (!deployment) throw new QueueRetryError();
 
-    let funcDep = await functionBay.functionDeployment.get({
-      functionId: data.functionId,
-      tenantId: (await functionBayTenant).id,
-      functionDeploymentId: data.functionDeploymentId
-    });
-
-    if (funcDep.status === 'failed' || funcDep.status === 'succeeded') {
-      await deploySlateVersionProviderCompletedQueue.add({
-        deploymentId: data.deploymentId,
+      let funcDep = await functionBay.functionDeployment.get({
         functionId: data.functionId,
+        tenantId: (await functionBayTenant).id,
         functionDeploymentId: data.functionDeploymentId
       });
-      return;
-    }
 
-    if (funcDep.status !== deployment.status) {
-      await db.slateDeployment.update({
-        where: { id: deployment.id },
-        data: { status: funcDep.status }
-      });
-    }
+      if (funcDep.status === 'failed' || funcDep.status === 'succeeded') {
+        await deploySlateVersionProviderCompletedQueue.add({
+          deploymentId: data.deploymentId,
+          functionId: data.functionId,
+          functionDeploymentId: data.functionDeploymentId
+        });
+        return;
+      }
 
-    await deploySlateVersionMonitorQueue.add(data, { delay: 2500 });
-  }
+      if (funcDep.status !== deployment.status) {
+        await db.slateDeployment.update({
+          where: { id: deployment.id },
+          data: { status: funcDep.status }
+        });
+      }
+
+      await deploySlateVersionMonitorQueue.add(data, { delay: 2500 });
+    })
 );
 
 let deploySlateVersionProviderCompletedQueue = createQueue<{
@@ -330,33 +385,44 @@ let deploySlateVersionProviderCompletedQueue = createQueue<{
 });
 
 export let deploySlateVersionProviderCompletedQueueProcessor =
-  deploySlateVersionProviderCompletedQueue.process(async data => {
-    let deployment = await db.slateDeployment.findUnique({
-      where: { id: data.deploymentId }
-    });
-    if (!deployment) throw new QueueRetryError();
+  deploySlateVersionProviderCompletedQueue.process(async data =>
+    withErrorLogging(data.deploymentId, async () => {
+      let deployment = await db.slateDeployment.findUnique({
+        where: { id: data.deploymentId }
+      });
+      if (!deployment) throw new QueueRetryError();
 
-    let funcDep = await functionBay.functionDeployment.get({
-      functionId: data.functionId,
-      tenantId: (await functionBayTenant).id,
-      functionDeploymentId: data.functionDeploymentId
-    });
+      await log(deployment, `Function deployment completed, checking final status...`);
 
-    if (funcDep.status === 'succeeded') {
-      await deploySlateVersionCompletedQueue.add({
-        deploymentId: data.deploymentId,
+      let funcDep = await functionBay.functionDeployment.get({
         functionId: data.functionId,
+        tenantId: (await functionBayTenant).id,
         functionDeploymentId: data.functionDeploymentId
       });
-      return;
-    }
 
-    await deploySlateVersionFailedQueue.add({
-      deploymentId: data.deploymentId,
-      errorCode: funcDep.error?.code ?? 'unknown_error',
-      errorMessage: funcDep.error?.message ?? 'Unknown error during deployment'
-    });
-  });
+      await log(deployment, `Function deployment status: ${funcDep.status}`);
+
+      if (funcDep.status === 'succeeded') {
+        await deploySlateVersionCompletedQueue.add({
+          deploymentId: data.deploymentId,
+          functionId: data.functionId,
+          functionDeploymentId: data.functionDeploymentId
+        });
+        return;
+      }
+
+      await log(
+        deployment,
+        `Function deployment failed with error: ${funcDep.error?.message ?? 'Unknown error'}`
+      );
+
+      await deploySlateVersionFailedQueue.add({
+        deploymentId: data.deploymentId,
+        errorCode: funcDep.error?.code ?? 'unknown_error',
+        errorMessage: funcDep.error?.message ?? 'Unknown error during deployment'
+      });
+    })
+  );
 
 let deploySlateVersionFailedQueue = createQueue<{
   deploymentId: string;
@@ -369,40 +435,46 @@ let deploySlateVersionFailedQueue = createQueue<{
 });
 
 export let deploySlateVersionFailedQueueProcessor = deploySlateVersionFailedQueue.process(
-  async data => {
-    let deployment = await db.slateDeployment.findUnique({
-      where: { id: data.deploymentId },
-      include: { slateVersion: true }
-    });
-    if (!deployment) throw new QueueRetryError();
+  async data =>
+    withErrorLogging(data.deploymentId, async () => {
+      let deployment = await db.slateDeployment.findUnique({
+        where: { id: data.deploymentId },
+        include: { slateVersion: true }
+      });
+      if (!deployment) throw new QueueRetryError();
 
-    await db.slateDeployment.update({
-      where: { id: deployment.id },
-      data: {
-        status: 'failed',
+      await log(
+        deployment,
+        `Marking deployment as failed with error code ${data.errorCode} and message: ${data.errorMessage}`
+      );
 
-        errorCode: data.errorCode,
-        errorMessage: data.errorMessage
-      }
-    });
+      await db.slateDeployment.update({
+        where: { id: deployment.id },
+        data: {
+          status: 'failed',
 
-    await db.slateVersion.update({
-      where: { oid: deployment.slateVersionOid },
-      data: {
-        status: 'deployment_failed'
-      }
-    });
+          errorCode: data.errorCode,
+          errorMessage: data.errorMessage
+        }
+      });
 
-    await db.slateEvent.create({
-      data: {
-        ...getId('slateEvent'),
-        type: 'deployment_failed',
-        message: `Deployment for version ${deployment.slateVersion.version} failed: ${data.errorMessage}`,
-        slateOid: deployment.slateOid,
-        slateVersionOid: deployment.slateVersionOid
-      }
-    });
-  }
+      await db.slateVersion.update({
+        where: { oid: deployment.slateVersionOid },
+        data: {
+          status: 'deployment_failed'
+        }
+      });
+
+      await db.slateEvent.create({
+        data: {
+          ...getId('slateEvent'),
+          type: 'deployment_failed',
+          message: `Deployment for version ${deployment.slateVersion.version} failed: ${data.errorMessage}`,
+          slateOid: deployment.slateOid,
+          slateVersionOid: deployment.slateVersionOid
+        }
+      });
+    })
 );
 
 let deploySlateVersionCompletedQueue = createQueue<{
@@ -421,64 +493,72 @@ let publishLock = createLock({
 });
 
 export let deploySlateVersionCompletedQueueProcessor =
-  deploySlateVersionCompletedQueue.process(async data => {
-    let outerDeployment = await db.slateDeployment.findUnique({
-      where: { id: data.deploymentId },
-      include: { slate: true }
-    });
-    if (!outerDeployment) throw new QueueRetryError();
-
-    return publishLock.usingLock(outerDeployment.slate.id, async () => {
-      let deployment = await db.slateDeployment.findUniqueOrThrow({
+  deploySlateVersionCompletedQueue.process(async data =>
+    withErrorLogging(data.deploymentId, async () => {
+      let outerDeployment = await db.slateDeployment.findUnique({
         where: { id: data.deploymentId },
-        include: { slateVersion: true, slate: { include: { currentVersion: true } } }
+        include: { slate: true }
       });
-      let slate = deployment.slate;
+      if (!outerDeployment) throw new QueueRetryError();
 
-      let funcDep = await functionBay.functionDeployment.get({
-        functionId: data.functionId,
-        tenantId: (await functionBayTenant).id,
-        functionDeploymentId: data.functionDeploymentId
-      });
+      return publishLock.usingLock(outerDeployment.slate.id, async () => {
+        let deployment = await db.slateDeployment.findUniqueOrThrow({
+          where: { id: data.deploymentId },
+          include: { slateVersion: true, slate: { include: { currentVersion: true } } }
+        });
+        let slate = deployment.slate;
 
-      let updatedDeployment = await db.slateDeployment.update({
-        where: { id: deployment.id },
-        data: {
-          status: 'succeeded',
+        await log(deployment, `Acquired publish lock for slate, finalizing deployment...`);
 
-          providerDeploymentInfo: {
-            functionId: data.functionId,
-            functionDeploymentId: funcDep.id,
-            functionVersionId: funcDep.version?.id
+        let funcDep = await functionBay.functionDeployment.get({
+          functionId: data.functionId,
+          tenantId: (await functionBayTenant).id,
+          functionDeploymentId: data.functionDeploymentId
+        });
+
+        await log(deployment, `Function deployment status: ${funcDep.status}`);
+
+        let updatedDeployment = await db.slateDeployment.update({
+          where: { id: deployment.id },
+          data: {
+            status: 'succeeded',
+
+            providerDeploymentInfo: {
+              functionId: data.functionId,
+              functionDeploymentId: funcDep.id,
+              functionVersionId: funcDep.version?.id
+            }
           }
-        }
-      });
+        });
 
-      await db.slateVersion.updateMany({
-        where: { oid: deployment.slateVersion.oid },
-        data: {
-          status: 'discovering',
-          providerDeploymentInfo: updatedDeployment.providerDeploymentInfo,
-          activeDeploymentOid: updatedDeployment.oid
-        }
-      });
+        await db.slateVersion.updateMany({
+          where: { oid: deployment.slateVersion.oid },
+          data: {
+            status: 'discovering',
+            providerDeploymentInfo: updatedDeployment.providerDeploymentInfo,
+            activeDeploymentOid: updatedDeployment.oid
+          }
+        });
 
-      await db.slateEvent.create({
-        data: {
-          ...getId('slateEvent'),
-          type: 'deployment_succeeded',
-          message: `Deployment for version ${deployment.slateVersion.version} succeeded.`,
-          slateOid: slate.oid,
-          slateVersionOid: deployment.slateVersion.oid
-        }
-      });
+        await db.slateEvent.create({
+          data: {
+            ...getId('slateEvent'),
+            type: 'deployment_succeeded',
+            message: `Deployment for version ${deployment.slateVersion.version} succeeded.`,
+            slateOid: slate.oid,
+            slateVersionOid: deployment.slateVersion.oid
+          }
+        });
 
-      await discoverSlateQueue.add(
-        { versionId: deployment.slateVersion.id },
-        { delay: 10_000 }
-      );
-    });
-  });
+        await log(deployment, `Deployment marked as succeeded, adding to discovery queue...`);
+
+        await discoverSlateQueue.add(
+          { versionId: deployment.slateVersion.id },
+          { delay: 10_000 }
+        );
+      });
+    })
+  );
 
 export let failOldDeploymentsCron = createCron(
   {
