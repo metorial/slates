@@ -1,11 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
-import { adminClient } from '../hooks/client.js';
+import { adminClient, withAuthRedirect } from '../hooks/client.js';
 import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allEventsLoader = createLoader({
   name: 'allEvents',
   fetch: (params: { type?: string; after?: string; before?: string }) =>
-    adminClient.slateEvent.list(params),
+    withAuthRedirect(() => adminClient.slateEvent.list(params)),
   mutators: {}
 });
 
@@ -18,7 +18,7 @@ export let slateEventsLoader = createLoader({
     versionIds?: string[];
     after?: string;
     before?: string;
-  }) => adminClient.slateEvent.list(params),
+  }) => withAuthRedirect(() => adminClient.slateEvent.list(params)),
   mutators: {}
 });
 
