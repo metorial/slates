@@ -1,14 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
-import { hubClient } from './client.js';
+import { adminClient } from '../hooks/client.js';
 import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allDiscoveriesLoader = createLoader({
   name: 'allDiscoveries',
-  fetch: (params: {
-    status?: 'succeeded' | 'failed';
-    after?: string;
-    before?: string;
-  }) => hubClient.slateDiscovery.list(params),
+  fetch: (params: { status?: 'succeeded' | 'failed'; after?: string; before?: string }) =>
+    adminClient.slateDiscovery.list(params),
   mutators: {}
 });
 
@@ -22,7 +19,7 @@ export let slateDiscoveriesLoader = createLoader({
     versionIds?: string[];
     after?: string;
     before?: string;
-  }) => hubClient.slateDiscovery.list(params),
+  }) => adminClient.slateDiscovery.list(params),
   mutators: {}
 });
 
@@ -32,7 +29,7 @@ export let useSlateDiscoveries = (slateId: string | undefined, versionIds?: stri
 export let slateDiscoveryLoader = createLoader({
   name: 'slateDiscovery',
   fetch: (params: { slateId: string; slateVersionId: string; slateDiscoveryId: string }) =>
-    hubClient.slateDiscovery.get(params),
+    adminClient.slateDiscovery.get(params),
   mutators: {},
   parents: [slateDiscoveriesLoader]
 });
@@ -51,7 +48,7 @@ export let useSlateDiscovery = (
 let discoveryBuildOutputLoader = createLoader({
   name: 'discoveryBuildOutput',
   fetch: (params: { slateId: string; slateVersionId: string; slateDiscoveryId: string }) =>
-    hubClient.slateDiscovery.getBuildOutput(params),
+    adminClient.slateDiscovery.getBuildOutput(params),
   mutators: {}
 });
 
@@ -69,7 +66,7 @@ export let useDiscoveryBuildOutput = (
 let discoverySpecificationLoader = createLoader({
   name: 'discoverySpecification',
   fetch: (params: { slateId: string; slateVersionId: string; slateDiscoveryId: string }) =>
-    hubClient.slateDiscovery.getSpecification(params),
+    adminClient.slateDiscovery.getSpecification(params),
   mutators: {}
 });
 
@@ -87,7 +84,7 @@ export let useDiscoverySpecification = (
 let discoveryToolCallStatsLoader = createLoader({
   name: 'discoveryToolCallStats',
   fetch: (params: { slateId: string; slateVersionId: string; slateDiscoveryId: string }) =>
-    hubClient.slateDiscovery.getToolCallStats(params),
+    adminClient.slateDiscovery.getToolCallStats(params),
   mutators: {}
 });
 

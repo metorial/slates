@@ -1,10 +1,10 @@
 import { createLoader } from '@metorial-io/data-hooks';
-import { hubClient } from './client.js';
+import { adminClient } from '../hooks/client.js';
 import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let slatesLoader = createLoader({
   name: 'slates',
-  fetch: (params: { after?: string; before?: string }) => hubClient.slate.list(params),
+  fetch: (params: { after?: string; before?: string }) => adminClient.slate.list(params),
   mutators: {}
 });
 
@@ -12,7 +12,7 @@ export let useSlates = () => usePaginatedLoader(slatesLoader, {});
 
 export let slateLoader = createLoader({
   name: 'slate',
-  fetch: (slateId: string) => hubClient.slate.get({ slateId }),
+  fetch: (slateId: string) => adminClient.slate.get({ slateId }),
   mutators: {},
   parents: [slatesLoader]
 });
@@ -21,7 +21,7 @@ export let useSlate = (slateId: string | undefined) => slateLoader.use(slateId |
 
 export let slateStatsLoader = createLoader({
   name: 'slateStats',
-  fetch: (slateId: string) => hubClient.slate.getStats({ slateId }),
+  fetch: (slateId: string) => adminClient.slate.getStats({ slateId }),
   mutators: {},
   parents: [slateLoader]
 });

@@ -1,10 +1,11 @@
 import { createLoader } from '@metorial-io/data-hooks';
-import { hubClient } from './client.js';
+import { adminClient } from '../hooks/client.js';
 import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allEventsLoader = createLoader({
   name: 'allEvents',
-  fetch: (params: { type?: string; after?: string; before?: string }) => hubClient.slateEvent.list(params),
+  fetch: (params: { type?: string; after?: string; before?: string }) =>
+    adminClient.slateEvent.list(params),
   mutators: {}
 });
 
@@ -17,7 +18,7 @@ export let slateEventsLoader = createLoader({
     versionIds?: string[];
     after?: string;
     before?: string;
-  }) => hubClient.slateEvent.list(params),
+  }) => adminClient.slateEvent.list(params),
   mutators: {}
 });
 

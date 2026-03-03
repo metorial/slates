@@ -20,7 +20,7 @@ export default defineConfig({
     port: 52047,
     host: '0.0.0.0',
     proxy: {
-      '/slates-hub': 'http://slates-hub:52046'
+      '/slates-hub-admin': 'http://slates-hub:52047'
     }
   }
 });

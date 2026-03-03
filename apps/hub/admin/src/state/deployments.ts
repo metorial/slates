@@ -1,5 +1,5 @@
 import { createLoader } from '@metorial-io/data-hooks';
-import { hubClient } from './client.js';
+import { adminClient } from '../hooks/client.js';
 import { usePaginatedLoader } from './usePaginatedLoader.js';
 
 export let allDeploymentsLoader = createLoader({
@@ -8,7 +8,7 @@ export let allDeploymentsLoader = createLoader({
     status?: 'pending' | 'running' | 'succeeded' | 'failed';
     after?: string;
     before?: string;
-  }) => hubClient.slateDeployment.list(params),
+  }) => adminClient.slateDeployment.list(params),
   mutators: {}
 });
 
@@ -22,7 +22,7 @@ export let slateDeploymentsLoader = createLoader({
     versionIds?: string[];
     after?: string;
     before?: string;
-  }) => hubClient.slateDeployment.list(params),
+  }) => adminClient.slateDeployment.list(params),
   mutators: {}
 });
 
@@ -32,7 +32,7 @@ export let useSlateDeployments = (slateId: string | undefined, versionIds?: stri
 export let slateDeploymentLoader = createLoader({
   name: 'slateDeployment',
   fetch: (params: { slateId: string; slateDeploymentId: string }) =>
-    hubClient.slateDeployment.get(params),
+    adminClient.slateDeployment.get(params),
   mutators: {},
   parents: [slateDeploymentsLoader]
 });
@@ -48,25 +48,29 @@ export let useSlateDeployment = (
 let buildOutputLoader = createLoader({
   name: 'buildOutput',
   fetch: (params: { slateId: string; slateDeploymentId: string }) =>
-    hubClient.slateDeployment.getBuildOutput(params),
+    adminClient.slateDeployment.getBuildOutput(params),
   mutators: {}
 });
 
 export let useBuildOutput = (slateId: string | undefined, deploymentId: string | undefined) =>
-  buildOutputLoader.use(slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null);
+  buildOutputLoader.use(
+    slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null
+  );
 
 let internalLogsLoader = createLoader({
   name: 'internalLogs',
   fetch: (params: { slateId: string; slateDeploymentId: string }) =>
-    hubClient.slateDeployment.getInternalLogs(params),
+    adminClient.slateDeployment.getInternalLogs(params),
   mutators: {}
 });
 
 export let useInternalLogs = (slateId: string | undefined, deploymentId: string | undefined) =>
-  internalLogsLoader.use(slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null);
+  internalLogsLoader.use(
+    slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null
+  );
 
 export let redeploySlateDeployment = async (slateId: string, slateDeploymentId: string) => {
-  await hubClient.slateDeployment.redeploy({ slateId, slateDeploymentId });
+  await adminClient.slateDeployment.redeploy({ slateId, slateDeploymentId });
   slateDeploymentLoader.refetchAll();
   allDeploymentsLoader.refetchAll();
   slateDeploymentsLoader.refetchAll();
