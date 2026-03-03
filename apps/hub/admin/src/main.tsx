@@ -11,7 +11,7 @@ import './reset.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <BrowserRouter basename="/admin">
+      <BrowserRouter>
         <App />
         <Toaster />
       </BrowserRouter>
