@@ -1,6 +1,7 @@
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import {
   Badge,
+  Button,
   Datalist,
   Flex,
   Group,
@@ -8,9 +9,10 @@ import {
   RenderDate,
   Text
 } from '@metorial-io/ui';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { deploymentStatusColors } from '../../constants/statusColors.js';
-import { useBuildOutput, useSlate, useSlateDeployment } from '../../state/index.js';
+import { redeploySlateDeployment, useBuildOutput, useInternalLogs, useSlate, useSlateDeployment } from '../../state/index.js';
 import { BackLink } from '../../components/BackLink.js';
 import {
   LogViewer,
@@ -54,17 +56,39 @@ export let DeploymentDetail = () => {
   let slate = useSlate(slateId);
   let deployment = useSlateDeployment(slateId, deploymentId);
   let buildOutput = useBuildOutput(slateId, deploymentId);
+  let internalLogs = useInternalLogs(slateId, deploymentId);
+
+  let [redeploying, setRedeploying] = useState(false);
+
+  let handleRedeploy = async () => {
+    if (!slateId || !deploymentId) return;
+    if (!confirm('This will cancel any ongoing deployments for this version and start a new one. Continue?')) return;
+    setRedeploying(true);
+    try {
+      await redeploySlateDeployment(slateId, deploymentId);
+    } finally {
+      setRedeploying(false);
+    }
+  };
 
   return renderWithLoader({ slate, deployment })(({ slate, deployment }) => {
     let slateData = slate.data!;
     let deploymentData = deployment.data!;
     let buildSteps = (buildOutput.data ?? []) as BuildStep[];
+    let logs = (internalLogs.data ?? []) as { message: string; args: any[]; ts: string | null }[];
 
     return (
       <Flex direction="column" gap={24}>
-        <BackLink to={`/slates/${slateId}`}>
-          Back to {slateData.name || slateData.identifier}
-        </BackLink>
+        <Flex align="center" gap={12}>
+          <BackLink to={`/slates/${slateId}`}>
+            Back to {slateData.name || slateData.identifier}
+          </BackLink>
+          <div style={{ marginLeft: 'auto' }}>
+            <Button variant="outline" onClick={handleRedeploy} disabled={redeploying}>
+              {redeploying ? 'Redeploying...' : 'Redeploy'}
+            </Button>
+          </div>
+        </Flex>
 
         <Group.Wrapper>
           <Group.Header title="Deployment Details" />
@@ -159,6 +183,30 @@ export let DeploymentDetail = () => {
             ) : (
               <Text size="2" color="gray600">
                 No build output available yet.
+              </Text>
+            )}
+          </Group.Content>
+        </Group.Wrapper>
+
+        <Group.Wrapper>
+          <Group.Header title="Internal Logs" />
+          <Group.Content>
+            {logs.length > 0 ? (
+              <LogViewer>
+                {logs
+                  .map(l => {
+                    let ts = l.ts ? new Date(l.ts).toISOString() : '';
+                    let line = ts ? `[${ts}] ${l.message}` : l.message;
+                    if (l.args && l.args.length > 0) {
+                      line += ' ' + JSON.stringify(l.args, null, 2);
+                    }
+                    return line;
+                  })
+                  .join('\n')}
+              </LogViewer>
+            ) : (
+              <Text size="2" color="gray600">
+                No internal logs available.
               </Text>
             )}
           </Group.Content>

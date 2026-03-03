@@ -70,5 +70,34 @@ export let slateDeploymentController = app.controller({
       });
 
       return res;
+    }),
+
+  getInternalLogs: slateDeploymentApp
+    .handler()
+    .input(
+      v.object({
+        slateId: v.string(),
+        slateDeploymentId: v.string()
+      })
+    )
+    .do(async ctx => {
+      return slateDeploymentService.getInternalLogs({
+        slateDeployment: ctx.slateDeployment
+      });
+    }),
+
+  redeploy: slateDeploymentApp
+    .handler()
+    .input(
+      v.object({
+        slateId: v.string(),
+        slateDeploymentId: v.string()
+      })
+    )
+    .do(async ctx => {
+      await slateDeploymentService.redeploy({
+        slateDeployment: ctx.slateDeployment
+      });
+      return {};
     })
 });

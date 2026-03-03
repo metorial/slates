@@ -1,4 +1,5 @@
 import { RedisClient } from 'bun';
+import { adminApi } from './apis/admin';
 import { slatesHubApi } from './apis/internal';
 import { hubApp } from './apis/public';
 import { db } from './db';
@@ -11,6 +12,11 @@ Bun.serve({
 Bun.serve({
   fetch: slatesHubApi,
   port: 52046
+});
+
+Bun.serve({
+  fetch: adminApi,
+  port: 52047
 });
 
 console.log('Slates hub server is running');

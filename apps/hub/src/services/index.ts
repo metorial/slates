@@ -1,3 +1,4 @@
+export * from './adminAuth';
 export * from './changeNotification';
 export * from './registry';
 export * from './secret';
