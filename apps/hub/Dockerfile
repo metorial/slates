@@ -40,7 +40,11 @@ RUN bun prisma generate
 COPY src ./src
 COPY tsconfig.json ./tsconfig.json
 
-# Build bundle
+# Copy admin panel source and build
+COPY admin ./admin
+RUN bun run admin:build
+
+# Build server bundle
 RUN bun run server:build
 
 # Production stage
@@ -76,6 +80,7 @@ USER metorial
 # Expose port
 EXPOSE 52045
 EXPOSE 52046
+EXPOSE 52047
 
 # Health check using curl
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \

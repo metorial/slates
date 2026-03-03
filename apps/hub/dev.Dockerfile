@@ -17,5 +17,5 @@ RUN bun install
 # Copy source code
 COPY . .
 
-# Run in dev mode with hot reloading
-CMD ["sh", "-c", "cd apps/hub && bun prisma generate && bun prisma db push --accept-data-loss && bun --watch src/server.ts"]
+# Build admin frontend and run in dev mode with hot reloading
+CMD ["sh", "-c", "cd apps/hub && bun run admin:build && bun prisma generate && bun prisma db push --accept-data-loss && bun --watch src/server.ts"]
