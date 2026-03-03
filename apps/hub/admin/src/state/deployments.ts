@@ -54,3 +54,13 @@ let buildOutputLoader = createLoader({
 
 export let useBuildOutput = (slateId: string | undefined, deploymentId: string | undefined) =>
   buildOutputLoader.use(slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null);
+
+let internalLogsLoader = createLoader({
+  name: 'internalLogs',
+  fetch: (params: { slateId: string; slateDeploymentId: string }) =>
+    hubClient.slateDeployment.getInternalLogs(params),
+  mutators: {}
+});
+
+export let useInternalLogs = (slateId: string | undefined, deploymentId: string | undefined) =>
+  internalLogsLoader.use(slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null);

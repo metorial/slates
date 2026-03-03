@@ -10,7 +10,7 @@ import {
 } from '@metorial-io/ui';
 import { Link, useParams } from 'react-router-dom';
 import { deploymentStatusColors } from '../../constants/statusColors.js';
-import { useBuildOutput, useSlate, useSlateDeployment } from '../../state/index.js';
+import { useBuildOutput, useInternalLogs, useSlate, useSlateDeployment } from '../../state/index.js';
 import { BackLink } from '../../components/BackLink.js';
 import {
   LogViewer,
@@ -54,11 +54,13 @@ export let DeploymentDetail = () => {
   let slate = useSlate(slateId);
   let deployment = useSlateDeployment(slateId, deploymentId);
   let buildOutput = useBuildOutput(slateId, deploymentId);
+  let internalLogs = useInternalLogs(slateId, deploymentId);
 
   return renderWithLoader({ slate, deployment })(({ slate, deployment }) => {
     let slateData = slate.data!;
     let deploymentData = deployment.data!;
     let buildSteps = (buildOutput.data ?? []) as BuildStep[];
+    let logs = (internalLogs.data ?? []) as { message: string; args: any[]; ts: string | null }[];
 
     return (
       <Flex direction="column" gap={24}>
@@ -159,6 +161,30 @@ export let DeploymentDetail = () => {
             ) : (
               <Text size="2" color="gray600">
                 No build output available yet.
+              </Text>
+            )}
+          </Group.Content>
+        </Group.Wrapper>
+
+        <Group.Wrapper>
+          <Group.Header title="Internal Logs" />
+          <Group.Content>
+            {logs.length > 0 ? (
+              <LogViewer>
+                {logs
+                  .map(l => {
+                    let ts = l.ts ? new Date(l.ts).toISOString() : '';
+                    let line = ts ? `[${ts}] ${l.message}` : l.message;
+                    if (l.args && l.args.length > 0) {
+                      line += ' ' + JSON.stringify(l.args, null, 2);
+                    }
+                    return line;
+                  })
+                  .join('\n')}
+              </LogViewer>
+            ) : (
+              <Text size="2" color="gray600">
+                No internal logs available.
               </Text>
             )}
           </Group.Content>

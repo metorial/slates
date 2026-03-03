@@ -50,6 +50,16 @@ class slateDeploymentServiceImpl {
     return res;
   }
 
+  async getInternalLogs(d: { slateDeployment: SlateDeployment }) {
+    return d.slateDeployment.internalLogs.map(entry => {
+      try {
+        return JSON.parse(entry);
+      } catch {
+        return { message: entry, args: [], ts: null };
+      }
+    });
+  }
+
   async listSlateDeployments(d: {
     slate?: Slate;
     versionIds?: string[];
