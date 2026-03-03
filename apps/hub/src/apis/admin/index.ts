@@ -5,16 +5,13 @@ let adminDir = './dist/admin';
 
 let frontendHandler = async (req: Request) => {
   let url = new URL(req.url);
-  let path = url.pathname || '/admin/index.html';
-  if (path === '/admin' || path === '/admin/') path = '/admin/index.html';
+  let path = url.pathname || '/index.html';
+  if (path === '/') path = '/index.html';
 
-  let filePath = path.replace(/^\/admin/, '');
-  if (!filePath || filePath === '/') filePath = '/index.html';
-
-  let file = Bun.file(`${adminDir}${filePath}`);
+  let file = Bun.file(`${adminDir}${path}`);
   if (await file.exists()) return new Response(file);
 
-  if (!filePath.includes('.')) {
+  if (!path.includes('.')) {
     let index = Bun.file(`${adminDir}/index.html`);
     if (await index.exists()) return new Response(index);
   }

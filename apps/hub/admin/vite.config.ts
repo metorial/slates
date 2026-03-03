@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react()],
   root: __dirname,
-  base: '/admin/',
+  base: '/',
   resolve: {
     dedupe: ['react', 'react-dom', 'react-router-dom', 'styled-components']
   },
@@ -17,7 +17,7 @@ export default defineConfig({
     emptyOutDir: true
   },
   server: {
-    port: 52047,
+    port: 52048,
     host: '0.0.0.0',
     proxy: {
       '/slates-hub-admin': 'http://localhost:52047',
