@@ -64,3 +64,10 @@ let internalLogsLoader = createLoader({
 
 export let useInternalLogs = (slateId: string | undefined, deploymentId: string | undefined) =>
   internalLogsLoader.use(slateId && deploymentId ? { slateId, slateDeploymentId: deploymentId } : null);
+
+export let redeploySlateDeployment = async (slateId: string, slateDeploymentId: string) => {
+  await hubClient.slateDeployment.redeploy({ slateId, slateDeploymentId });
+  slateDeploymentLoader.refetchAll();
+  allDeploymentsLoader.refetchAll();
+  slateDeploymentsLoader.refetchAll();
+};

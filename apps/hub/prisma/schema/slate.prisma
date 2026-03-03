@@ -399,7 +399,9 @@ model SlateDeployment {
   errorCode    String?
   errorMessage String?
 
-  slateVersionOid BigInt       @unique
+  isCancelledByRedeploy Boolean @default(false)
+
+  slateVersionOid BigInt
   slateVersion    SlateVersion @relation(fields: [slateVersionOid], references: [oid], onDelete: Cascade)
 
   slateOid BigInt

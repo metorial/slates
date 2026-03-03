@@ -1,6 +1,7 @@
 import { renderWithLoader } from '@metorial-io/data-hooks';
 import {
   Badge,
+  Button,
   Datalist,
   Flex,
   Group,
@@ -8,9 +9,10 @@ import {
   RenderDate,
   Text
 } from '@metorial-io/ui';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { deploymentStatusColors } from '../../constants/statusColors.js';
-import { useBuildOutput, useInternalLogs, useSlate, useSlateDeployment } from '../../state/index.js';
+import { redeploySlateDeployment, useBuildOutput, useInternalLogs, useSlate, useSlateDeployment } from '../../state/index.js';
 import { BackLink } from '../../components/BackLink.js';
 import {
   LogViewer,
@@ -56,6 +58,19 @@ export let DeploymentDetail = () => {
   let buildOutput = useBuildOutput(slateId, deploymentId);
   let internalLogs = useInternalLogs(slateId, deploymentId);
 
+  let [redeploying, setRedeploying] = useState(false);
+
+  let handleRedeploy = async () => {
+    if (!slateId || !deploymentId) return;
+    if (!confirm('This will cancel any ongoing deployments for this version and start a new one. Continue?')) return;
+    setRedeploying(true);
+    try {
+      await redeploySlateDeployment(slateId, deploymentId);
+    } finally {
+      setRedeploying(false);
+    }
+  };
+
   return renderWithLoader({ slate, deployment })(({ slate, deployment }) => {
     let slateData = slate.data!;
     let deploymentData = deployment.data!;
@@ -64,9 +79,16 @@ export let DeploymentDetail = () => {
 
     return (
       <Flex direction="column" gap={24}>
-        <BackLink to={`/slates/${slateId}`}>
-          Back to {slateData.name || slateData.identifier}
-        </BackLink>
+        <Flex align="center" gap={12}>
+          <BackLink to={`/slates/${slateId}`}>
+            Back to {slateData.name || slateData.identifier}
+          </BackLink>
+          <div style={{ marginLeft: 'auto' }}>
+            <Button variant="outline" onClick={handleRedeploy} disabled={redeploying}>
+              {redeploying ? 'Redeploying...' : 'Redeploy'}
+            </Button>
+          </div>
+        </Flex>
 
         <Group.Wrapper>
           <Group.Header title="Deployment Details" />

@@ -84,5 +84,20 @@ export let slateDeploymentController = app.controller({
       return slateDeploymentService.getInternalLogs({
         slateDeployment: ctx.slateDeployment
       });
+    }),
+
+  redeploy: slateDeploymentApp
+    .handler()
+    .input(
+      v.object({
+        slateId: v.string(),
+        slateDeploymentId: v.string()
+      })
+    )
+    .do(async ctx => {
+      await slateDeploymentService.redeploy({
+        slateDeployment: ctx.slateDeployment
+      });
+      return {};
     })
 });

@@ -112,6 +112,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
         }
       });
       if (!deployment) throw new QueueRetryError();
+      if (deployment.isCancelledByRedeploy) return;
 
       let version = deployment.slateVersion;
       let slate = deployment.slate;
@@ -347,6 +348,7 @@ export let deploySlateVersionMonitorQueueProcessor = deploySlateVersionMonitorQu
         where: { id: data.deploymentId }
       });
       if (!deployment) throw new QueueRetryError();
+      if (deployment.isCancelledByRedeploy) return;
 
       let funcDep = await functionBay.functionDeployment.get({
         functionId: data.functionId,
@@ -391,6 +393,7 @@ export let deploySlateVersionProviderCompletedQueueProcessor =
         where: { id: data.deploymentId }
       });
       if (!deployment) throw new QueueRetryError();
+      if (deployment.isCancelledByRedeploy) return;
 
       await log(deployment, `Function deployment completed, checking final status...`);
 
@@ -442,6 +445,7 @@ export let deploySlateVersionFailedQueueProcessor = deploySlateVersionFailedQueu
         include: { slateVersion: true }
       });
       if (!deployment) throw new QueueRetryError();
+      if (deployment.isCancelledByRedeploy) return;
 
       await log(
         deployment,
@@ -500,6 +504,7 @@ export let deploySlateVersionCompletedQueueProcessor =
         include: { slate: true }
       });
       if (!outerDeployment) throw new QueueRetryError();
+      if (outerDeployment.isCancelledByRedeploy) return;
 
       return publishLock.usingLock(outerDeployment.slate.id, async () => {
         let deployment = await db.slateDeployment.findUniqueOrThrow({
