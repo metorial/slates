@@ -12,6 +12,8 @@ import { getId } from '../../id';
 import { getRegistryClient } from '../../registry';
 import { discoverSlateQueue } from '../discovery/discover';
 
+let logoFiles = ['png', 'jpg', 'jpeg', 'svg'].map(ext => `logo.${ext}`);
+
 let log = (deployment: { id: string } | string, message: string, ...args: any[]) => {
   let deploymentId = typeof deployment === 'string' ? deployment : deployment.id;
 
@@ -299,11 +301,13 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
         files: [
           ...initialFiles,
           ...(await Promise.all(
-            directory.files.map(async f => ({
-              filename: initialFilenames.has(f.path) ? `_${f.path}` : f.path,
-              content: (await f.buffer()).toString('base64'),
-              encoding: 'base64' as const
-            }))
+            directory.files
+              .filter(f => !logoFiles.some(logo => f.path.endsWith(logo)))
+              .map(async f => ({
+                filename: initialFilenames.has(f.path) ? `_${f.path}` : f.path,
+                content: (await f.buffer()).toString('base64'),
+                encoding: 'base64' as const
+              }))
           ))
         ]
       });
