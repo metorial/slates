@@ -23,7 +23,8 @@ export let createCredentialsUpdateEventsQueueProcessor =
         id: data.cursor ? { gt: data.cursor } : undefined
       },
       take: 100,
-      orderBy: { id: 'asc' }
+      orderBy: { id: 'asc' },
+      select: { oid: true, tenantOid: true }
     });
 
     await createCredentialsUpdateEventQueue.addMany(

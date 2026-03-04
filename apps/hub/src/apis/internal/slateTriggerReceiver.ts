@@ -1,7 +1,7 @@
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { slateTriggerReceiverPresenter } from '../../presenters';
 import type { Tenant } from '../../../prisma/generated/client';
+import { slateTriggerReceiverPresenter } from '../../presenters';
 import {
   slateAuthConfigService,
   slateInstanceService,
@@ -10,10 +10,7 @@ import {
 import { app } from './_app';
 import { tenantApp } from './tenant';
 
-const resolveAuthConfig = async (
-  tenant: Tenant,
-  authConfigId?: string | null
-) => {
+const resolveAuthConfig = async (tenant: Tenant, authConfigId?: string | null) => {
   if (authConfigId === undefined) return undefined;
   if (authConfigId === null) return null;
 
@@ -73,8 +70,7 @@ export let slateTriggerReceiverController = app.controller({
           destinations: v.array(v.string()),
           triggers: v.array(
             v.object({
-              triggerId: v.string(),
-              state: v.optional(v.record(v.any()))
+              triggerId: v.string()
             })
           )
         })
@@ -132,8 +128,7 @@ export let slateTriggerReceiverController = app.controller({
         triggers: v.optional(
           v.array(
             v.object({
-              triggerId: v.string(),
-              state: v.optional(v.record(v.any()))
+              triggerId: v.string()
             })
           )
         )

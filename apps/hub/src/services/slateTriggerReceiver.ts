@@ -140,7 +140,7 @@ class slateTriggerReceiverServiceImpl {
       description?: string;
       eventTypes?: string[];
       destinations: string[];
-      triggers: { triggerId: string; state?: Record<string, any> | null }[];
+      triggers: { triggerId: string }[];
     };
   }) {
     let slateInstance = d.slateInstance;
@@ -206,7 +206,10 @@ class slateTriggerReceiverServiceImpl {
         triggerActions.map(async trigger => {
           let pollIntervalSeconds: number | null = null;
           if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
-            pollIntervalSeconds = Math.max(trigger.invocation.intervalSeconds, MIN_POLL_INTERVAL_SECONDS);
+            pollIntervalSeconds = Math.max(
+              trigger.invocation.intervalSeconds,
+              MIN_POLL_INTERVAL_SECONDS
+            );
           }
 
           return await prisma.slateTriggerReceiverTrigger.create({
@@ -393,7 +396,10 @@ class slateTriggerReceiverServiceImpl {
         toAdd.map(async trigger => {
           let pollIntervalSeconds: number | null = null;
           if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
-            pollIntervalSeconds = Math.max(trigger.invocation.intervalSeconds, MIN_POLL_INTERVAL_SECONDS);
+            pollIntervalSeconds = Math.max(
+              trigger.invocation.intervalSeconds,
+              MIN_POLL_INTERVAL_SECONDS
+            );
           }
 
           return await db.slateTriggerReceiverTrigger.create({
