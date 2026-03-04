@@ -113,6 +113,15 @@ class slateTriggerDeliveryServiceImpl {
     });
   }
 
+  async getDelivery(d: { tenant: Tenant; eventDeliveryIntentId: string }) {
+    let { tenant: signalTenant } = await getTenantAndSenderForSignal(d.tenant);
+
+    return await signal.eventDeliveryIntent.get({
+      tenantId: signalTenant.id,
+      eventDeliveryIntentId: d.eventDeliveryIntentId
+    });
+  }
+
   async listTriggerDeliveryAttempts(d: { tenant: Tenant; input: DeliveryAttemptListInput }) {
     let { tenant: signalTenant } = await getTenantAndSenderForSignal(d.tenant);
 

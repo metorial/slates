@@ -51,6 +51,7 @@ const queueMocks = vi.hoisted(() => ({
 const invocationMocks = vi.hoisted(() => ({
   handleWebhookRequest: vi.fn(),
   invokeTriggerMapper: vi.fn(),
+  pollTriggerForEvents: vi.fn(),
   registerWebhook: vi.fn(),
   unregisterWebhook: vi.fn()
 }));
@@ -85,6 +86,7 @@ vi.mock('../../../services/slateInvocation', () => ({
     createInvocationWithState: vi.fn(async () => ({ invoke: vi.fn() })),
     handleWebhookRequest: invocationMocks.handleWebhookRequest,
     invokeTriggerMapper: invocationMocks.invokeTriggerMapper,
+    pollTriggerForEvents: invocationMocks.pollTriggerForEvents,
     registerWebhook: invocationMocks.registerWebhook,
     unregisterWebhook: invocationMocks.unregisterWebhook
   }
@@ -280,6 +282,7 @@ describe('slate:trigger webhook E2E', () => {
     queueMocks.archiveAdd.mockClear();
     invocationMocks.handleWebhookRequest.mockReset();
     invocationMocks.invokeTriggerMapper.mockReset();
+    invocationMocks.pollTriggerForEvents.mockReset();
   });
 
   const setupWebhookScenario = async (options?: {
@@ -726,6 +729,139 @@ describe('slate:trigger webhook E2E', () => {
     });
     expect(updated?.status).toBe(SlateTriggerEventInputStatus.retrying);
     expect(queueMocks.processAdd).toHaveBeenCalled();
+  });
+
+  it('increments consecutiveEventFailures on failed events and resets on success', async () => {
+    const { receiverTrigger, deployment, bucket, receiver } = await setupWebhookScenario();
+
+    const webhookInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_webhook_for_event_failures'
+    });
+
+    const mapErrorInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_map_error_for_event_failures'
+    });
+
+    const mapSuccessInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_map_success_for_event_failures'
+    });
+
+    invocationMocks.handleWebhookRequest.mockResolvedValueOnce({
+      status: 'success',
+      invocation: { oid: webhookInvocation.oid },
+      data: {
+        inputs: [{ payload: 'incoming' }],
+        updatedState: { cursor: 'next' }
+      }
+    });
+
+    invocationMocks.invokeTriggerMapper
+      .mockResolvedValueOnce({
+        status: 'error',
+        invocation: { oid: mapErrorInvocation.oid },
+        error: { code: 'map_error', message: 'Map failed' }
+      })
+      .mockResolvedValueOnce({
+        status: 'success',
+        invocation: { oid: mapSuccessInvocation.oid },
+        data: {
+          id: 'event-source-failure-counter',
+          type: 'record.created',
+          output: { value: 1 }
+        }
+      });
+
+    const requestRecord = await postWebhook(receiverTrigger.id, { hello: 'world' });
+
+    await slateTriggerReceiverService.handleTriggerWebhook({
+      receiverTriggerId: receiverTrigger.id,
+      request: {
+        url: requestRecord.url,
+        method: requestRecord.method,
+        headers: requestRecord.headers as Record<string, string>,
+        body: requestRecord.body as { encoding: 'base64'; content: string } | null
+      }
+    });
+
+    const eventInput = await testDb.slateTriggerEventInput.findFirst({
+      where: { receiverTriggerOid: receiverTrigger.oid }
+    });
+    expect(eventInput).toBeTruthy();
+
+    await slateTriggerReceiverService.processTriggerEventInput({
+      eventInputId: eventInput!.id
+    });
+
+    const receiverAfterFailure = await testDb.slateTriggerReceiver.findUniqueOrThrow({
+      where: { oid: receiver.oid }
+    });
+    expect(receiverAfterFailure.consecutiveEventFailures).toBe(1);
+
+    await slateTriggerReceiverService.processTriggerEventInput({
+      eventInputId: eventInput!.id
+    });
+
+    const receiverAfterSuccess = await testDb.slateTriggerReceiver.findUniqueOrThrow({
+      where: { oid: receiver.oid }
+    });
+    expect(receiverAfterSuccess.consecutiveEventFailures).toBe(0);
+  });
+
+  it('increments consecutivePollingFailures on failed polls and resets on success', async () => {
+    const { receiverTrigger, deployment, bucket, receiver } = await setupWebhookScenario({
+      triggerInvocation: SlateTriggerReceiverTriggerSource.polling
+    });
+
+    const pollErrorInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_poll_error'
+    });
+
+    const pollSuccessInvocation = await f.slateInvocation.succeeded({
+      deploymentOid: deployment.oid,
+      bucketOid: bucket.oid,
+      providerInvocationId: 'inv_poll_success'
+    });
+
+    invocationMocks.pollTriggerForEvents
+      .mockResolvedValueOnce({
+        status: 'error',
+        invocation: { oid: pollErrorInvocation.oid },
+        error: { code: 'poll_error', message: 'Poll failed' }
+      })
+      .mockResolvedValueOnce({
+        status: 'success',
+        invocation: { oid: pollSuccessInvocation.oid },
+        data: {
+          inputs: [],
+          updatedState: { cursor: 'next' }
+        }
+      });
+
+    await slateTriggerReceiverService.pollTriggerReceiverTrigger({
+      receiverTriggerId: receiverTrigger.id
+    });
+
+    const receiverAfterFailure = await testDb.slateTriggerReceiver.findUniqueOrThrow({
+      where: { oid: receiver.oid }
+    });
+    expect(receiverAfterFailure.consecutivePollingFailures).toBe(1);
+
+    await slateTriggerReceiverService.pollTriggerReceiverTrigger({
+      receiverTriggerId: receiverTrigger.id
+    });
+
+    const receiverAfterSuccess = await testDb.slateTriggerReceiver.findUniqueOrThrow({
+      where: { oid: receiver.oid }
+    });
+    expect(receiverAfterSuccess.consecutivePollingFailures).toBe(0);
   });
 
   it('skips delivery when receiver eventTypes exclude the event type', async () => {

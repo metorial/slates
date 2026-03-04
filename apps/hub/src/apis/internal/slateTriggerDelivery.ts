@@ -18,12 +18,27 @@ export let slateTriggerDeliveryController = app.controller({
         })
       )
     )
-    .do(async ctx => {
-      return await slateTriggerDeliveryService.listTriggerDeliveries({
+    .do(async ctx =>
+      slateTriggerDeliveryService.listTriggerDeliveries({
         tenant: ctx.tenant,
         input: ctx.input
-      });
-    }),
+      })
+    ),
+
+  get: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        eventDeliveryIntentId: v.string()
+      })
+    )
+    .do(async ctx =>
+      slateTriggerDeliveryService.getDelivery({
+        tenant: ctx.tenant,
+        eventDeliveryIntentId: ctx.input.eventDeliveryIntentId
+      })
+    ),
 
   listAttempts: tenantApp
     .handler()
