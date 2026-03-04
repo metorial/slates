@@ -28,11 +28,15 @@ class slateTriggerInvocationServiceImpl {
     tenant: Tenant;
     receiverIds?: string[];
     receiverTriggerIds?: string[];
+    eventIds?: string[];
     types?: SlateTriggerInvocationType[];
   }) {
     let receivers = d.receiverIds
       ? await db.slateTriggerReceiver.findMany({
-          where: { id: { in: d.receiverIds }, tenantOid: d.tenant.oid }
+          where: {
+            id: { in: d.receiverIds },
+            tenantOid: d.tenant.oid
+          }
         })
       : undefined;
 
@@ -40,6 +44,15 @@ class slateTriggerInvocationServiceImpl {
       ? await db.slateTriggerReceiverTrigger.findMany({
           where: {
             id: { in: d.receiverTriggerIds },
+            receiver: { tenantOid: d.tenant.oid }
+          }
+        })
+      : undefined;
+
+    let events = d.eventIds
+      ? await db.slateTriggerEvent.findMany({
+          where: {
+            id: { in: d.eventIds },
             receiver: { tenantOid: d.tenant.oid }
           }
         })
@@ -56,6 +69,7 @@ class slateTriggerInvocationServiceImpl {
               receiverTriggerOid: receiverTriggers
                 ? { in: receiverTriggers.map(rt => rt.oid) }
                 : undefined,
+              eventOid: events ? { in: events.map(e => e.oid) } : undefined,
               type: d.types ? { in: d.types } : undefined
             },
             include
