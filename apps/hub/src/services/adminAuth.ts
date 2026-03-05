@@ -1,7 +1,7 @@
 import { ServiceError, unauthorizedError } from '@lowerdeck/error';
 import { Service } from '@lowerdeck/service';
 import { addHours } from 'date-fns';
-import { aresClient } from '../aresClient';
+import { aresAdminApp, aresClient } from '../aresClient';
 import { db } from '../db';
 import { env } from '../env';
 import { getId } from '../id';
@@ -10,27 +10,31 @@ let SESSION_DURATION_HOURS = 1;
 
 class adminAuthServiceImpl {
   async isEnabled() {
-    return !!(env.ares.ARES_AUTH_URL && env.ares.ARES_CLIENT_ID);
+    return !!env.ares.ARES_AUTH_URL;
   }
 
   async getAuthUrl(d: { redirectUri: string }) {
-    if (!env.ares.ARES_AUTH_URL || !env.ares.ARES_CLIENT_ID) {
+    if (!env.ares.ARES_AUTH_URL) {
       throw new Error('Admin auth is not configured');
     }
 
+    let aresApp = await aresAdminApp;
+
     let url = new URL(`${env.ares.ARES_AUTH_URL}/login`);
     url.searchParams.set('redirect_uri', d.redirectUri);
-    url.searchParams.set('client_id', env.ares.ARES_CLIENT_ID);
+    url.searchParams.set('client_id', aresApp.clientId);
     return url.toString();
   }
 
   async exchangeCode(d: { code: string }) {
-    if (!aresClient || !env.ares.ARES_CLIENT_ID) {
+    if (!aresClient) {
       throw new Error('Admin auth is not configured');
     }
 
+    let aresApp = await aresAdminApp;
+
     let result = await aresClient.oauth.exchange({
-      clientId: env.ares.ARES_CLIENT_ID,
+      clientId: aresApp.clientId,
       authorizationCode: d.code
     });
 
