@@ -38,7 +38,7 @@ export let env = createValidatedEnv({
 
   ares: {
     ARES_AUTH_URL: v.optional(v.string()),
-    ARES_CLIENT_ID: v.optional(v.string())
+    ARES_INTERNAL_URL: v.optional(v.string())
   },
 
   slates: {
