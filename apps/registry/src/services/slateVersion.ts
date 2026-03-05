@@ -142,7 +142,7 @@ class slateVersionServiceImpl {
     }
 
     let fullParts = fullIdentifier.split('/');
-    if (!fullIdentifier.startsWith('@') || fullParts.length !== 2) {
+    if (fullParts.length !== 2) {
       throw new ServiceError(
         badRequestError({
           message: 'slate.json name must be in the format @scope/identifier.'
