@@ -68,6 +68,10 @@ export class SlateTriggerReceiverRuntime {
           errorMessage: 'Event input payload is missing.'
         }
       });
+      await db.slateTriggerReceiver.update({
+        where: { oid: eventInput.receiverTrigger.receiver.oid },
+        data: { consecutiveEventFailures: { increment: 1 } }
+      });
       return;
     }
     if (eventInput.receiverTrigger.receiver.status !== SlateTriggerReceiverStatus.active) {
@@ -128,6 +132,10 @@ export class SlateTriggerReceiverRuntime {
             errorMessage: mapRes.error.message
           }
         });
+        await db.slateTriggerReceiver.update({
+          where: { oid: eventInput.receiverTrigger.receiver.oid },
+          data: { consecutiveEventFailures: { increment: 1 } }
+        });
 
         if (status === SlateTriggerEventInputStatus.retrying) {
           await slateTriggerEventProcessQueue.add(
@@ -138,6 +146,10 @@ export class SlateTriggerReceiverRuntime {
 
         return;
       }
+      await db.slateTriggerReceiver.update({
+        where: { oid: eventInput.receiverTrigger.receiver.oid },
+        data: { consecutiveEventFailures: 0 }
+      });
 
       let existing = await db.slateTriggerEvent.findFirst({
         where: {
@@ -257,6 +269,10 @@ export class SlateTriggerReceiverRuntime {
           errorCode,
           errorMessage
         }
+      });
+      await db.slateTriggerReceiver.update({
+        where: { oid: eventInput.receiverTrigger.receiver.oid },
+        data: { consecutiveEventFailures: { increment: 1 } }
       });
 
       if (status === SlateTriggerEventInputStatus.retrying) {
@@ -514,6 +530,10 @@ export class SlateTriggerReceiverRuntime {
           nextPollAt
         }
       });
+      await db.slateTriggerReceiver.update({
+        where: { oid: receiverTrigger.receiver.oid },
+        data: { consecutivePollingFailures: { increment: 1 } }
+      });
       return;
     }
 
@@ -527,6 +547,10 @@ export class SlateTriggerReceiverRuntime {
         lastPolledAt: now,
         nextPollAt
       }
+    });
+    await db.slateTriggerReceiver.update({
+      where: { oid: receiverTrigger.receiver.oid },
+      data: { consecutivePollingFailures: 0 }
     });
 
     await this.core.enqueueTriggerEventInputs({

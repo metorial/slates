@@ -35,6 +35,8 @@ describe('slateTriggerReceiver:list E2E', () => {
       name: receiver.name,
       description: receiver.description,
       eventTypes: receiver.eventTypes,
+      consecutivePollingFailures: 0,
+      consecutiveEventFailures: 0,
       triggers: expect.any(Array),
       destinations: expect.any(Array),
       createdAt: expect.any(Date),
@@ -113,7 +115,9 @@ describe('slateTriggerReceiver:get E2E', () => {
       object: 'slate.trigger.receiver',
       id: receiver.id,
       status: SlateTriggerReceiverStatus.active,
-      slateId: slate.id
+      slateId: slate.id,
+      consecutivePollingFailures: 0,
+      consecutiveEventFailures: 0
     });
   });
 });

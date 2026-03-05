@@ -33,6 +33,8 @@ export let slateTriggerReceiverPresenter = (
   name: receiver.name,
   description: receiver.description,
   eventTypes: receiver.eventTypes,
+  consecutivePollingFailures: receiver.consecutivePollingFailures,
+  consecutiveEventFailures: receiver.consecutiveEventFailures,
 
   triggers: receiver.triggers.map(trigger => ({
     object: 'slate.trigger.receiver.trigger',
