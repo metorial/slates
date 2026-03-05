@@ -70,7 +70,9 @@ export let slateTriggerReceiverController = app.controller({
           destinations: v.array(v.string()),
           triggers: v.array(
             v.object({
-              triggerId: v.string()
+              triggerId: v.string(),
+              state: v.optional(v.nullable(v.record(v.any()))),
+              pollIntervalSeconds: v.optional(v.nullable(v.number()))
             })
           )
         })
@@ -128,7 +130,9 @@ export let slateTriggerReceiverController = app.controller({
         triggers: v.optional(
           v.array(
             v.object({
-              triggerId: v.string()
+              triggerId: v.string(),
+              state: v.optional(v.nullable(v.record(v.any()))),
+              pollIntervalSeconds: v.optional(v.nullable(v.number()))
             })
           )
         )

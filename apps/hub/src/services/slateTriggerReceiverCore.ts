@@ -34,7 +34,11 @@ export class SlateTriggerReceiverCore {
   async resolveActionsForTriggers(d: {
     slate: Slate;
     specificationOid: bigint;
-    triggers: { triggerId: string; state?: Record<string, any> | null }[];
+    triggers: {
+      triggerId: string;
+      state?: Record<string, any> | null;
+      pollIntervalSeconds?: number | null;
+    }[];
   }) {
     let triggerIds = d.triggers.map(t => t.triggerId);
 
@@ -93,6 +97,7 @@ export class SlateTriggerReceiverCore {
       return {
         action,
         state: trigger.state ?? null,
+        pollIntervalSeconds: trigger.pollIntervalSeconds ?? null,
         invocation: spec.invocation
       };
     });
