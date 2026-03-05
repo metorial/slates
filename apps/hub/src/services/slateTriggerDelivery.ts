@@ -5,6 +5,7 @@ import { getTenantAndSenderForSignal, signal } from '../signal';
 
 type DeliveryListInput = {
   triggerReceiverId?: string;
+  triggerReceiverIds?: string[];
   triggerEventIds?: string[];
   destinationIds?: string[];
   status?: ('pending' | 'delivered' | 'failed' | 'retrying')[];
@@ -17,6 +18,7 @@ type DeliveryListInput = {
 
 type DeliveryAttemptListInput = {
   triggerReceiverId?: string;
+  triggerReceiverIds?: string[];
   triggerEventIds?: string[];
   destinationIds?: string[];
   status?: ('failed' | 'succeeded')[];
@@ -32,6 +34,7 @@ class slateTriggerDeliveryServiceImpl {
     tenant: Tenant;
     triggerEventIds?: string[];
     triggerReceiverId?: string;
+    triggerReceiverIds?: string[];
   }) {
     if (d.triggerEventIds?.length) {
       let events = await db.slateTriggerEvent.findMany({
@@ -39,6 +42,30 @@ class slateTriggerDeliveryServiceImpl {
           id: { in: d.triggerEventIds },
           receiver: { tenantOid: d.tenant.oid }
         },
+        select: { signalEventId: true }
+      });
+
+      return events
+        .map(event => event.signalEventId)
+        .filter((id): id is string => id !== null);
+    }
+
+    if (d.triggerReceiverIds?.length) {
+      let receivers = await db.slateTriggerReceiver.findMany({
+        where: {
+          id: { in: d.triggerReceiverIds },
+          tenantOid: d.tenant.oid
+        },
+        select: { oid: true }
+      });
+      if (!receivers.length) return [];
+
+      let events = await db.slateTriggerEvent.findMany({
+        where: {
+          receiverOid: { in: receivers.map(receiver => receiver.oid) }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 500,
         select: { signalEventId: true }
       });
 
@@ -92,7 +119,8 @@ class slateTriggerDeliveryServiceImpl {
     let eventIds = await this.resolveSignalEventIds({
       tenant: d.tenant,
       triggerEventIds: d.input.triggerEventIds,
-      triggerReceiverId: d.input.triggerReceiverId
+      triggerReceiverId: d.input.triggerReceiverId,
+      triggerReceiverIds: d.input.triggerReceiverIds
     });
 
     let destinationIds = await this.resolveSignalDestinationIds({
@@ -128,7 +156,8 @@ class slateTriggerDeliveryServiceImpl {
     let eventIds = await this.resolveSignalEventIds({
       tenant: d.tenant,
       triggerEventIds: d.input.triggerEventIds,
-      triggerReceiverId: d.input.triggerReceiverId
+      triggerReceiverId: d.input.triggerReceiverId,
+      triggerReceiverIds: d.input.triggerReceiverIds
     });
 
     let destinationIds = await this.resolveSignalDestinationIds({
