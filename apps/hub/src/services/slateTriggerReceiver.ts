@@ -36,6 +36,20 @@ class slateTriggerReceiverServiceImpl {
     this.runtime = new SlateTriggerReceiverRuntime(this.core);
   }
 
+  private normalizePollIntervalOverride(value?: number | null) {
+    if (value === undefined || value === null) return value;
+    if (!Number.isInteger(value) || value < 1) {
+      throw new ServiceError(
+        badRequestError({
+          code: 'invalid_poll_interval_override',
+          message: 'pollIntervalSeconds must be a positive integer.'
+        })
+      );
+    }
+
+    return value;
+  }
+
   async processTriggerEventInput(
     d: Parameters<SlateTriggerReceiverRuntime['processTriggerEventInput']>[0]
   ) {
@@ -140,7 +154,11 @@ class slateTriggerReceiverServiceImpl {
       description?: string;
       eventTypes?: string[];
       destinations: string[];
-      triggers: { triggerId: string }[];
+      triggers: {
+        triggerId: string;
+        state?: Record<string, any> | null;
+        pollIntervalSeconds?: number | null;
+      }[];
     };
   }) {
     let slateInstance = d.slateInstance;
@@ -185,7 +203,12 @@ class slateTriggerReceiverServiceImpl {
     let triggerActions = await this.core.resolveActionsForTriggers({
       slate,
       specificationOid: version.specification!.oid,
-      triggers: d.input.triggers
+      triggers: d.input.triggers.map(trigger => ({
+        ...trigger,
+        pollIntervalSeconds: this.normalizePollIntervalOverride(
+          trigger.pollIntervalSeconds
+        )
+      }))
     });
 
     let { receiver, receiverTriggers } = await db.$transaction(async prisma => {
@@ -207,7 +230,7 @@ class slateTriggerReceiverServiceImpl {
           let pollIntervalSeconds: number | null = null;
           if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
             pollIntervalSeconds = Math.max(
-              trigger.invocation.intervalSeconds,
+              trigger.pollIntervalSeconds ?? trigger.invocation.intervalSeconds,
               MIN_POLL_INTERVAL_SECONDS
             );
           }
@@ -262,7 +285,11 @@ class slateTriggerReceiverServiceImpl {
       description?: string | null;
       eventTypes?: string[];
       destinations?: string[];
-      triggers?: { triggerId: string; state?: Record<string, any> | null }[];
+      triggers?: {
+        triggerId: string;
+        state?: Record<string, any> | null;
+        pollIntervalSeconds?: number | null;
+      }[];
     };
   }) {
     let receiver = await db.slateTriggerReceiver.findFirst({
@@ -356,7 +383,12 @@ class slateTriggerReceiverServiceImpl {
       let triggerActions = await this.core.resolveActionsForTriggers({
         slate,
         specificationOid: version.specification!.oid,
-        triggers: d.input.triggers
+        triggers: d.input.triggers.map(trigger => ({
+          ...trigger,
+          pollIntervalSeconds: this.normalizePollIntervalOverride(
+            trigger.pollIntervalSeconds
+          )
+        }))
       });
 
       let existingByActionOid = new Map(
@@ -397,7 +429,7 @@ class slateTriggerReceiverServiceImpl {
           let pollIntervalSeconds: number | null = null;
           if (trigger.invocation.type === SlateTriggerReceiverTriggerSource.polling) {
             pollIntervalSeconds = Math.max(
-              trigger.invocation.intervalSeconds,
+              trigger.pollIntervalSeconds ?? trigger.invocation.intervalSeconds,
               MIN_POLL_INTERVAL_SECONDS
             );
           }
@@ -427,10 +459,27 @@ class slateTriggerReceiverServiceImpl {
 
       for (let trigger of receiver.triggers) {
         let incoming = incomingByActionOid.get(trigger.actionOid);
-        if (incoming && incoming.state !== undefined) {
+        if (
+          incoming &&
+          (incoming.state !== undefined || incoming.pollIntervalSeconds !== undefined)
+        ) {
+          let pollIntervalSeconds = trigger.pollIntervalSeconds;
+          if (
+            incoming.pollIntervalSeconds !== undefined &&
+            trigger.source === SlateTriggerReceiverTriggerSource.polling
+          ) {
+            pollIntervalSeconds = Math.max(
+              incoming.pollIntervalSeconds ?? MIN_POLL_INTERVAL_SECONDS,
+              MIN_POLL_INTERVAL_SECONDS
+            );
+          }
+
           await db.slateTriggerReceiverTrigger.update({
             where: { oid: trigger.oid },
-            data: { state: incoming.state }
+            data: {
+              state: incoming.state,
+              pollIntervalSeconds
+            }
           });
         }
       }
