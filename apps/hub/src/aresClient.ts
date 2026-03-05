@@ -5,7 +5,7 @@ import { env } from './env';
 
 export let aresClient = env.ares.ARES_INTERNAL_URL
   ? createAresInternalClient({
-      endpoint: `${env.ares.ARES_INTERNAL_URL}/metorial-ares/auth-api`
+      endpoint: env.ares.ARES_INTERNAL_URL
     })
   : null;
 
