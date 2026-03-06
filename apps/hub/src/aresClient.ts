@@ -22,7 +22,7 @@ export let aresAdminApp = aresAdminAppProm.promise;
 
     try {
       let res = await aresClient.app.upsert({
-        slug: 'metorial-enterprise-admin',
+        slug: 'metorial-slates-hub-admin',
         defaultRedirectUrl: `${env.service.SERVICE_PUBLIC_URL}`,
         redirectDomains: [
           '*.metorial.com',
