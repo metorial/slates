@@ -4,17 +4,6 @@ if (!process.env.DATABASE_URL) {
   if (process.env.DATABASE_READER === 'true') {
     process.env.DATABASE_URL_READER = `postgres://${process.env.DATABASE_USERNAME}:${process.env.DATABASE_PASSWORD}@${process.env.DATABASE_HOST?.replace('.cluster-', '.cluster-ro-')}:${process.env.DATABASE_PORT}/${process.env.DATABASE_NAME}?schema=public&sslmode=no-verify&connection_limit=20`;
   }
-
-  console.log(
-    'Connecting to database with URL:',
-    process.env.DATABASE_URL.replace(/\/\/.*:.*@/, '//****:****@')
-  );
-  if (process.env.DATABASE_URL_READER) {
-    console.log(
-      'Connecting to read replica with URL:',
-      process.env.DATABASE_URL_READER.replace(/\/\/.*:.*@/, '//****:****@')
-    );
-  }
 }
 
 if (!process.env.REDIS_URL) {
