@@ -14,6 +14,12 @@ describe('slateTriggerBinding E2E', () => {
   it('upserts one polling binding per external key and lists it via shared config filters', async () => {
     let tenant = await f.tenant.default();
     let slate = await f.slate.complete();
+    let provider = await f.deploymentProvider.functionBay();
+    await f.slateDeployment.succeeded({
+      slateVersionOid: slate.currentVersion.oid,
+      slateOid: slate.oid,
+      providerOid: provider.oid
+    });
     let { instance } = await f.slateInstance.withConfig({
       slateOid: slate.oid,
       tenantOid: tenant.oid,
