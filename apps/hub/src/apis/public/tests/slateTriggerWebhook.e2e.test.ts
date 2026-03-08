@@ -563,7 +563,7 @@ describe('slate:trigger webhook E2E', () => {
     const payload = JSON.parse(signalState.events[0]!.payloadJson);
     expect(payload).toMatchObject({
       object: 'slate.trigger.event',
-      triggerReceiverId: receiver.id,
+      triggerBindingId: receiverTrigger.id,
       triggerId: triggerAction.id,
       triggerKey: triggerAction.key,
       type: 'record.created'
