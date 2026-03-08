@@ -1,6 +1,5 @@
 import { SlateTriggerReceiverTriggerSource, type SlateAction, type SlateAuthConfig, type SlateInstance, type SlateSharedTriggerConfig, type SlateSharedTriggerConfigTrigger, type SlateTriggerReceiver, type SlateTriggerReceiverTrigger } from '../../prisma/generated/client';
 import { getTriggerWebhookBaseUrl } from '../lib/triggerWebhook';
-import { getEffectiveTriggerBindingPollIntervalSeconds } from '../services/slateTriggerReceiverShared';
 
 export let slateTriggerBindingPresenter = (
   trigger: SlateTriggerReceiverTrigger & {
@@ -30,7 +29,7 @@ export let slateTriggerBindingPresenter = (
   triggerKey: trigger.action.key,
   triggerName: trigger.action.name,
   source: trigger.source,
-  pollIntervalSeconds: getEffectiveTriggerBindingPollIntervalSeconds(trigger),
+  pollIntervalSeconds: trigger.pollIntervalSeconds,
   nextPollAt: trigger.nextPollAt,
   lastPolledAt: trigger.lastPolledAt,
 

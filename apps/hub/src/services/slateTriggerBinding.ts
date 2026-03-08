@@ -308,6 +308,17 @@ class slateTriggerBindingServiceImpl {
       return trigger;
     });
 
+    if (result.source === SlateTriggerReceiverTriggerSource.polling && pollIntervalSeconds != null) {
+      result = await db.slateTriggerReceiverTrigger.update({
+        where: { oid: result.oid },
+        data: {
+          pollIntervalSeconds,
+          nextPollAt: result.nextPollAt ?? new Date()
+        },
+        include: receiverTriggerInclude
+      });
+    }
+
     if (
       result.source === SlateTriggerReceiverTriggerSource.webhook &&
       !result.registrationDetails

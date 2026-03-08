@@ -22,7 +22,6 @@ import {
 import { slateInvocationService } from './slateInvocation';
 import type { SlateTriggerReceiverCore } from './slateTriggerReceiverCore';
 import {
-  getEffectiveTriggerBindingPollIntervalSeconds,
   getTriggerSpec,
   receiverTriggerInclude,
   type ReceiverTriggerWithRelations
@@ -516,11 +515,8 @@ export class SlateTriggerReceiverRuntime {
     });
 
     let now = new Date();
-    let effectivePollIntervalSeconds = getEffectiveTriggerBindingPollIntervalSeconds(
-      receiverTrigger as ReceiverTriggerWithRelations
-    );
-    let nextPollAt = effectivePollIntervalSeconds
-      ? new Date(now.getTime() + effectivePollIntervalSeconds * 1000)
+    let nextPollAt = receiverTrigger.pollIntervalSeconds
+      ? new Date(now.getTime() + receiverTrigger.pollIntervalSeconds * 1000)
       : null;
 
     if (pollRes.status === 'error') {
@@ -528,12 +524,12 @@ export class SlateTriggerReceiverRuntime {
         receiverTriggerId: receiverTrigger.id,
         error: pollRes.error
       });
-    await db.slateTriggerReceiverTrigger.update({
-      where: { oid: receiverTrigger.oid },
-      data: {
-        lastPolledAt: now,
-        nextPollAt
-      }
+      await db.slateTriggerReceiverTrigger.update({
+        where: { oid: receiverTrigger.oid },
+        data: {
+          lastPolledAt: now,
+          nextPollAt
+        }
       });
       await db.slateTriggerReceiver.update({
         where: { oid: receiverTrigger.receiver.oid },

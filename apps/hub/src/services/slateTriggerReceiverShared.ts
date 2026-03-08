@@ -110,33 +110,6 @@ export let getTriggerSpec = (action: SlateAction): TriggerActionSpec => {
   return spec;
 };
 
-const MIN_POLL_INTERVAL_SECONDS = 10 * 60;
-
-export let getEffectiveTriggerBindingPollIntervalSeconds = (
-  trigger: Pick<SlateTriggerReceiverTrigger, 'source' | 'pollIntervalSeconds'> & {
-    action: SlateAction;
-    sharedConfigTrigger: Pick<SlateSharedTriggerConfigTrigger, 'pollIntervalSecondsOverride'> | null;
-  }
-) => {
-  if (trigger.source !== SlateTriggerReceiverTriggerSource.polling) {
-    return trigger.pollIntervalSeconds;
-  }
-
-  if (trigger.pollIntervalSeconds != null) {
-    return trigger.pollIntervalSeconds;
-  }
-
-  let spec = getTriggerSpec(trigger.action);
-  if (spec.invocation.type !== SlateTriggerReceiverTriggerSource.polling) {
-    return null;
-  }
-
-  return Math.max(
-    trigger.sharedConfigTrigger?.pollIntervalSecondsOverride ?? spec.invocation.intervalSeconds,
-    MIN_POLL_INTERVAL_SECONDS
-  );
-};
-
 export let buildInvocationAuth = (auth: {
   output?: Record<string, any> | null;
   input?: Record<string, any> | null;
