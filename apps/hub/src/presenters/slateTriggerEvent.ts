@@ -1,15 +1,21 @@
 import type {
   SlateAction,
   SlateInvocation,
+  SlateSharedTriggerConfig,
   SlateTriggerEvent,
   SlateTriggerReceiver,
-  SlateTriggerReceiverTrigger
+  SlateTriggerReceiverTrigger,
+  SlateSharedTriggerConfigTrigger
 } from '../../prisma/generated/client';
 
 export let slateTriggerEventPresenter = (
   event: SlateTriggerEvent & {
-    receiver: SlateTriggerReceiver;
-    receiverTrigger: SlateTriggerReceiverTrigger;
+    receiver: SlateTriggerReceiver & {
+      sharedConfig: SlateSharedTriggerConfig | null;
+    };
+    receiverTrigger: SlateTriggerReceiverTrigger & {
+      sharedConfigTrigger: SlateSharedTriggerConfigTrigger | null;
+    };
     action: SlateAction;
     invocation: SlateInvocation;
   }
@@ -22,6 +28,9 @@ export let slateTriggerEventPresenter = (
 
   triggerReceiverId: event.receiver.id,
   triggerReceiverTriggerId: event.receiverTrigger.id,
+  triggerBindingId: event.receiverTrigger.id,
+  sharedTriggerConfigId: event.receiver.sharedConfig?.id ?? null,
+  sharedTriggerConfigTriggerId: event.receiverTrigger.sharedConfigTrigger?.id ?? null,
   triggerId: event.action.id,
   triggerKey: event.action.key,
 

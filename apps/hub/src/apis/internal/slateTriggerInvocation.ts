@@ -27,6 +27,8 @@ export let slateTriggerInvocationController = app.controller({
           tenantId: v.string(),
           triggerReceiverIds: v.optional(v.array(v.string())),
           triggerReceiverTriggerIds: v.optional(v.array(v.string())),
+          triggerBindingIds: v.optional(v.array(v.string())),
+          slateSharedTriggerConfigIds: v.optional(v.array(v.string())),
           types: v.optional(
             v.array(
               v.enumOf([
@@ -46,6 +48,8 @@ export let slateTriggerInvocationController = app.controller({
         tenant: ctx.tenant,
         receiverIds: ctx.input.triggerReceiverIds,
         receiverTriggerIds: ctx.input.triggerReceiverTriggerIds,
+        triggerBindingIds: ctx.input.triggerBindingIds,
+        sharedTriggerConfigIds: ctx.input.slateSharedTriggerConfigIds,
         types: ctx.input.types
       });
 

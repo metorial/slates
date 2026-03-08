@@ -1,19 +1,22 @@
 import { badRequestError, ServiceError } from '@lowerdeck/error';
 import type {
-  SlateTriggerReceiverTriggerSource,
   Slate,
   SlateAction,
   SlateAuthConfig,
   SlateInstance,
   SlateInstanceConfig,
+  SlateSharedTriggerConfig,
+  SlateSharedTriggerConfigDestination,
+  SlateSharedTriggerConfigTrigger,
   SlateTriggerDestination,
   SlateTriggerReceiver,
   SlateTriggerReceiverDestination,
   SlateTriggerReceiverTrigger,
+  SlateTriggerReceiverTriggerSource,
   Tenant
 } from '../../prisma/generated/client';
 
-export const normalizeEventTypes = (eventTypes?: string[] | null) =>
+export let normalizeEventTypes = (eventTypes?: string[] | null) =>
   eventTypes && eventTypes.length > 0 ? eventTypes : [];
 
 export type TriggerInvocationSpec =
@@ -33,6 +36,7 @@ export type TriggerActionSpec = {
 };
 
 export type ReceiverTriggerWithRelations = SlateTriggerReceiverTrigger & {
+  sharedConfigTrigger: SlateSharedTriggerConfigTrigger | null;
   action: SlateAction;
   receiver: SlateTriggerReceiver & {
     tenant: Tenant;
@@ -43,11 +47,18 @@ export type ReceiverTriggerWithRelations = SlateTriggerReceiverTrigger & {
     destinations: (SlateTriggerReceiverDestination & {
       destination: SlateTriggerDestination;
     })[];
+    sharedConfig:
+      | (SlateSharedTriggerConfig & {
+          destinations: (SlateSharedTriggerConfigDestination & {
+            destination: SlateTriggerDestination;
+          })[];
+        })
+      | null;
     authConfig: SlateAuthConfig | null;
   };
 };
 
-export const receiverInclude = {
+export let receiverInclude = {
   tenant: true,
   slate: true,
   slateInstance: {
@@ -60,6 +71,15 @@ export const receiverInclude = {
       destination: true
     }
   },
+  sharedConfig: {
+    include: {
+      destinations: {
+        include: {
+          destination: true
+        }
+      }
+    }
+  },
   triggers: {
     include: {
       action: true
@@ -68,14 +88,15 @@ export const receiverInclude = {
   authConfig: true
 };
 
-export const receiverTriggerInclude = {
+export let receiverTriggerInclude = {
   action: true,
+  sharedConfigTrigger: true,
   receiver: {
     include: receiverInclude
   }
 };
 
-export const getTriggerSpec = (action: SlateAction): TriggerActionSpec => {
+export let getTriggerSpec = (action: SlateAction): TriggerActionSpec => {
   let spec = action.spec as TriggerActionSpec;
   if (!spec || spec.type !== 'action.trigger' || !spec.invocation) {
     throw new ServiceError(
@@ -89,7 +110,7 @@ export const getTriggerSpec = (action: SlateAction): TriggerActionSpec => {
   return spec;
 };
 
-export const buildInvocationAuth = (auth: {
+export let buildInvocationAuth = (auth: {
   output?: Record<string, any> | null;
   input?: Record<string, any> | null;
   authMethod: { key: string };

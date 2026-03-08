@@ -13,10 +13,12 @@ import { slateInstanceController } from './slateInstance';
 import { slateInvocationController } from './slateInvocation';
 import { slateOAuthCredentialsController } from './slateOAuthCredentials';
 import { slateOAuthSetupController } from './slateOAuthSetup';
+import { slateSharedTriggerConfigController } from './slateSharedTriggerConfig';
 import { slateSessionController } from './slateSession';
 import { slateSessionToolCallController } from './slateSessionToolCall';
 import { slateSpecificationController } from './slateSpecification';
 import { slateTriggerDeliveryController } from './slateTriggerDelivery';
+import { slateTriggerBindingController } from './slateTriggerBinding';
 import { slateTriggerDestinationController } from './slateTriggerDestination';
 import { slateTriggerEventController } from './slateTriggerEvent';
 import { slateTriggerInvocationController } from './slateTriggerInvocation';
@@ -47,7 +49,9 @@ export let rootController = app.controller({
   slateAuthConfig: slateAuthConfigController,
   slateSession: slateSessionController,
   slateSessionToolCall: slateSessionToolCallController,
+  slateSharedTriggerConfig: slateSharedTriggerConfigController,
 
+  slateTriggerBinding: slateTriggerBindingController,
   slateTriggerDestination: slateTriggerDestinationController,
   slateTriggerReceiver: slateTriggerReceiverController,
   slateTriggerEvent: slateTriggerEventController,

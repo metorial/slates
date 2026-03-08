@@ -5,8 +5,16 @@ import type { Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 
 let include = {
-  receiver: true,
-  receiverTrigger: true,
+  receiver: {
+    include: {
+      sharedConfig: true
+    }
+  },
+  receiverTrigger: {
+    include: {
+      sharedConfigTrigger: true
+    }
+  },
   action: true,
   invocation: true
 };
@@ -28,6 +36,8 @@ class slateTriggerEventServiceImpl {
     tenant: Tenant;
     receiverIds?: string[];
     receiverTriggerIds?: string[];
+    sharedTriggerConfigIds?: string[];
+    triggerBindingIds?: string[];
     eventTypes?: string[];
   }) {
     let receivers = d.receiverIds
@@ -45,17 +55,46 @@ class slateTriggerEventServiceImpl {
         })
       : undefined;
 
+    let triggerBindings = d.triggerBindingIds
+      ? await db.slateTriggerReceiverTrigger.findMany({
+          where: {
+            id: { in: d.triggerBindingIds },
+            receiver: { tenantOid: d.tenant.oid }
+          }
+        })
+      : undefined;
+
+    let sharedConfigs = d.sharedTriggerConfigIds
+      ? await db.slateSharedTriggerConfig.findMany({
+          where: {
+            id: { in: d.sharedTriggerConfigIds },
+            tenantOid: d.tenant.oid
+          }
+        })
+      : undefined;
+
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>
           await db.slateTriggerEvent.findMany({
             ...opts,
             where: {
-              receiver: { tenantOid: d.tenant.oid },
+              receiver: {
+                tenantOid: d.tenant.oid,
+                sharedConfigOid: sharedConfigs
+                  ? { in: sharedConfigs.map(config => config.oid) }
+                  : undefined
+              },
               receiverOid: receivers ? { in: receivers.map(r => r.oid) } : undefined,
-              receiverTriggerOid: receiverTriggers
-                ? { in: receiverTriggers.map(rt => rt.oid) }
-                : undefined,
+              receiverTriggerOid:
+                receiverTriggers || triggerBindings
+                  ? {
+                      in: [
+                        ...(receiverTriggers?.map(rt => rt.oid) ?? []),
+                        ...(triggerBindings?.map(rt => rt.oid) ?? [])
+                      ]
+                    }
+                  : undefined,
               type: d.eventTypes ? { in: d.eventTypes } : undefined
             },
             include

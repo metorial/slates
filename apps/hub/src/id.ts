@@ -36,6 +36,9 @@ export let ID = createIdGenerator({
   slateSession: idType.sorted('shses'),
 
   slateTriggerDestination: idType.sorted('shtd'),
+  slateSharedTriggerConfig: idType.sorted('shtsc'),
+  slateSharedTriggerConfigTrigger: idType.sorted('shtsct'),
+  slateSharedTriggerConfigDestination: idType.sorted('shtscd'),
   slateTriggerReceiver: idType.sorted('shtr'),
   slateTriggerReceiverTrigger: idType.sorted('shtrt'),
   slateTriggerReceiverDestination: idType.sorted('shtrd'),

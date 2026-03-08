@@ -219,15 +219,20 @@ export class SlateTriggerReceiverCore {
   }
 
   resolveTriggerDestinations(d: {
-    receiver: ReceiverTriggerWithRelations['receiver'];
+    receiverTrigger: ReceiverTriggerWithRelations;
     eventType: string;
   }) {
-    let destinations = d.receiver.destinations
+    let destinations = (
+      d.receiverTrigger.receiver.sharedConfig?.destinations ?? d.receiverTrigger.receiver.destinations
+    )
       .map(r => r.destination)
       .filter(dest => dest.status === SlateTriggerDestinationStatus.active);
     let shouldDeliver = destinations.length > 0;
 
-    if (d.receiver.eventTypes.length && !d.receiver.eventTypes.includes(d.eventType)) {
+    let eventTypes =
+      d.receiverTrigger.sharedConfigTrigger?.eventTypes ??
+      d.receiverTrigger.receiver.eventTypes;
+    if (eventTypes.length && !eventTypes.includes(d.eventType)) {
       shouldDeliver = false;
     }
 
@@ -314,7 +319,7 @@ export class SlateTriggerReceiverCore {
   }) {
     let receiver = d.receiverTrigger.receiver;
     let targets = this.resolveTriggerDestinations({
-      receiver,
+      receiverTrigger: d.receiverTrigger,
       eventType: d.event.type
     });
 

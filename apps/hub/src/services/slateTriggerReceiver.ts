@@ -36,7 +36,7 @@ class slateTriggerReceiverServiceImpl {
     this.runtime = new SlateTriggerReceiverRuntime(this.core);
   }
 
-  private normalizePollIntervalOverride(value?: number | null) {
+  normalizePollIntervalOverride(value?: number | null) {
     if (value === undefined || value === null) return value;
     if (!Number.isInteger(value) || value < 1) {
       throw new ServiceError(
@@ -96,7 +96,7 @@ class slateTriggerReceiverServiceImpl {
     return this.runtime.handleTriggerWebhook(d);
   }
 
-  private validateAuthConfig(d: {
+  validateAuthConfig(d: {
     tenant: Tenant;
     slate: Slate;
     slateInstance: SlateInstance;
@@ -205,9 +205,7 @@ class slateTriggerReceiverServiceImpl {
       specificationOid: version.specification!.oid,
       triggers: d.input.triggers.map(trigger => ({
         ...trigger,
-        pollIntervalSeconds: this.normalizePollIntervalOverride(
-          trigger.pollIntervalSeconds
-        )
+        pollIntervalSeconds: this.normalizePollIntervalOverride(trigger.pollIntervalSeconds)
       }))
     });
 
@@ -385,9 +383,7 @@ class slateTriggerReceiverServiceImpl {
         specificationOid: version.specification!.oid,
         triggers: d.input.triggers.map(trigger => ({
           ...trigger,
-          pollIntervalSeconds: this.normalizePollIntervalOverride(
-            trigger.pollIntervalSeconds
-          )
+          pollIntervalSeconds: this.normalizePollIntervalOverride(trigger.pollIntervalSeconds)
         }))
       });
 

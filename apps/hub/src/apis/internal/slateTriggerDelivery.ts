@@ -13,6 +13,7 @@ export let slateTriggerDeliveryController = app.controller({
           tenantId: v.string(),
           triggerReceiverId: v.optional(v.string()),
           triggerReceiverIds: v.optional(v.array(v.string())),
+          triggerBindingIds: v.optional(v.array(v.string())),
           triggerEventIds: v.optional(v.array(v.string())),
           destinationIds: v.optional(v.array(v.string())),
           status: v.optional(v.array(v.enumOf(['pending', 'delivered', 'failed', 'retrying'])))
@@ -49,6 +50,7 @@ export let slateTriggerDeliveryController = app.controller({
           tenantId: v.string(),
           triggerReceiverId: v.optional(v.string()),
           triggerReceiverIds: v.optional(v.array(v.string())),
+          triggerBindingIds: v.optional(v.array(v.string())),
           triggerEventIds: v.optional(v.array(v.string())),
           destinationIds: v.optional(v.array(v.string())),
           status: v.optional(v.array(v.enumOf(['failed', 'succeeded'])))

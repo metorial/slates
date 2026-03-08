@@ -26,6 +26,8 @@ export let slateTriggerEventController = app.controller({
           tenantId: v.string(),
           triggerReceiverIds: v.optional(v.array(v.string())),
           triggerReceiverTriggerIds: v.optional(v.array(v.string())),
+          triggerBindingIds: v.optional(v.array(v.string())),
+          slateSharedTriggerConfigIds: v.optional(v.array(v.string())),
           eventTypes: v.optional(v.array(v.string()))
         })
       )
@@ -35,6 +37,8 @@ export let slateTriggerEventController = app.controller({
         tenant: ctx.tenant,
         receiverIds: ctx.input.triggerReceiverIds,
         receiverTriggerIds: ctx.input.triggerReceiverTriggerIds,
+        triggerBindingIds: ctx.input.triggerBindingIds,
+        sharedTriggerConfigIds: ctx.input.slateSharedTriggerConfigIds,
         eventTypes: ctx.input.eventTypes
       });
 

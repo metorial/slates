@@ -186,7 +186,7 @@ export class SlateTriggerReceiverRuntime {
       let eventRecord = getId('slateTriggerEvent');
       let receiver = eventInput.receiverTrigger.receiver;
       let targets = this.core.resolveTriggerDestinations({
-        receiver,
+        receiverTrigger: eventInput.receiverTrigger as ReceiverTriggerWithRelations,
         eventType: mapRes.data.type
       });
 
