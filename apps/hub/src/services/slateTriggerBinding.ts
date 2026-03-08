@@ -309,6 +309,21 @@ class slateTriggerBindingServiceImpl {
     });
 
     if (
+      result.source === SlateTriggerReceiverTriggerSource.polling &&
+      result.pollIntervalSeconds == null &&
+      pollIntervalSeconds != null
+    ) {
+      result = await db.slateTriggerReceiverTrigger.update({
+        where: { oid: result.oid },
+        data: {
+          pollIntervalSeconds,
+          nextPollAt: result.nextPollAt ?? new Date()
+        },
+        include: receiverTriggerInclude
+      });
+    }
+
+    if (
       result.source === SlateTriggerReceiverTriggerSource.webhook &&
       !result.registrationDetails
     ) {

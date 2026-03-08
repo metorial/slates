@@ -91,7 +91,9 @@ describe('slateTriggerBinding E2E', () => {
     expect(listed.items).toHaveLength(1);
     expect(listed.items[0]).toMatchObject({
       id: created.id,
-      sharedTriggerConfigId: sharedConfig.id
+      sharedTriggerConfigId: sharedConfig.id,
+      sharedTriggerConfigTriggerId: sharedConfig.triggers[0]!.id,
+      externalKey: 'callback:orders:pair-1:trigger-1'
     });
   });
 });
