@@ -12,6 +12,11 @@ enum SlateTriggerReceiverStatus {
   paused
 }
 
+enum SlateSharedTriggerConfigStatus {
+  active
+  paused
+}
+
 enum SlateTriggerReceiverTriggerSource {
   polling
   webhook
@@ -64,8 +69,70 @@ model SlateTriggerDestination {
 
   receivers  SlateTriggerReceiverDestination[]
   deliveries SlateTriggerDelivery[]
+  sharedConfigs SlateSharedTriggerConfigDestination[]
 
   @@index([tenantOid, status])
+}
+
+model SlateSharedTriggerConfig {
+  oid BigInt @id
+  id  String @unique
+
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid], onDelete: Cascade)
+
+  slateOid BigInt
+  slate    Slate  @relation(fields: [slateOid], references: [oid], onDelete: Cascade)
+
+  status SlateSharedTriggerConfigStatus @default(active)
+
+  name        String?
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  destinations SlateSharedTriggerConfigDestination[]
+  triggers     SlateSharedTriggerConfigTrigger[]
+  bindings     SlateTriggerReceiver[]
+
+  @@index([tenantOid, slateOid, status])
+}
+
+model SlateSharedTriggerConfigDestination {
+  oid BigInt @id
+
+  sharedConfigOid BigInt
+  sharedConfig    SlateSharedTriggerConfig @relation(fields: [sharedConfigOid], references: [oid], onDelete: Cascade)
+
+  destinationOid BigInt
+  destination    SlateTriggerDestination @relation(fields: [destinationOid], references: [oid], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([sharedConfigOid, destinationOid])
+}
+
+model SlateSharedTriggerConfigTrigger {
+  oid BigInt @id
+  id  String @unique
+
+  sharedConfigOid BigInt
+  sharedConfig    SlateSharedTriggerConfig @relation(fields: [sharedConfigOid], references: [oid], onDelete: Cascade)
+
+  actionOid BigInt
+  action    SlateAction @relation(fields: [actionOid], references: [oid])
+
+  eventTypes                  String[]
+  pollIntervalSecondsOverride Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  bindings SlateTriggerReceiverTrigger[]
+
+  @@unique([sharedConfigOid, actionOid])
+  @@index([sharedConfigOid])
 }
 
 model SlateTriggerReceiver {
@@ -84,6 +151,9 @@ model SlateTriggerReceiver {
   authConfigOid BigInt?
   authConfig    SlateAuthConfig? @relation(fields: [authConfigOid], references: [oid], onDelete: SetNull)
 
+  sharedConfigOid BigInt?
+  sharedConfig    SlateSharedTriggerConfig? @relation(fields: [sharedConfigOid], references: [oid], onDelete: SetNull)
+
   status SlateTriggerReceiverStatus @default(active)
 
   name        String?
@@ -91,6 +161,7 @@ model SlateTriggerReceiver {
   eventTypes  String[]
   consecutivePollingFailures Int @default(0)
   consecutiveEventFailures   Int @default(0)
+  externalKey String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -103,6 +174,8 @@ model SlateTriggerReceiver {
 
   @@index([tenantOid, slateInstanceOid])
   @@index([tenantOid, slateOid])
+  @@index([sharedConfigOid])
+  @@unique([tenantOid, externalKey])
 }
 
 model SlateTriggerReceiverDestination {
@@ -129,6 +202,9 @@ model SlateTriggerReceiverTrigger {
   actionOid BigInt
   action    SlateAction @relation(fields: [actionOid], references: [oid])
 
+  sharedConfigTriggerOid BigInt?
+  sharedConfigTrigger    SlateSharedTriggerConfigTrigger? @relation(fields: [sharedConfigTriggerOid], references: [oid], onDelete: SetNull)
+
   source SlateTriggerReceiverTriggerSource
 
   pollIntervalSeconds Int?
@@ -147,6 +223,7 @@ model SlateTriggerReceiverTrigger {
 
   @@unique([receiverOid, actionOid])
   @@index([source, nextPollAt])
+  @@index([sharedConfigTriggerOid])
 }
 
 model SlateTriggerInvocation {

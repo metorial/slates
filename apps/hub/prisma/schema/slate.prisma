@@ -41,6 +41,7 @@ model Slate {
   slateInstanceOAuthSetups  SlateInstanceOAuthSetup[]
   slateAuthConfigs          SlateAuthConfig[]
   slateSessions             SlateSession[]
+  slateSharedTriggerConfigs SlateSharedTriggerConfig[]
   slateTriggerReceivers     SlateTriggerReceiver[]
   slateTriggerEvents        SlateTriggerEvent[]
   slateTriggerEventInputs   SlateTriggerEventInput[]
@@ -225,6 +226,7 @@ model SlateAction {
 
   slateSpecifications          SlateSpecificationAction[]
   slateSessionToolCalls        SlateSessionToolCall[]
+  slateSharedTriggerConfigTriggers SlateSharedTriggerConfigTrigger[]
   slateTriggerReceiverTriggers SlateTriggerReceiverTrigger[]
   slateTriggerEvents           SlateTriggerEvent[]
   slateTriggerEventInputs      SlateTriggerEventInput[]

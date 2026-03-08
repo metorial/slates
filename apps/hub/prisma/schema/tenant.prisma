@@ -19,5 +19,6 @@ model Tenant {
   slateInstanceEvents      SlateInstanceEvent[]
   slateSessions            SlateSession[]
   slateTriggerDestinations SlateTriggerDestination[]
+  slateSharedTriggerConfigs SlateSharedTriggerConfig[]
   slateTriggerReceivers    SlateTriggerReceiver[]
 }
