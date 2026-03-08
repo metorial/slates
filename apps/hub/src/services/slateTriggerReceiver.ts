@@ -25,7 +25,7 @@ import {
 
 let Sentry = getSentry();
 
-const MIN_POLL_INTERVAL_SECONDS = 10 * 60;
+export const MIN_POLL_INTERVAL_SECONDS = 10 * 60;
 
 class slateTriggerReceiverServiceImpl {
   private readonly core: SlateTriggerReceiverCore;

@@ -14,10 +14,11 @@ import {
   slateTriggerWebhookUnregisterQueue
 } from '../queues/trigger/eventQueues';
 import { slateSessionService } from './slateSession';
-import { slateTriggerReceiverService } from './slateTriggerReceiver';
+import {
+  MIN_POLL_INTERVAL_SECONDS,
+  slateTriggerReceiverService
+} from './slateTriggerReceiver';
 import { getTriggerSpec, receiverTriggerInclude } from './slateTriggerReceiverShared';
-
-const MIN_POLL_INTERVAL_SECONDS = 10 * 60;
 
 let bindingInclude = {
   action: true,
@@ -183,8 +184,7 @@ class slateTriggerBindingServiceImpl {
       pollIntervalSeconds = Math.max(
         slateTriggerReceiverService.normalizePollIntervalOverride(
           configTrigger.pollIntervalSecondsOverride
-        ) ??
-          spec.invocation.intervalSeconds,
+        ) ?? spec.invocation.intervalSeconds,
         MIN_POLL_INTERVAL_SECONDS
       );
     }
