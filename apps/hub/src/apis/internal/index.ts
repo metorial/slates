@@ -22,7 +22,6 @@ import { slateTriggerBindingController } from './slateTriggerBinding';
 import { slateTriggerDestinationController } from './slateTriggerDestination';
 import { slateTriggerEventController } from './slateTriggerEvent';
 import { slateTriggerInvocationController } from './slateTriggerInvocation';
-import { slateTriggerReceiverController } from './slateTriggerReceiver';
 import { slateVersionController } from './slateVersion';
 import { slateVersionDiscoveryController } from './slateVersionDiscovery';
 import { slateSpecificationChangeController } from './slateSpecificationChange';
@@ -53,7 +52,6 @@ export let rootController = app.controller({
 
   slateTriggerBinding: slateTriggerBindingController,
   slateTriggerDestination: slateTriggerDestinationController,
-  slateTriggerReceiver: slateTriggerReceiverController,
   slateTriggerEvent: slateTriggerEventController,
   slateTriggerInvocation: slateTriggerInvocationController,
   slateTriggerDelivery: slateTriggerDeliveryController,

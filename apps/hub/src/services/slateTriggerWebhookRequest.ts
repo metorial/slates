@@ -7,21 +7,21 @@ import { slateTriggerWebhookQueue } from '../queues/trigger/webhook';
 
 class slateTriggerWebhookRequestServiceImpl {
   async createWebhookRequest(d: {
-    receiverTriggerId: string;
+    triggerBindingId: string;
     request: TriggerWebhookRequestPayload;
   }) {
-    let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
-      where: { id: d.receiverTriggerId },
+    let binding = await db.slateTriggerReceiverTrigger.findFirst({
+      where: { id: d.triggerBindingId },
       select: { id: true }
     });
-    if (!receiverTrigger) {
-      throw new ServiceError(notFoundError('slate.trigger.receiver_trigger'));
+    if (!binding) {
+      throw new ServiceError(notFoundError('slate.trigger.binding'));
     }
 
     let record = await db.slateTriggerWebhookRequest.create({
       data: {
         ...getId('slateTriggerWebhookRequest'),
-        receiverTriggerId: d.receiverTriggerId,
+        receiverTriggerId: d.triggerBindingId,
         url: d.request.url,
         method: d.request.method,
         headers: d.request.headers,

@@ -25,8 +25,6 @@ export let slateTriggerInvocationController = app.controller({
       Paginator.validate(
         v.object({
           tenantId: v.string(),
-          triggerReceiverIds: v.optional(v.array(v.string())),
-          triggerReceiverTriggerIds: v.optional(v.array(v.string())),
           triggerBindingIds: v.optional(v.array(v.string())),
           slateSharedTriggerConfigIds: v.optional(v.array(v.string())),
           types: v.optional(
@@ -46,8 +44,6 @@ export let slateTriggerInvocationController = app.controller({
     .do(async ctx => {
       let paginator = await slateTriggerInvocationService.listTriggerInvocations({
         tenant: ctx.tenant,
-        receiverIds: ctx.input.triggerReceiverIds,
-        receiverTriggerIds: ctx.input.triggerReceiverTriggerIds,
         triggerBindingIds: ctx.input.triggerBindingIds,
         sharedTriggerConfigIds: ctx.input.slateSharedTriggerConfigIds,
         types: ctx.input.types

@@ -74,9 +74,9 @@ export let hubApp = createHono()
 
     return c.redirect(res.redirectUrl);
   })
-  .post('/slates-hub/triggers/webhook/:receiverTriggerId/:key*?', async c => {
-    let receiverTriggerId = c.req.param('receiverTriggerId');
-    if (!receiverTriggerId) return c.text('Missing trigger receiver ID', 400);
+  .post('/slates-hub/triggers/webhook/:triggerBindingId/:key*?', async c => {
+    let triggerBindingId = c.req.param('triggerBindingId');
+    if (!triggerBindingId) return c.text('Missing trigger binding ID', 400);
 
     let headers = Object.fromEntries(c.req.raw.headers.entries());
     let bodyBuffer = await c.req.arrayBuffer();
@@ -89,7 +89,7 @@ export let hubApp = createHono()
         : null;
 
     let requestRecord = await slateTriggerWebhookRequestService.createWebhookRequest({
-      receiverTriggerId,
+      triggerBindingId,
       request: {
         url: c.req.url,
         method: c.req.method,

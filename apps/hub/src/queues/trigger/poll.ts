@@ -4,7 +4,7 @@ import { createQueue, QueueRetryError } from '@lowerdeck/queue';
 import { getSentry } from '@lowerdeck/sentry';
 import { db } from '../../db';
 import { env } from '../../env';
-import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
+import { slateTriggerBindingService } from '../../services/slateTriggerBinding';
 
 let Sentry = getSentry();
 
@@ -42,9 +42,7 @@ export let slateTriggerPollingBatchQueueProcessor = slateTriggerPollingBatchQueu
       });
       if (triggers.length === 0) return;
 
-      await slateTriggerPollQueue.addMany(
-        triggers.map(trigger => ({ receiverTriggerId: trigger.id }))
-      );
+      await slateTriggerPollQueue.addMany(triggers.map(trigger => ({ triggerBindingId: trigger.id })));
 
       await slateTriggerPollingBatchQueue.add({
         cursor: triggers[triggers.length - 1]!.id
@@ -57,7 +55,7 @@ export let slateTriggerPollingBatchQueueProcessor = slateTriggerPollingBatchQueu
   }
 );
 
-let slateTriggerPollQueue = createQueue<{ receiverTriggerId: string }>({
+let slateTriggerPollQueue = createQueue<{ triggerBindingId: string }>({
   name: 'shub/trg/poll',
   redisUrl: env.service.REDIS_URL,
   workerOpts: {
@@ -76,23 +74,23 @@ let pollLock = createLock({
 
 export let slateTriggerPollQueueProcessor = slateTriggerPollQueue.process(async data => {
   try {
-    let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
-      where: { id: data.receiverTriggerId },
+    let binding = await db.slateTriggerReceiverTrigger.findFirst({
+      where: { id: data.triggerBindingId },
       select: { id: true }
     });
-    if (!receiverTrigger) return;
+    if (!binding) return;
 
-    return pollLock.usingLock(receiverTrigger.id, async () => {
-      await slateTriggerReceiverService.pollTriggerReceiverTrigger({
-        receiverTriggerId: receiverTrigger.id
+    return pollLock.usingLock(binding.id, async () => {
+      await slateTriggerBindingService.pollTriggerBinding({
+        triggerBindingId: binding.id
       });
     });
   } catch (error) {
     Sentry.captureException(error, {
-      extra: { receiverTriggerId: data.receiverTriggerId }
+      extra: { triggerBindingId: data.triggerBindingId }
     });
-    console.error('Failed to poll trigger receiver:', {
-      receiverTriggerId: data.receiverTriggerId,
+    console.error('Failed to poll trigger binding:', {
+      triggerBindingId: data.triggerBindingId,
       error
     });
     throw new QueueRetryError();

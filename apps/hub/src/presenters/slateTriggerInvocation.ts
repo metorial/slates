@@ -28,8 +28,6 @@ export let slateTriggerInvocationPresenter = async (
   id: invocation.id,
   type: invocation.type,
 
-  triggerReceiverId: invocation.receiver.id,
-  triggerReceiverTriggerId: invocation.receiverTrigger?.id ?? null,
   triggerBindingId: invocation.receiverTrigger?.id ?? null,
   sharedTriggerConfigId: invocation.receiver.sharedConfig?.id ?? null,
   sharedTriggerConfigTriggerId: invocation.receiverTrigger?.sharedConfigTrigger?.id ?? null,

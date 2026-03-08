@@ -33,6 +33,44 @@ let bindingInclude = {
 };
 
 class slateTriggerBindingServiceImpl {
+  async processTriggerEventInput(
+    d: Parameters<typeof slateTriggerReceiverService.processTriggerEventInput>[0]
+  ) {
+    return await slateTriggerReceiverService.processTriggerEventInput(d);
+  }
+
+  async sendTriggerEvent(d: Parameters<typeof slateTriggerReceiverService.sendTriggerEvent>[0]) {
+    return await slateTriggerReceiverService.sendTriggerEvent(d);
+  }
+
+  async pollTriggerBinding(d: { triggerBindingId: string }) {
+    return await slateTriggerReceiverService.pollTriggerReceiverTrigger({
+      receiverTriggerId: d.triggerBindingId
+    });
+  }
+
+  async handleTriggerWebhook(d: {
+    triggerBindingId: string;
+    request: Parameters<typeof slateTriggerReceiverService.handleTriggerWebhook>[0]['request'];
+  }) {
+    return await slateTriggerReceiverService.handleTriggerWebhook({
+      receiverTriggerId: d.triggerBindingId,
+      request: d.request
+    });
+  }
+
+  async registerWebhookForTriggerBinding(d: { triggerBindingId: string }) {
+    return await slateTriggerReceiverService.registerWebhookForReceiverTriggerId({
+      receiverTriggerId: d.triggerBindingId
+    });
+  }
+
+  async unregisterWebhookForTriggerBinding(d: { triggerBindingId: string }) {
+    return await slateTriggerReceiverService.unregisterWebhookForReceiverTriggerId({
+      receiverTriggerId: d.triggerBindingId
+    });
+  }
+
   async getTriggerBindingById(d: { tenant: Tenant; id: string }) {
     let binding = await db.slateTriggerReceiverTrigger.findFirst({
       where: {

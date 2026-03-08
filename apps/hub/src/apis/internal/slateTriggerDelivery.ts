@@ -11,8 +11,6 @@ export let slateTriggerDeliveryController = app.controller({
       Paginator.validate(
         v.object({
           tenantId: v.string(),
-          triggerReceiverId: v.optional(v.string()),
-          triggerReceiverIds: v.optional(v.array(v.string())),
           triggerBindingIds: v.optional(v.array(v.string())),
           triggerEventIds: v.optional(v.array(v.string())),
           destinationIds: v.optional(v.array(v.string())),
@@ -48,8 +46,6 @@ export let slateTriggerDeliveryController = app.controller({
       Paginator.validate(
         v.object({
           tenantId: v.string(),
-          triggerReceiverId: v.optional(v.string()),
-          triggerReceiverIds: v.optional(v.array(v.string())),
           triggerBindingIds: v.optional(v.array(v.string())),
           triggerEventIds: v.optional(v.array(v.string())),
           destinationIds: v.optional(v.array(v.string())),

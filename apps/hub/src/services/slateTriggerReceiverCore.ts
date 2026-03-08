@@ -247,6 +247,7 @@ export class SlateTriggerReceiverCore {
 
   async createSignalEvent(d: {
     receiver: ReceiverTriggerWithRelations['receiver'];
+    triggerBindingId: string;
     action: SlateAction;
     event: {
       id: string;
@@ -270,7 +271,7 @@ export class SlateTriggerReceiverCore {
 
       slateId: d.receiver.slate.id,
       slateInstanceId: d.receiver.slateInstance.id,
-      triggerReceiverId: d.receiver.id,
+      triggerBindingId: d.triggerBindingId,
       triggerId: d.action.id,
       triggerKey: d.action.key,
 
@@ -336,6 +337,7 @@ export class SlateTriggerReceiverCore {
     if (!signalEventId) {
       signalEventId = await this.createSignalEvent({
         receiver,
+        triggerBindingId: d.receiverTrigger.id,
         action: d.action,
         event: {
           id: d.event.id,

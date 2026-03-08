@@ -192,6 +192,7 @@ export class SlateTriggerReceiverRuntime {
 
       let signalEventId = await this.core.createSignalEvent({
         receiver,
+        triggerBindingId: eventInput.receiverTrigger.id,
         action: context.action,
         event: {
           id: eventRecord.id,

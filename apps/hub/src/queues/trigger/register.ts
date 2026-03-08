@@ -1,7 +1,7 @@
 import { QueueRetryError } from '@lowerdeck/queue';
 import { getSentry } from '@lowerdeck/sentry';
 import { db } from '../../db';
-import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
+import { slateTriggerBindingService } from '../../services/slateTriggerBinding';
 import {
   slateTriggerWebhookRegisterQueue,
   slateTriggerWebhookUnregisterQueue
@@ -18,8 +18,8 @@ export let slateTriggerWebhookRegisterQueueProcessor =
     if (!receiverTrigger) return;
 
     try {
-      await slateTriggerReceiverService.registerWebhookForReceiverTriggerId({
-        receiverTriggerId: receiverTrigger.id
+      await slateTriggerBindingService.registerWebhookForTriggerBinding({
+        triggerBindingId: receiverTrigger.id
       });
     } catch (error) {
       Sentry.captureException(error, {
@@ -39,8 +39,8 @@ export let slateTriggerWebhookUnregisterQueueProcessor =
     if (!receiverTrigger) return;
 
     try {
-      await slateTriggerReceiverService.unregisterWebhookForReceiverTriggerId({
-        receiverTriggerId: receiverTrigger.id
+      await slateTriggerBindingService.unregisterWebhookForTriggerBinding({
+        triggerBindingId: receiverTrigger.id
       });
     } catch (error) {
       Sentry.captureException(error, {

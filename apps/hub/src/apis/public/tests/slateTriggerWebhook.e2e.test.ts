@@ -929,6 +929,6 @@ describe('slate:trigger webhook E2E', () => {
     expect(queueMocks.sendAdd).not.toHaveBeenCalled();
 
     const payload = JSON.parse(signalState.events[0]!.payloadJson);
-    expect(payload.triggerReceiverId).toBe(receiver.id);
+    expect(payload.triggerBindingId).toBe(receiverTrigger.id);
   });
 });

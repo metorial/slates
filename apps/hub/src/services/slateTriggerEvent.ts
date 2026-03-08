@@ -34,27 +34,10 @@ class slateTriggerEventServiceImpl {
 
   async listTriggerEvents(d: {
     tenant: Tenant;
-    receiverIds?: string[];
-    receiverTriggerIds?: string[];
     sharedTriggerConfigIds?: string[];
     triggerBindingIds?: string[];
     eventTypes?: string[];
   }) {
-    let receivers = d.receiverIds
-      ? await db.slateTriggerReceiver.findMany({
-          where: { id: { in: d.receiverIds }, tenantOid: d.tenant.oid }
-        })
-      : undefined;
-
-    let receiverTriggers = d.receiverTriggerIds
-      ? await db.slateTriggerReceiverTrigger.findMany({
-          where: {
-            id: { in: d.receiverTriggerIds },
-            receiver: { tenantOid: d.tenant.oid }
-          }
-        })
-      : undefined;
-
     let triggerBindings = d.triggerBindingIds
       ? await db.slateTriggerReceiverTrigger.findMany({
           where: {
@@ -85,16 +68,9 @@ class slateTriggerEventServiceImpl {
                   ? { in: sharedConfigs.map(config => config.oid) }
                   : undefined
               },
-              receiverOid: receivers ? { in: receivers.map(r => r.oid) } : undefined,
-              receiverTriggerOid:
-                receiverTriggers || triggerBindings
-                  ? {
-                      in: [
-                        ...(receiverTriggers?.map(rt => rt.oid) ?? []),
-                        ...(triggerBindings?.map(rt => rt.oid) ?? [])
-                      ]
-                    }
-                  : undefined,
+              receiverTriggerOid: triggerBindings
+                ? { in: triggerBindings.map(binding => binding.oid) }
+                : undefined,
               type: d.eventTypes ? { in: d.eventTypes } : undefined
             },
             include

@@ -26,8 +26,6 @@ export let slateTriggerEventPresenter = (
   type: event.type,
   sourceId: event.sourceId,
 
-  triggerReceiverId: event.receiver.id,
-  triggerReceiverTriggerId: event.receiverTrigger.id,
   triggerBindingId: event.receiverTrigger.id,
   sharedTriggerConfigId: event.receiver.sharedConfig?.id ?? null,
   sharedTriggerConfigTriggerId: event.receiverTrigger.sharedConfigTrigger?.id ?? null,

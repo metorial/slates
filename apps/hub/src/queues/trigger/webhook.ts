@@ -7,7 +7,7 @@ import {
   getTriggerWebhookRequestStorageKey,
   type TriggerWebhookRequestPayload
 } from '../../lib/triggerWebhook';
-import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
+import { slateTriggerBindingService } from '../../services/slateTriggerBinding';
 import { invocationsBucketRecord, storage } from '../../storage';
 
 let Sentry = getSentry();
@@ -38,7 +38,7 @@ type TriggerWebhookBody = TriggerWebhookRequestPayload['body'];
 let finalizeWebhookRequest = async (d: {
   request: {
     id: string;
-    receiverTriggerId: string;
+    triggerBindingId: string;
     url: string;
     method: string;
     headers: Record<string, string>;
@@ -51,12 +51,12 @@ let finalizeWebhookRequest = async (d: {
     await storage.putObject(
       invocationsBucketRecord.bucket,
       d.bodyStorageKey,
-      JSON.stringify({
-        id: d.request.id,
-        receiverTriggerId: d.request.receiverTriggerId,
-        url: d.request.url,
-        method: d.request.method,
-        headers: d.request.headers,
+        JSON.stringify({
+          id: d.request.id,
+          triggerBindingId: d.request.triggerBindingId,
+          url: d.request.url,
+          method: d.request.method,
+          headers: d.request.headers,
         body: d.body,
         createdAt: d.request.createdAt
       })
@@ -84,15 +84,15 @@ export let slateTriggerWebhookQueueProcessor = slateTriggerWebhookQueue.process(
     let body = request.body as TriggerWebhookBody;
     let bodyStorageKey = body ? getTriggerWebhookRequestStorageKey(request.id) : null;
 
-    let receiverTrigger = await db.slateTriggerReceiverTrigger.findFirst({
+    let binding = await db.slateTriggerReceiverTrigger.findFirst({
       where: { id: request.receiverTriggerId },
       select: { id: true }
     });
-    if (!receiverTrigger) {
+    if (!binding) {
       await finalizeWebhookRequest({
         request: {
           id: request.id,
-          receiverTriggerId: request.receiverTriggerId,
+          triggerBindingId: request.receiverTriggerId,
           url: request.url,
           method: request.method,
           headers,
@@ -104,9 +104,9 @@ export let slateTriggerWebhookQueueProcessor = slateTriggerWebhookQueue.process(
       return;
     }
 
-    return webhookLock.usingLock(receiverTrigger.id, async () => {
-      await slateTriggerReceiverService.handleTriggerWebhook({
-        receiverTriggerId: receiverTrigger.id,
+    return webhookLock.usingLock(binding.id, async () => {
+      await slateTriggerBindingService.handleTriggerWebhook({
+        triggerBindingId: binding.id,
         request: {
           url: request.url,
           method: request.method,
@@ -118,7 +118,7 @@ export let slateTriggerWebhookQueueProcessor = slateTriggerWebhookQueue.process(
       await finalizeWebhookRequest({
         request: {
           id: request.id,
-          receiverTriggerId: request.receiverTriggerId,
+          triggerBindingId: request.receiverTriggerId,
           url: request.url,
           method: request.method,
           headers,

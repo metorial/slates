@@ -1,7 +1,7 @@
 import { QueueRetryError } from '@lowerdeck/queue';
 import { getSentry } from '@lowerdeck/sentry';
 import { db } from '../../db';
-import { slateTriggerReceiverService } from '../../services/slateTriggerReceiver';
+import { slateTriggerBindingService } from '../../services/slateTriggerBinding';
 import { slateTriggerEventSendQueue } from './eventQueues';
 
 let Sentry = getSentry();
@@ -15,7 +15,7 @@ export let slateTriggerEventSendQueueProcessor = slateTriggerEventSendQueue.proc
     if (!event) return;
 
     try {
-      await slateTriggerReceiverService.sendTriggerEvent({ eventId: event.id });
+      await slateTriggerBindingService.sendTriggerEvent({ eventId: event.id });
     } catch (error) {
       Sentry.captureException(error, {
         extra: { eventId: data.eventId }

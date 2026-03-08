@@ -4,8 +4,6 @@ import { db } from '../db';
 import { getTenantAndSenderForSignal, signal } from '../signal';
 
 type DeliveryListInput = {
-  triggerReceiverId?: string;
-  triggerReceiverIds?: string[];
   triggerBindingIds?: string[];
   triggerEventIds?: string[];
   destinationIds?: string[];
@@ -18,8 +16,6 @@ type DeliveryListInput = {
 };
 
 type DeliveryAttemptListInput = {
-  triggerReceiverId?: string;
-  triggerReceiverIds?: string[];
   triggerBindingIds?: string[];
   triggerEventIds?: string[];
   destinationIds?: string[];
@@ -35,8 +31,6 @@ class slateTriggerDeliveryServiceImpl {
   private async resolveSignalEventIds(d: {
     tenant: Tenant;
     triggerEventIds?: string[];
-    triggerReceiverId?: string;
-    triggerReceiverIds?: string[];
     triggerBindingIds?: string[];
   }) {
     if (d.triggerEventIds?.length) {
@@ -45,30 +39,6 @@ class slateTriggerDeliveryServiceImpl {
           id: { in: d.triggerEventIds },
           receiver: { tenantOid: d.tenant.oid }
         },
-        select: { signalEventId: true }
-      });
-
-      return events
-        .map(event => event.signalEventId)
-        .filter((id): id is string => id !== null);
-    }
-
-    if (d.triggerReceiverIds?.length) {
-      let receivers = await db.slateTriggerReceiver.findMany({
-        where: {
-          id: { in: d.triggerReceiverIds },
-          tenantOid: d.tenant.oid
-        },
-        select: { oid: true }
-      });
-      if (!receivers.length) return [];
-
-      let events = await db.slateTriggerEvent.findMany({
-        where: {
-          receiverOid: { in: receivers.map(receiver => receiver.oid) }
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 500,
         select: { signalEventId: true }
       });
 
@@ -93,26 +63,6 @@ class slateTriggerDeliveryServiceImpl {
         },
         orderBy: { createdAt: 'desc' },
         take: 500,
-        select: { signalEventId: true }
-      });
-
-      return events
-        .map(event => event.signalEventId)
-        .filter((id): id is string => id !== null);
-    }
-
-    if (d.triggerReceiverId) {
-      let receiver = await db.slateTriggerReceiver.findFirst({
-        where: { id: d.triggerReceiverId, tenantOid: d.tenant.oid }
-      });
-      if (!receiver) return [];
-
-      let events = await db.slateTriggerEvent.findMany({
-        where: {
-          receiverOid: receiver.oid
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 200,
         select: { signalEventId: true }
       });
 
@@ -146,8 +96,6 @@ class slateTriggerDeliveryServiceImpl {
     let eventIds = await this.resolveSignalEventIds({
       tenant: d.tenant,
       triggerEventIds: d.input.triggerEventIds,
-      triggerReceiverId: d.input.triggerReceiverId,
-      triggerReceiverIds: d.input.triggerReceiverIds,
       triggerBindingIds: d.input.triggerBindingIds
     });
 
@@ -184,8 +132,6 @@ class slateTriggerDeliveryServiceImpl {
     let eventIds = await this.resolveSignalEventIds({
       tenant: d.tenant,
       triggerEventIds: d.input.triggerEventIds,
-      triggerReceiverId: d.input.triggerReceiverId,
-      triggerReceiverIds: d.input.triggerReceiverIds,
       triggerBindingIds: d.input.triggerBindingIds
     });
 

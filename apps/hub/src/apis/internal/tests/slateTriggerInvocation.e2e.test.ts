@@ -38,14 +38,14 @@ describe('slateTriggerInvocation:list E2E', () => {
     });
   });
 
-  it('filters by triggerReceiverIds', async () => {
-    const { triggerInvocation: inv1, tenant, receiver: receiver1 } =
+  it('filters by triggerBindingIds', async () => {
+    const { triggerInvocation: inv1, tenant, receiverTrigger: binding1 } =
       await f.slateTriggerInvocation.complete();
     await f.slateTriggerInvocation.complete();
 
     const result = await slatesHubClient.slateTriggerInvocation.list({
       tenantId: tenant.id,
-      triggerReceiverIds: [receiver1.id],
+      triggerBindingIds: [binding1.id],
       limit: 10
     });
 
