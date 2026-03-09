@@ -62,5 +62,22 @@ export let slateTriggerInvocationController = app.controller({
         slateTriggerInvocationId: v.string()
       })
     )
-    .do(async ctx => slateTriggerInvocationPresenter(ctx.invocation))
+    .do(async ctx => slateTriggerInvocationPresenter(ctx.invocation)),
+
+  getMany: tenantApp
+    .handler()
+    .input(
+      v.object({
+        tenantId: v.string(),
+        slateTriggerInvocationIds: v.array(v.string())
+      })
+    )
+    .do(async ctx => {
+      let invocations = await slateTriggerInvocationService.getManyTriggerInvocationsById({
+        tenant: ctx.tenant,
+        ids: ctx.input.slateTriggerInvocationIds
+      });
+
+      return Promise.all(invocations.map(slateTriggerInvocationPresenter));
+    })
 });
