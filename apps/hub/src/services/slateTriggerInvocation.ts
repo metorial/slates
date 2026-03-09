@@ -24,6 +24,16 @@ class slateTriggerInvocationServiceImpl {
     return invocation;
   }
 
+  async getManyTriggerInvocationsById(d: { tenant: Tenant; ids: string[] }) {
+    return await db.slateTriggerInvocation.findMany({
+      where: {
+        id: { in: d.ids },
+        receiver: { tenantOid: d.tenant.oid }
+      },
+      include
+    });
+  }
+
   async listTriggerInvocations(d: {
     tenant: Tenant;
     receiverIds?: string[];
