@@ -133,7 +133,7 @@ export let deploySlateVersionStartQueueProcessor = deploySlateVersionStartQueue.
       });
       if ((zipRes.status as any) !== 200)
         throw new Error(
-          `Failed to download slate version zip - status ${zipRes.status} - ${await zipRes.text()}`
+          `Failed to download slate version zip - status ${zipRes.status} - ${await zipRes.text()} - ${slate.slateScopeIdentifierOnRegistry} - ${slate.slateIdentifierOnRegistry} - ${version.version}`
         );
       let zipBuffer = await zipRes.arrayBuffer();
 

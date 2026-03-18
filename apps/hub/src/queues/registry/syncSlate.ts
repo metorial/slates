@@ -42,7 +42,7 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
     });
     if (slateRes.status !== 200)
       throw new Error(
-        `Failed to fetch slate - status ${slateRes.status} - ${await slateRes.text()}`
+        `Failed to fetch slate - status ${slateRes.status} - ${await slateRes.text()} - ${scopeId} - ${slateId}`
       );
 
     let slateData = await slateRes.json();
@@ -90,7 +90,7 @@ export let syncSlateQueueProcessor = syncSlateQueue.process(data =>
       });
       if (slateVersionRes.status !== 200)
         throw new Error(
-          `Failed to fetch slate - status ${slateRes.status} - ${await slateRes.text()}`
+          `Failed to fetch slate - status ${slateRes.status} - ${await slateRes.text()} - ${scopeId} - ${slateId} - ${data.version}`
         );
 
       let slateVersionData = await slateVersionRes.json();
