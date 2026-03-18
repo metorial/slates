@@ -63,8 +63,10 @@ export let slatesController = createHono()
       let slateVersion = await slateVersionService.publishSlateVersion({
         user: auth.user,
         input: {
-          scopeIdentifier: c.req.param('scopeId'),
-          slateIdentifier: c.req.param('slateId'),
+          identifier: {
+            scopeIdentifier: c.req.param('scopeId'),
+            slateIdentifier: c.req.param('slateId')
+          },
 
           versionOverride: body.version,
 

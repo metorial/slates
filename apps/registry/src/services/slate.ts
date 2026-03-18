@@ -21,13 +21,20 @@ class slateServiceImpl {
   }) {
     let filterClause = buildSlateFilterClause(d.subRegistry, d.tenant?.oid);
 
+    let normalizedId = d.id.startsWith('@') ? d.id.slice(1) : d.id;
+
     let slate = await db.slate.findFirst({
       where: {
         status: 'active',
 
         AND: [
           {
-            OR: [{ id: d.id }, { fullIdentifier: d.id }]
+            OR: [
+              { id: normalizedId },
+              { fullIdentifier: normalizedId },
+              { id: `@${normalizedId}` },
+              { fullIdentifier: `@${normalizedId}` }
+            ]
           },
           filterClause
         ]
