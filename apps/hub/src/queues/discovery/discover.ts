@@ -201,7 +201,8 @@ export let discoverSlateQueueProcessor = discoverSlateQueue.process(async data =
             canonicalize({
               id: method.id,
               type: method.type,
-              output: method.outputSchema
+              output: method.outputSchema,
+              scopes: method.scopes
             })
           );
           let identifier = `${identifierBase}::auth_method::${method.id}::${hash}`;
